@@ -1,10 +1,10 @@
-/* Dias sem Doença — contador offline para Di e Tati.
+/* Dias sem Doença — contador offline para Di e Tati (+ contagem do casal).
    Tudo fica salvo localmente (localStorage), funciona sem internet. */
 
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "ddsd_v1";
+  var STORAGE_KEY = "ddsd_v2";
   var DAY = 86400000;
 
   // ---------- estado ----------
@@ -17,18 +17,21 @@
         streakStart: now,      // início da sequência saudável atual
         illness: null,         // { name, note, startedAt }
         records: [],           // histórico de doenças já recuperadas
-        best: 0                // melhor sequência em dias
+        best: 0                // melhor sequência individual em dias
       };
     }
-    return { people: { di: person("Di"), tati: person("Tati") } };
+    return { people: { di: person("Di"), tati: person("Tati") }, coupleBest: 0 };
   }
 
   function load() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
+      // migra da versão anterior, se existir
+      if (!raw) { raw = localStorage.getItem("ddsd_v1"); }
       if (!raw) return defaultState();
       var s = JSON.parse(raw);
       if (!s || !s.people || !s.people.di || !s.people.tati) return defaultState();
+      if (typeof s.coupleBest !== "number") s.coupleBest = 0;
       return s;
     } catch (e) {
       return defaultState();
@@ -42,21 +45,13 @@
   var state = load();
 
   // ---------- datas ----------
-  function startOfDay(ts) {
-    var d = new Date(ts);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-  }
-  // dias completos entre dois instantes, contando por dia de calendário
+  function startOfDay(ts) { var d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); }
   function daysBetween(fromTs, toTs) {
-    var diff = startOfDay(toTs) - startOfDay(fromTs);
-    return Math.max(0, Math.floor(diff / DAY));
+    return Math.max(0, Math.floor((startOfDay(toTs) - startOfDay(fromTs)) / DAY));
   }
   function fmtDate(ts) {
     return new Date(ts).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
   }
-  function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
-  // valor de <input type=date> -> timestamp (meio-dia local, evita fuso)
   function dateInputToTs(value) {
     if (!value) return Date.now();
     var p = value.split("-");
@@ -64,92 +59,91 @@
   }
   function tsToDateInput(ts) {
     var d = new Date(ts);
-    var m = ("0" + (d.getMonth() + 1)).slice(-2);
-    var day = ("0" + d.getDate()).slice(-2);
-    return d.getFullYear() + "-" + m + "-" + day;
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
   }
-
-  // ---------- render ----------
-  var cardsEl = document.getElementById("cards");
-
-  function render() {
-    var now = Date.now();
-    var ids = Object.keys(state.people);
-    var html = ids.map(function (id) {
-      var p = state.people[id];
-      if (p.status === "healthy") {
-        var d = daysBetween(p.streakStart, now);
-        if (d > (p.best || 0)) { p.best = d; }
-        return healthyCard(id, p, d);
-      }
-      return sickCard(id, p, now);
-    }).join("");
-    cardsEl.innerHTML = html;
-    save();
-  }
-
-  function historyHtml(p) {
-    if (!p.records || !p.records.length) {
-      return '<ul class="log"><li class="empty">Nenhuma doença registrada ainda 🙌</li></ul>';
-    }
-    var items = p.records.slice().reverse().map(function (r) {
-      var sick = plural(daysBetween(r.startedAt, r.recoveredAt), "dia doente", "dias doente");
-      var note = r.note ? ' — <span class="d">' + escapeHtml(r.note) + "</span>" : "";
-      return '<li><b>' + escapeHtml(r.name) + "</b>" + note +
-        '<div class="d">' + fmtDate(r.startedAt) + " → " + fmtDate(r.recoveredAt) +
-        " · " + sick + "</div></li>";
-    }).join("");
-    return '<ul class="log">' + items + "</ul>";
-  }
-
-  function healthyCard(id, p, d) {
-    var last = p.records.length ? p.records[p.records.length - 1] : null;
-    var lastChip = last
-      ? '<span class="chip">última: <b>' + escapeHtml(last.name) + "</b></span>"
-      : "";
-    return '' +
-      '<section class="card" data-id="' + id + '">' +
-        '<div class="head"><span class="name">' + escapeHtml(p.name) + '</span>' +
-          '<span class="badge ok">saudável ✓</span></div>' +
-        '<div class="counter"><div class="num">' + d + '</div>' +
-          '<div class="label">' + (d === 1 ? "dia" : "dias") + ' sem doença</div></div>' +
-        '<div class="meta">' +
-          '<span class="chip">desde <b>' + fmtDate(p.streakStart) + "</b></span>" +
-          '<span class="chip">recorde: <b>' + (p.best || 0) + " dias</b></span>" +
-          lastChip +
-        "</div>" +
-        '<div class="actions"><button class="btn danger" data-act="sick">Registrar doença 🤒</button></div>' +
-        '<details class="history"><summary>Histórico (' + p.records.length + ')</summary>' +
-          historyHtml(p) + "</details>" +
-      "</section>";
-  }
-
-  function sickCard(id, p, now) {
-    var sickDays = daysBetween(p.illness.startedAt, now);
-    var noteHtml = p.illness.note ? "<br><span>" + escapeHtml(p.illness.note) + "</span>" : "";
-    return '' +
-      '<section class="card sick" data-id="' + id + '">' +
-        '<div class="head"><span class="name">' + escapeHtml(p.name) + '</span>' +
-          '<span class="badge bad">doente 🤒</span></div>' +
-        '<div class="counter"><div class="num">' + sickDays + '</div>' +
-          '<div class="label">' + (sickDays === 1 ? "dia" : "dias") + ' doente</div></div>' +
-        '<div class="illness-box">Doença: <b>' + escapeHtml(p.illness.name) + "</b>" +
-          " <span class=\"d\">(desde " + fmtDate(p.illness.startedAt) + ")</span>" + noteHtml + "</div>" +
-        '<div class="actions"><button class="btn ok" data-act="well">Marcar recuperação 🎉</button></div>' +
-        '<details class="history"><summary>Histórico (' + p.records.length + ')</summary>' +
-          historyHtml(p) + "</details>" +
-      "</section>";
-  }
-
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
 
+  // ---------- render ----------
+  var coupleEl = document.getElementById("coupleCard");
+
+  function render() {
+    var now = Date.now();
+    var di = state.people.di, tati = state.people.tati;
+
+    // contadores individuais
+    [["di", di], ["tati", tati]].forEach(function (pair) {
+      var p = pair[1];
+      if (p.status === "healthy") {
+        var d = daysBetween(p.streakStart, now);
+        if (d > (p.best || 0)) p.best = d;
+      }
+      renderPerson(pair[0], p, now);
+    });
+
+    // contador do casal: dias sem NINGUÉM doente
+    var anySick = di.status === "sick" || tati.status === "sick";
+    if (!anySick) {
+      var coupleStart = Math.max(di.streakStart, tati.streakStart);
+      var cd = daysBetween(coupleStart, now);
+      if (cd > (state.coupleBest || 0)) state.coupleBest = cd;
+      coupleEl.className = "couple";
+      coupleEl.innerHTML =
+        '<div class="ctitle">👫 Di &amp; Tati — juntos</div>' +
+        '<div class="num">' + cd + '</div>' +
+        '<div class="label">' + (cd === 1 ? "dia" : "dias") + ' sem ninguém doente</div>' +
+        '<div class="chips"><span class="chip">recorde do casal: ' + (state.coupleBest || 0) + ' dias</span></div>';
+    } else {
+      var who = [];
+      if (di.status === "sick") who.push("Di");
+      if (tati.status === "sick") who.push("Tati");
+      coupleEl.className = "couple alert";
+      coupleEl.innerHTML =
+        '<div class="ctitle">👫 Di &amp; Tati — juntos</div>' +
+        '<div class="num">0</div>' +
+        '<div class="label">' + who.join(" e ") + (who.length > 1 ? " estão" : " está") + ' doente 🤒</div>' +
+        '<div class="chips"><span class="chip">recorde do casal: ' + (state.coupleBest || 0) + ' dias</span></div>';
+    }
+    save();
+  }
+
+  function renderPerson(id, p, now) {
+    var el = document.querySelector('.person[data-id="' + id + '"]');
+    if (!el) return;
+    var hist = '<button class="hist-link" data-act="hist">Histórico (' + p.records.length + ')</button>';
+    if (p.status === "healthy") {
+      var d = daysBetween(p.streakStart, now);
+      el.className = "person";
+      el.innerHTML =
+        '<div class="head"><span class="name">' + escapeHtml(p.name) + '</span>' +
+          '<span class="badge ok">saudável</span></div>' +
+        '<div class="num">' + d + '</div>' +
+        '<div class="label">' + (d === 1 ? "dia" : "dias") + ' sem doença</div>' +
+        '<div class="meta">recorde: ' + (p.best || 0) + ' d</div>' +
+        '<button class="btn danger" data-act="sick">Ficou doente 🤒</button>' +
+        hist;
+    } else {
+      var sickDays = daysBetween(p.illness.startedAt, now);
+      var note = p.illness.note ? " · " + escapeHtml(p.illness.note) : "";
+      el.className = "person sick";
+      el.innerHTML =
+        '<div class="head"><span class="name">' + escapeHtml(p.name) + '</span>' +
+          '<span class="badge bad">doente</span></div>' +
+        '<div class="num">' + sickDays + '</div>' +
+        '<div class="label">' + (sickDays === 1 ? "dia" : "dias") + ' doente</div>' +
+        '<div class="ill"><b>' + escapeHtml(p.illness.name) + '</b>' + note + '</div>' +
+        '<button class="btn ok" data-act="well">Sarou 🎉</button>' +
+        hist;
+    }
+  }
+
   // ---------- modais ----------
   var sickModal = document.getElementById("sickModal");
   var wellModal = document.getElementById("wellModal");
+  var histModal = document.getElementById("histModal");
   var pendingId = null;
 
   function openSick(id) {
@@ -161,7 +155,6 @@
     sickModal.classList.remove("hidden");
     setTimeout(function () { document.getElementById("sickName").focus(); }, 50);
   }
-
   function openWell(id) {
     pendingId = id;
     var p = state.people[id];
@@ -171,55 +164,70 @@
     document.getElementById("wellDate").value = tsToDateInput(Date.now());
     wellModal.classList.remove("hidden");
   }
-
+  function openHist(id) {
+    pendingId = id;
+    var p = state.people[id];
+    document.getElementById("histTitle").textContent = "Histórico — " + p.name;
+    renderHistList(id);
+    histModal.classList.remove("hidden");
+  }
+  function renderHistList(id) {
+    var p = state.people[id];
+    var listEl = document.getElementById("histList");
+    if (!p.records.length) {
+      listEl.innerHTML = '<li class="empty">Nenhuma doença registrada ainda 🙌</li>';
+      return;
+    }
+    listEl.innerHTML = p.records.map(function (r, i) {
+      var dur = daysBetween(r.startedAt, r.recoveredAt);
+      var note = r.note ? ' — ' + escapeHtml(r.note) : "";
+      return '<li><div class="info"><b>' + escapeHtml(r.name) + '</b>' + note +
+        '<div class="d">' + fmtDate(r.startedAt) + " → " + fmtDate(r.recoveredAt) +
+        " · " + dur + (dur === 1 ? " dia" : " dias") + ' doente</div></div>' +
+        '<button class="del" data-del="' + i + '">✕</button></li>';
+    }).join("");
+  }
   function closeModals() {
     sickModal.classList.add("hidden");
     wellModal.classList.add("hidden");
+    histModal.classList.add("hidden");
     pendingId = null;
   }
 
-  // ações
-  cardsEl.addEventListener("click", function (e) {
+  // cliques nas pessoas
+  document.querySelector(".people").addEventListener("click", function (e) {
     var btn = e.target.closest("[data-act]");
     if (!btn) return;
-    var card = e.target.closest("[data-id]");
-    var id = card.getAttribute("data-id");
-    if (btn.getAttribute("data-act") === "sick") openSick(id);
-    else if (btn.getAttribute("data-act") === "well") openWell(id);
+    var id = e.target.closest("[data-id]").getAttribute("data-id");
+    var act = btn.getAttribute("data-act");
+    if (act === "sick") openSick(id);
+    else if (act === "well") openWell(id);
+    else if (act === "hist") openHist(id);
   });
 
+  // confirmar doença
   document.getElementById("sickConfirm").addEventListener("click", function () {
     if (!pendingId) return;
     var name = document.getElementById("sickName").value.trim();
     if (!name) { document.getElementById("sickName").focus(); return; }
     var p = state.people[pendingId];
     var startedAt = dateInputToTs(document.getElementById("sickDate").value);
-    // fecha a sequência saudável (já contabilizada no recorde via render)
     var streakDays = daysBetween(p.streakStart, startedAt);
     if (streakDays > (p.best || 0)) p.best = streakDays;
     p.status = "sick";
-    p.illness = {
-      name: name,
-      note: document.getElementById("sickNote").value.trim(),
-      startedAt: startedAt
-    };
+    p.illness = { name: name, note: document.getElementById("sickNote").value.trim(), startedAt: startedAt };
     closeModals();
     render();
   });
 
+  // confirmar recuperação
   document.getElementById("wellConfirm").addEventListener("click", function () {
     if (!pendingId) return;
     var p = state.people[pendingId];
     if (!p.illness) { closeModals(); return; }
     var recoveredAt = dateInputToTs(document.getElementById("wellDate").value);
     if (recoveredAt < p.illness.startedAt) recoveredAt = p.illness.startedAt;
-    p.records.push({
-      name: p.illness.name,
-      note: p.illness.note,
-      startedAt: p.illness.startedAt,
-      recoveredAt: recoveredAt
-    });
-    // recomeça a contagem de dias sem doença a partir da recuperação
+    p.records.push({ name: p.illness.name, note: p.illness.note, startedAt: p.illness.startedAt, recoveredAt: recoveredAt });
     p.status = "healthy";
     p.streakStart = recoveredAt;
     p.illness = null;
@@ -227,17 +235,31 @@
     render();
   });
 
+  // excluir registro do histórico
+  document.getElementById("histList").addEventListener("click", function (e) {
+    var del = e.target.closest("[data-del]");
+    if (!del || !pendingId) return;
+    var i = +del.getAttribute("data-del");
+    var p = state.people[pendingId];
+    if (confirm("Excluir o registro de \"" + p.records[i].name + "\"?")) {
+      p.records.splice(i, 1);
+      save();
+      renderHistList(pendingId);
+      render();
+    }
+  });
+
   // fechar modais
   Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) {
     b.addEventListener("click", closeModals);
   });
-  [sickModal, wellModal].forEach(function (m) {
+  [sickModal, wellModal, histModal].forEach(function (m) {
     m.addEventListener("click", function (e) { if (e.target === m) closeModals(); });
   });
 
   // reiniciar tudo
   document.getElementById("resetBtn").addEventListener("click", function () {
-    if (confirm("Apagar todo o histórico e zerar os contadores de Di e Tati?")) {
+    if (confirm("Apagar todo o histórico e zerar todos os contadores?")) {
       state = defaultState();
       save();
       render();
@@ -246,10 +268,8 @@
 
   // ---------- relógio: atualiza sozinho ----------
   render();
-  setInterval(render, 30000);                 // recalcula a cada 30s
-  document.addEventListener("visibilitychange", function () {
-    if (!document.hidden) render();           // ao reabrir o app
-  });
+  setInterval(render, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) render(); });
 
   // ---------- service worker (offline) ----------
   if ("serviceWorker" in navigator) {

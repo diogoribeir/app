@@ -15,14 +15,19 @@
 <body>
   <header class="topbar">
     <h1>🩺 Dias sem Doença</h1>
-    <p class="sub">Quantos dias cada um fica saudável</p>
   </header>
 
-  <main id="cards" class="cards"></main>
+  <main class="wrap">
+    <section id="coupleCard" class="couple"></section>
+    <div class="people">
+      <section class="person" data-id="di"></section>
+      <section class="person" data-id="tati"></section>
+    </div>
+  </main>
 
   <footer class="footer">
     <button id="resetBtn" class="link-btn">Reiniciar tudo</button>
-    <span id="offlineTag" class="tag">offline ✓</span>
+    <span class="tag">offline ✓</span>
   </footer>
 
   <!-- Modal: registrar doença -->
@@ -52,6 +57,17 @@
       <div class="modal-actions">
         <button class="btn ghost" data-close>Cancelar</button>
         <button id="wellConfirm" class="btn ok">Recuperado! 🎉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: histórico -->
+  <div id="histModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="histTitle">Histórico</h2>
+      <ul id="histList" class="log"></ul>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
       </div>
     </div>
   </div>

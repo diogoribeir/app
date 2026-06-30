@@ -15,98 +15,108 @@
   --ok:#16a34a;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;height:100%}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   background:var(--bg); color:var(--ink);
-  min-height:100vh;
+  min-height:100%;
+  display:flex; flex-direction:column;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 .topbar{
   background:linear-gradient(135deg,var(--teal),var(--teal-d));
-  color:#fff; padding:22px 18px 18px; text-align:center;
-  border-radius:0 0 24px 24px;
+  color:#fff; padding:12px 16px; text-align:center; border-radius:0 0 18px 18px;
 }
-.topbar h1{margin:0;font-size:1.5rem}
-.topbar .sub{margin:4px 0 0;opacity:.85;font-size:.9rem}
+.topbar h1{margin:0;font-size:1.15rem}
 
-.cards{display:flex;flex-direction:column;gap:16px;padding:18px;max-width:560px;margin:0 auto}
-.card{
-  background:var(--card);border-radius:20px;padding:20px;
-  box-shadow:0 6px 20px rgba(2,8,23,.08);
-  border:2px solid transparent; transition:border-color .2s;
+.wrap{flex:1;display:flex;flex-direction:column;gap:12px;padding:12px;max-width:560px;width:100%;margin:0 auto}
+
+/* card do casal (topo) */
+.couple{
+  background:linear-gradient(135deg,#0d9488,#0e7490);color:#fff;
+  border-radius:20px;padding:14px 16px;text-align:center;
+  box-shadow:0 6px 18px rgba(2,8,23,.12)
 }
-.card.sick{border-color:#fecaca;background:#fff5f5}
-.card .head{display:flex;align-items:center;justify-content:space-between}
-.card .name{font-size:1.25rem;font-weight:700}
-.badge{font-size:.78rem;font-weight:700;padding:4px 10px;border-radius:999px}
+.couple.alert{background:linear-gradient(135deg,#dc2626,#b91c1c)}
+.couple .ctitle{font-size:.95rem;font-weight:700;opacity:.95}
+.couple .num{font-size:3.4rem;line-height:1;font-weight:800;margin:2px 0}
+.couple .label{font-size:.85rem;opacity:.92}
+.couple .chips{margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.couple .chip{background:rgba(255,255,255,.18);border-radius:999px;padding:3px 10px;font-size:.72rem}
+
+/* duas pessoas lado a lado */
+.people{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.person{
+  background:var(--card);border-radius:18px;padding:12px;
+  box-shadow:0 4px 14px rgba(2,8,23,.08);border:2px solid transparent;
+  display:flex;flex-direction:column;align-items:center;text-align:center
+}
+.person.sick{border-color:#fecaca;background:#fff5f5}
+.person .head{display:flex;align-items:center;gap:6px;justify-content:center;width:100%}
+.person .name{font-size:1.05rem;font-weight:700}
+.badge{font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:999px}
 .badge.ok{background:#dcfce7;color:#166534}
 .badge.bad{background:#fee2e2;color:#991b1b}
+.person .num{font-size:2.6rem;line-height:1;font-weight:800;color:var(--teal-d);margin:4px 0 0}
+.person.sick .num{color:var(--red)}
+.person .label{color:var(--muted);font-size:.74rem}
+.person .ill{font-size:.74rem;color:var(--red-d);margin-top:4px;line-height:1.2}
+.person .meta{font-size:.68rem;color:var(--muted);margin-top:3px}
 
-.counter{text-align:center;margin:14px 0 6px}
-.counter .num{font-size:4rem;line-height:1;font-weight:800;color:var(--teal-d)}
-.card.sick .counter .num{color:var(--red)}
-.counter .label{color:var(--muted);font-size:.95rem;margin-top:4px}
-
-.illness-box{
-  background:#fff;border:1px dashed #fca5a5;border-radius:14px;
-  padding:10px 12px;margin:10px 0;font-size:.92rem
-}
-.illness-box b{color:var(--red-d)}
-
-.meta{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0 2px}
-.chip{background:#f1f5f9;border-radius:999px;padding:5px 12px;font-size:.8rem;color:var(--muted)}
-.chip b{color:var(--ink)}
-
-.actions{margin-top:14px;display:flex;gap:10px}
 .btn{
-  flex:1;border:0;border-radius:14px;padding:14px;font-size:1rem;font-weight:700;
-  cursor:pointer;color:#fff
+  border:0;border-radius:12px;padding:11px 10px;font-size:.92rem;font-weight:700;
+  cursor:pointer;color:#fff;width:100%;margin-top:10px
 }
 .btn.danger{background:var(--red)} .btn.danger:active{background:var(--red-d)}
 .btn.ok{background:var(--ok)} .btn.ok:active{filter:brightness(.92)}
 .btn.ghost{background:#e2e8f0;color:var(--ink)}
-
-details.history{margin-top:12px}
-details.history summary{cursor:pointer;color:var(--teal-d);font-weight:600;font-size:.9rem}
-.log{list-style:none;padding:0;margin:10px 0 0}
-.log li{
-  border-left:3px solid var(--teal-l);padding:6px 0 6px 12px;margin:8px 0;font-size:.86rem
-}
-.log .d{color:var(--muted);font-size:.78rem}
-.log .empty{color:var(--muted);font-style:italic;border:0;padding-left:0}
+.hist-link{background:none;border:0;color:var(--teal-d);font-size:.72rem;margin-top:8px;cursor:pointer;text-decoration:underline}
 
 .footer{
-  max-width:560px;margin:0 auto;padding:8px 18px 28px;
+  max-width:560px;margin:0 auto;padding:6px 16px 18px;width:100%;
   display:flex;align-items:center;justify-content:space-between
 }
-.link-btn{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.85rem}
-.tag{font-size:.75rem;color:var(--teal-d);background:#ccfbf1;padding:3px 10px;border-radius:999px}
+.link-btn{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.8rem}
+.tag{font-size:.72rem;color:var(--teal-d);background:#ccfbf1;padding:3px 10px;border-radius:999px}
 
-.modal{position:fixed;inset:0;background:rgba(2,8,23,.5);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:0}
+/* modais */
+.modal{position:fixed;inset:0;background:rgba(2,8,23,.5);display:flex;align-items:flex-end;justify-content:center;z-index:50}
 .modal.hidden{display:none}
-.modal-box{background:#fff;width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));animation:up .2s ease}
+.modal-box{background:#fff;width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));animation:up .2s ease;max-height:85vh;overflow:auto}
 @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
-.modal-box h2{margin:0 0 14px;font-size:1.2rem}
+.modal-box h2{margin:0 0 12px;font-size:1.15rem}
 .modal-box label{display:block;font-size:.82rem;color:var(--muted);margin:12px 0 4px;font-weight:600}
 .modal-box input{width:100%;padding:13px;border:1.5px solid #cbd5e1;border-radius:12px;font-size:1rem}
 .modal-box input:focus{outline:none;border-color:var(--teal)}
-.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.modal-actions .btn{margin-top:0}
 .muted{color:var(--muted);font-size:.9rem;margin:0}
+
+.log{list-style:none;padding:0;margin:6px 0 0}
+.log li{display:flex;align-items:flex-start;gap:8px;border-left:3px solid var(--teal-l);padding:8px 0 8px 12px;margin:8px 0;font-size:.88rem}
+.log .info{flex:1}
+.log .d{color:var(--muted);font-size:.78rem}
+.log .empty{color:var(--muted);font-style:italic;border:0;padding-left:0}
+.log .del{background:#fee2e2;color:#b91c1c;border:0;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;font-size:.85rem}
 
   </style>
 </head>
 <body>
   <header class="topbar">
     <h1>🩺 Dias sem Doença</h1>
-    <p class="sub">Quantos dias cada um fica saudável</p>
   </header>
 
-  <main id="cards" class="cards"></main>
+  <main class="wrap">
+    <section id="coupleCard" class="couple"></section>
+    <div class="people">
+      <section class="person" data-id="di"></section>
+      <section class="person" data-id="tati"></section>
+    </div>
+  </main>
 
   <footer class="footer">
     <button id="resetBtn" class="link-btn">Reiniciar tudo</button>
-    <span id="offlineTag" class="tag">offline ✓</span>
+    <span class="tag">offline ✓</span>
   </footer>
 
   <!-- Modal: registrar doença -->
@@ -139,14 +149,25 @@ details.history summary{cursor:pointer;color:var(--teal-d);font-weight:600;font-
       </div>
     </div>
   </div>
+
+  <!-- Modal: histórico -->
+  <div id="histModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="histTitle">Histórico</h2>
+      <ul id="histList" class="log"></ul>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+      </div>
+    </div>
+  </div>
   <script>
-/* Dias sem Doença — contador offline para Di e Tati.
+/* Dias sem Doença — contador offline para Di e Tati (+ contagem do casal).
    Tudo fica salvo localmente (localStorage), funciona sem internet. */
 
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "ddsd_v1";
+  var STORAGE_KEY = "ddsd_v2";
   var DAY = 86400000;
 
   // ---------- estado ----------
@@ -159,18 +180,21 @@ details.history summary{cursor:pointer;color:var(--teal-d);font-weight:600;font-
         streakStart: now,      // início da sequência saudável atual
         illness: null,         // { name, note, startedAt }
         records: [],           // histórico de doenças já recuperadas
-        best: 0                // melhor sequência em dias
+        best: 0                // melhor sequência individual em dias
       };
     }
-    return { people: { di: person("Di"), tati: person("Tati") } };
+    return { people: { di: person("Di"), tati: person("Tati") }, coupleBest: 0 };
   }
 
   function load() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
+      // migra da versão anterior, se existir
+      if (!raw) { raw = localStorage.getItem("ddsd_v1"); }
       if (!raw) return defaultState();
       var s = JSON.parse(raw);
       if (!s || !s.people || !s.people.di || !s.people.tati) return defaultState();
+      if (typeof s.coupleBest !== "number") s.coupleBest = 0;
       return s;
     } catch (e) {
       return defaultState();
@@ -184,21 +208,13 @@ details.history summary{cursor:pointer;color:var(--teal-d);font-weight:600;font-
   var state = load();
 
   // ---------- datas ----------
-  function startOfDay(ts) {
-    var d = new Date(ts);
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-  }
-  // dias completos entre dois instantes, contando por dia de calendário
+  function startOfDay(ts) { var d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); }
   function daysBetween(fromTs, toTs) {
-    var diff = startOfDay(toTs) - startOfDay(fromTs);
-    return Math.max(0, Math.floor(diff / DAY));
+    return Math.max(0, Math.floor((startOfDay(toTs) - startOfDay(fromTs)) / DAY));
   }
   function fmtDate(ts) {
     return new Date(ts).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
   }
-  function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
-  // valor de <input type=date> -> timestamp (meio-dia local, evita fuso)
   function dateInputToTs(value) {
     if (!value) return Date.now();
     var p = value.split("-");
@@ -206,92 +222,91 @@ details.history summary{cursor:pointer;color:var(--teal-d);font-weight:600;font-
   }
   function tsToDateInput(ts) {
     var d = new Date(ts);
-    var m = ("0" + (d.getMonth() + 1)).slice(-2);
-    var day = ("0" + d.getDate()).slice(-2);
-    return d.getFullYear() + "-" + m + "-" + day;
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
   }
-
-  // ---------- render ----------
-  var cardsEl = document.getElementById("cards");
-
-  function render() {
-    var now = Date.now();
-    var ids = Object.keys(state.people);
-    var html = ids.map(function (id) {
-      var p = state.people[id];
-      if (p.status === "healthy") {
-        var d = daysBetween(p.streakStart, now);
-        if (d > (p.best || 0)) { p.best = d; }
-        return healthyCard(id, p, d);
-      }
-      return sickCard(id, p, now);
-    }).join("");
-    cardsEl.innerHTML = html;
-    save();
-  }
-
-  function historyHtml(p) {
-    if (!p.records || !p.records.length) {
-      return '<ul class="log"><li class="empty">Nenhuma doença registrada ainda 🙌</li></ul>';
-    }
-    var items = p.records.slice().reverse().map(function (r) {
-      var sick = plural(daysBetween(r.startedAt, r.recoveredAt), "dia doente", "dias doente");
-      var note = r.note ? ' — <span class="d">' + escapeHtml(r.note) + "</span>" : "";
-      return '<li><b>' + escapeHtml(r.name) + "</b>" + note +
-        '<div class="d">' + fmtDate(r.startedAt) + " → " + fmtDate(r.recoveredAt) +
-        " · " + sick + "</div></li>";
-    }).join("");
-    return '<ul class="log">' + items + "</ul>";
-  }
-
-  function healthyCard(id, p, d) {
-    var last = p.records.length ? p.records[p.records.length - 1] : null;
-    var lastChip = last
-      ? '<span class="chip">última: <b>' + escapeHtml(last.name) + "</b></span>"
-      : "";
-    return '' +
-      '<section class="card" data-id="' + id + '">' +
-        '<div class="head"><span class="name">' + escapeHtml(p.name) + '</span>' +
-          '<span class="badge ok">saudável ✓</span></div>' +
-        '<div class="counter"><div class="num">' + d + '</div>' +
-          '<div class="label">' + (d === 1 ? "dia" : "dias") + ' sem doença</div></div>' +
-        '<div class="meta">' +
-          '<span class="chip">desde <b>' + fmtDate(p.streakStart) + "</b></span>" +
-          '<span class="chip">recorde: <b>' + (p.best || 0) + " dias</b></span>" +
-          lastChip +
-        "</div>" +
-        '<div class="actions"><button class="btn danger" data-act="sick">Registrar doença 🤒</button></div>' +
-        '<details class="history"><summary>Histórico (' + p.records.length + ')</summary>' +
-          historyHtml(p) + "</details>" +
-      "</section>";
-  }
-
-  function sickCard(id, p, now) {
-    var sickDays = daysBetween(p.illness.startedAt, now);
-    var noteHtml = p.illness.note ? "<br><span>" + escapeHtml(p.illness.note) + "</span>" : "";
-    return '' +
-      '<section class="card sick" data-id="' + id + '">' +
-        '<div class="head"><span class="name">' + escapeHtml(p.name) + '</span>' +
-          '<span class="badge bad">doente 🤒</span></div>' +
-        '<div class="counter"><div class="num">' + sickDays + '</div>' +
-          '<div class="label">' + (sickDays === 1 ? "dia" : "dias") + ' doente</div></div>' +
-        '<div class="illness-box">Doença: <b>' + escapeHtml(p.illness.name) + "</b>" +
-          " <span class=\"d\">(desde " + fmtDate(p.illness.startedAt) + ")</span>" + noteHtml + "</div>" +
-        '<div class="actions"><button class="btn ok" data-act="well">Marcar recuperação 🎉</button></div>' +
-        '<details class="history"><summary>Histórico (' + p.records.length + ')</summary>' +
-          historyHtml(p) + "</details>" +
-      "</section>";
-  }
-
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
 
+  // ---------- render ----------
+  var coupleEl = document.getElementById("coupleCard");
+
+  function render() {
+    var now = Date.now();
+    var di = state.people.di, tati = state.people.tati;
+
+    // contadores individuais
+    [["di", di], ["tati", tati]].forEach(function (pair) {
+      var p = pair[1];
+      if (p.status === "healthy") {
+        var d = daysBetween(p.streakStart, now);
+        if (d > (p.best || 0)) p.best = d;
+      }
+      renderPerson(pair[0], p, now);
+    });
+
+    // contador do casal: dias sem NINGUÉM doente
+    var anySick = di.status === "sick" || tati.status === "sick";
+    if (!anySick) {
+      var coupleStart = Math.max(di.streakStart, tati.streakStart);
+      var cd = daysBetween(coupleStart, now);
+      if (cd > (state.coupleBest || 0)) state.coupleBest = cd;
+      coupleEl.className = "couple";
+      coupleEl.innerHTML =
+        '<div class="ctitle">👫 Di &amp; Tati — juntos</div>' +
+        '<div class="num">' + cd + '</div>' +
+        '<div class="label">' + (cd === 1 ? "dia" : "dias") + ' sem ninguém doente</div>' +
+        '<div class="chips"><span class="chip">recorde do casal: ' + (state.coupleBest || 0) + ' dias</span></div>';
+    } else {
+      var who = [];
+      if (di.status === "sick") who.push("Di");
+      if (tati.status === "sick") who.push("Tati");
+      coupleEl.className = "couple alert";
+      coupleEl.innerHTML =
+        '<div class="ctitle">👫 Di &amp; Tati — juntos</div>' +
+        '<div class="num">0</div>' +
+        '<div class="label">' + who.join(" e ") + (who.length > 1 ? " estão" : " está") + ' doente 🤒</div>' +
+        '<div class="chips"><span class="chip">recorde do casal: ' + (state.coupleBest || 0) + ' dias</span></div>';
+    }
+    save();
+  }
+
+  function renderPerson(id, p, now) {
+    var el = document.querySelector('.person[data-id="' + id + '"]');
+    if (!el) return;
+    var hist = '<button class="hist-link" data-act="hist">Histórico (' + p.records.length + ')</button>';
+    if (p.status === "healthy") {
+      var d = daysBetween(p.streakStart, now);
+      el.className = "person";
+      el.innerHTML =
+        '<div class="head"><span class="name">' + escapeHtml(p.name) + '</span>' +
+          '<span class="badge ok">saudável</span></div>' +
+        '<div class="num">' + d + '</div>' +
+        '<div class="label">' + (d === 1 ? "dia" : "dias") + ' sem doença</div>' +
+        '<div class="meta">recorde: ' + (p.best || 0) + ' d</div>' +
+        '<button class="btn danger" data-act="sick">Ficou doente 🤒</button>' +
+        hist;
+    } else {
+      var sickDays = daysBetween(p.illness.startedAt, now);
+      var note = p.illness.note ? " · " + escapeHtml(p.illness.note) : "";
+      el.className = "person sick";
+      el.innerHTML =
+        '<div class="head"><span class="name">' + escapeHtml(p.name) + '</span>' +
+          '<span class="badge bad">doente</span></div>' +
+        '<div class="num">' + sickDays + '</div>' +
+        '<div class="label">' + (sickDays === 1 ? "dia" : "dias") + ' doente</div>' +
+        '<div class="ill"><b>' + escapeHtml(p.illness.name) + '</b>' + note + '</div>' +
+        '<button class="btn ok" data-act="well">Sarou 🎉</button>' +
+        hist;
+    }
+  }
+
   // ---------- modais ----------
   var sickModal = document.getElementById("sickModal");
   var wellModal = document.getElementById("wellModal");
+  var histModal = document.getElementById("histModal");
   var pendingId = null;
 
   function openSick(id) {
@@ -303,7 +318,6 @@ details.history summary{cursor:pointer;color:var(--teal-d);font-weight:600;font-
     sickModal.classList.remove("hidden");
     setTimeout(function () { document.getElementById("sickName").focus(); }, 50);
   }
-
   function openWell(id) {
     pendingId = id;
     var p = state.people[id];
@@ -313,55 +327,70 @@ details.history summary{cursor:pointer;color:var(--teal-d);font-weight:600;font-
     document.getElementById("wellDate").value = tsToDateInput(Date.now());
     wellModal.classList.remove("hidden");
   }
-
+  function openHist(id) {
+    pendingId = id;
+    var p = state.people[id];
+    document.getElementById("histTitle").textContent = "Histórico — " + p.name;
+    renderHistList(id);
+    histModal.classList.remove("hidden");
+  }
+  function renderHistList(id) {
+    var p = state.people[id];
+    var listEl = document.getElementById("histList");
+    if (!p.records.length) {
+      listEl.innerHTML = '<li class="empty">Nenhuma doença registrada ainda 🙌</li>';
+      return;
+    }
+    listEl.innerHTML = p.records.map(function (r, i) {
+      var dur = daysBetween(r.startedAt, r.recoveredAt);
+      var note = r.note ? ' — ' + escapeHtml(r.note) : "";
+      return '<li><div class="info"><b>' + escapeHtml(r.name) + '</b>' + note +
+        '<div class="d">' + fmtDate(r.startedAt) + " → " + fmtDate(r.recoveredAt) +
+        " · " + dur + (dur === 1 ? " dia" : " dias") + ' doente</div></div>' +
+        '<button class="del" data-del="' + i + '">✕</button></li>';
+    }).join("");
+  }
   function closeModals() {
     sickModal.classList.add("hidden");
     wellModal.classList.add("hidden");
+    histModal.classList.add("hidden");
     pendingId = null;
   }
 
-  // ações
-  cardsEl.addEventListener("click", function (e) {
+  // cliques nas pessoas
+  document.querySelector(".people").addEventListener("click", function (e) {
     var btn = e.target.closest("[data-act]");
     if (!btn) return;
-    var card = e.target.closest("[data-id]");
-    var id = card.getAttribute("data-id");
-    if (btn.getAttribute("data-act") === "sick") openSick(id);
-    else if (btn.getAttribute("data-act") === "well") openWell(id);
+    var id = e.target.closest("[data-id]").getAttribute("data-id");
+    var act = btn.getAttribute("data-act");
+    if (act === "sick") openSick(id);
+    else if (act === "well") openWell(id);
+    else if (act === "hist") openHist(id);
   });
 
+  // confirmar doença
   document.getElementById("sickConfirm").addEventListener("click", function () {
     if (!pendingId) return;
     var name = document.getElementById("sickName").value.trim();
     if (!name) { document.getElementById("sickName").focus(); return; }
     var p = state.people[pendingId];
     var startedAt = dateInputToTs(document.getElementById("sickDate").value);
-    // fecha a sequência saudável (já contabilizada no recorde via render)
     var streakDays = daysBetween(p.streakStart, startedAt);
     if (streakDays > (p.best || 0)) p.best = streakDays;
     p.status = "sick";
-    p.illness = {
-      name: name,
-      note: document.getElementById("sickNote").value.trim(),
-      startedAt: startedAt
-    };
+    p.illness = { name: name, note: document.getElementById("sickNote").value.trim(), startedAt: startedAt };
     closeModals();
     render();
   });
 
+  // confirmar recuperação
   document.getElementById("wellConfirm").addEventListener("click", function () {
     if (!pendingId) return;
     var p = state.people[pendingId];
     if (!p.illness) { closeModals(); return; }
     var recoveredAt = dateInputToTs(document.getElementById("wellDate").value);
     if (recoveredAt < p.illness.startedAt) recoveredAt = p.illness.startedAt;
-    p.records.push({
-      name: p.illness.name,
-      note: p.illness.note,
-      startedAt: p.illness.startedAt,
-      recoveredAt: recoveredAt
-    });
-    // recomeça a contagem de dias sem doença a partir da recuperação
+    p.records.push({ name: p.illness.name, note: p.illness.note, startedAt: p.illness.startedAt, recoveredAt: recoveredAt });
     p.status = "healthy";
     p.streakStart = recoveredAt;
     p.illness = null;
@@ -369,17 +398,31 @@ details.history summary{cursor:pointer;color:var(--teal-d);font-weight:600;font-
     render();
   });
 
+  // excluir registro do histórico
+  document.getElementById("histList").addEventListener("click", function (e) {
+    var del = e.target.closest("[data-del]");
+    if (!del || !pendingId) return;
+    var i = +del.getAttribute("data-del");
+    var p = state.people[pendingId];
+    if (confirm("Excluir o registro de \"" + p.records[i].name + "\"?")) {
+      p.records.splice(i, 1);
+      save();
+      renderHistList(pendingId);
+      render();
+    }
+  });
+
   // fechar modais
   Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) {
     b.addEventListener("click", closeModals);
   });
-  [sickModal, wellModal].forEach(function (m) {
+  [sickModal, wellModal, histModal].forEach(function (m) {
     m.addEventListener("click", function (e) { if (e.target === m) closeModals(); });
   });
 
   // reiniciar tudo
   document.getElementById("resetBtn").addEventListener("click", function () {
-    if (confirm("Apagar todo o histórico e zerar os contadores de Di e Tati?")) {
+    if (confirm("Apagar todo o histórico e zerar todos os contadores?")) {
       state = defaultState();
       save();
       render();
@@ -388,10 +431,8 @@ details.history summary{cursor:pointer;color:var(--teal-d);font-weight:600;font-
 
   // ---------- relógio: atualiza sozinho ----------
   render();
-  setInterval(render, 30000);                 // recalcula a cada 30s
-  document.addEventListener("visibilitychange", function () {
-    if (!document.hidden) render();           // ao reabrir o app
-  });
+  setInterval(render, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) render(); });
 
 })();
 
