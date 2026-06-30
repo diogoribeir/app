@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d9488" />
+  <title>Dias sem Doença</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>🩺 Dias sem Doença</h1>
+    <p class="sub">Quantos dias cada um fica saudável</p>
+  </header>
+
+  <main id="cards" class="cards"></main>
+
+  <footer class="footer">
+    <button id="resetBtn" class="link-btn">Reiniciar tudo</button>
+    <span id="offlineTag" class="tag">offline ✓</span>
+  </footer>
+
+  <!-- Modal: registrar doença -->
+  <div id="sickModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="sickTitle">Registrar doença</h2>
+      <label>Qual doença?</label>
+      <input id="sickName" type="text" placeholder="Ex.: gripe, virose, dor de garganta" autocomplete="off" />
+      <label>Observação (opcional)</label>
+      <input id="sickNote" type="text" placeholder="Ex.: febre, foi ao médico..." autocomplete="off" />
+      <label>Começou em</label>
+      <input id="sickDate" type="date" />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="sickConfirm" class="btn danger">Marcar como doente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: recuperação -->
+  <div id="wellModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="wellTitle">Marcar recuperação</h2>
+      <p id="wellInfo" class="muted"></p>
+      <label>Recuperou em</label>
+      <input id="wellDate" type="date" />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="wellConfirm" class="btn ok">Recuperado! 🎉</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
