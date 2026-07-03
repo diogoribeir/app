@@ -3,131 +3,180 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0d9488" />
-  <title>Dias sem Doença</title>
+  <meta name="theme-color" content="#1E2E26" />
+  <title>Dias sem Doença — Di &amp; Tati</title>
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <style>
+/* Dias sem Doença — identidade "farmácia caseira": sage + floresta + mel + coral */
 :root{
-  --teal:#0d9488; --teal-d:#0f766e; --teal-l:#5eead4;
-  --red:#dc2626; --red-d:#b91c1c;
-  --ink:#0f172a; --muted:#64748b; --bg:#f1f5f9; --card:#ffffff;
-  --ok:#16a34a;
+  --paper:#ECEFE8; --card:#FBFCF8; --ink:#17241E; --muted:#5F6F65; --line:#DCE2D6;
+  --good:#2E8B57; --good-soft:#DEEEE3; --bad:#CE5439; --bad-soft:#F6E1DA;
+  --honey:#B98A2E;
+  --hero-bg:#1E2E26; --hero-bg2:#26382E; --hero-ink:#F2EFE4; --hero-accent:#E7B54E; --hero-alert:#E27A5A;
+  --shadow:0 6px 20px rgba(21,40,31,.10);
+  --r:20px;
 }
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#0F1512; --card:#18211C; --ink:#E8EEE6; --muted:#93A399; --line:#273128;
+    --good:#57B885; --good-soft:#16281E; --bad:#E8735A; --bad-soft:#2A1A15;
+    --honey:#E0B357;
+    --hero-bg:#16211C; --hero-bg2:#1E2C24; --hero-ink:#F2EFE4; --hero-accent:#E7B54E; --hero-alert:#E8735A;
+    --shadow:0 6px 20px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="light"]{
+  --paper:#ECEFE8; --card:#FBFCF8; --ink:#17241E; --muted:#5F6F65; --line:#DCE2D6;
+  --good:#2E8B57; --good-soft:#DEEEE3; --bad:#CE5439; --bad-soft:#F6E1DA; --honey:#B98A2E;
+  --hero-bg:#1E2E26; --hero-bg2:#26382E; --hero-ink:#F2EFE4; --hero-accent:#E7B54E; --hero-alert:#E27A5A;
+  --shadow:0 6px 20px rgba(21,40,31,.10);
+}
+:root[data-theme="dark"]{
+  --paper:#0F1512; --card:#18211C; --ink:#E8EEE6; --muted:#93A399; --line:#273128;
+  --good:#57B885; --good-soft:#16281E; --bad:#E8735A; --bad-soft:#2A1A15; --honey:#E0B357;
+  --hero-bg:#16211C; --hero-bg2:#1E2C24; --hero-ink:#F2EFE4; --hero-accent:#E7B54E; --hero-alert:#E8735A;
+  --shadow:0 6px 20px rgba(0,0,0,.35);
+}
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  background:var(--bg); color:var(--ink);
-  min-height:100%;
-  display:flex; flex-direction:column;
+  font-family:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  background:var(--paper); color:var(--ink);
+  min-height:100%; display:flex; flex-direction:column;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* topo */
 .topbar{
-  background:linear-gradient(135deg,var(--teal),var(--teal-d));
-  color:#fff; padding:12px 16px; text-align:center; border-radius:0 0 18px 18px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;
 }
-.topbar h1{margin:0;font-size:1.15rem}
+.brand{font-size:1.05rem;font-weight:800;letter-spacing:.01em;display:flex;align-items:center;gap:7px}
+.brand .mark{color:var(--honey)}
+.icon-btn{
+  background:var(--card);border:1px solid var(--line);color:var(--ink);
+  width:38px;height:38px;border-radius:12px;font-size:1.3rem;line-height:1;cursor:pointer;
+  box-shadow:var(--shadow)
+}
 
-.wrap{flex:1;display:flex;flex-direction:column;gap:12px;padding:12px;max-width:560px;width:100%;margin:0 auto}
+.wrap{flex:1;display:flex;flex-direction:column;gap:14px;padding:4px 14px 10px;max-width:560px;width:100%;margin:0 auto}
 
-/* card do casal (topo) */
+/* placar do casal (resumo) */
 .couple{
-  background:linear-gradient(135deg,#0d9488,#0e7490);color:#fff;
-  border-radius:20px;padding:14px 16px;text-align:center;
-  box-shadow:0 6px 18px rgba(2,8,23,.12)
+  background:linear-gradient(150deg,var(--hero-bg),var(--hero-bg2));
+  color:var(--hero-ink);border-radius:24px;padding:18px 18px 16px;text-align:center;
+  box-shadow:var(--shadow);position:relative;overflow:hidden
 }
-.couple.alert{background:linear-gradient(135deg,#dc2626,#b91c1c)}
-.couple .ctitle{font-size:.95rem;font-weight:700;opacity:.95}
-.couple .num{font-size:3.4rem;line-height:1;font-weight:800;margin:2px 0}
-.couple .label{font-size:.85rem;opacity:.92}
-.couple .chips{margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.couple .chip{background:rgba(255,255,255,.18);border-radius:999px;padding:3px 10px;font-size:.72rem}
+.couple::after{content:"";position:absolute;inset:0;border-radius:24px;border:1px solid rgba(231,181,78,.18);pointer-events:none}
+.couple .eyebrow{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;opacity:.75;font-weight:700}
+.couple .big{font-size:clamp(3.2rem,17vw,4.4rem);line-height:.95;font-weight:800;color:var(--hero-accent);margin:6px 0 2px}
+.couple.alert .big{color:var(--hero-alert)}
+.couple .label{font-size:.9rem;opacity:.92}
+.couple .record{margin-top:10px;display:inline-block;font-size:.72rem;letter-spacing:.02em;
+  background:rgba(231,181,78,.15);color:var(--hero-accent);border:1px solid rgba(231,181,78,.3);
+  padding:4px 12px;border-radius:999px;font-weight:700}
+.couple.alert .record{background:rgba(226,122,90,.16);color:var(--hero-alert);border-color:rgba(226,122,90,.35)}
 
-/* duas pessoas lado a lado */
+/* pessoas (detalhe) */
 .people{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .person{
-  background:var(--card);border-radius:18px;padding:12px;
-  box-shadow:0 4px 14px rgba(2,8,23,.08);border:2px solid transparent;
-  display:flex;flex-direction:column;align-items:center;text-align:center
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 12px 12px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;text-align:center;position:relative
 }
-.person.sick{border-color:#fecaca;background:#fff5f5}
-.person .head{display:flex;align-items:center;gap:6px;justify-content:center;width:100%}
-.person .name{font-size:1.05rem;font-weight:700}
-.badge{font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:999px}
-.badge.ok{background:#dcfce7;color:#166534}
-.badge.bad{background:#fee2e2;color:#991b1b}
-.person .num{font-size:2.6rem;line-height:1;font-weight:800;color:var(--teal-d);margin:4px 0 0}
-.person.sick .num{color:var(--red)}
-.person .label{color:var(--muted);font-size:.74rem}
-.person .ill{font-size:.74rem;color:var(--red-d);margin-top:4px;line-height:1.2}
-.person .meta{font-size:.68rem;color:var(--muted);margin-top:3px}
+.person::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:var(--good)}
+.person.sick::before{background:var(--bad)}
+.person .name{font-size:1.05rem;font-weight:800}
+.chip{font-size:.64rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-top:5px}
+.chip.ok{background:var(--good-soft);color:var(--good)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.person .count{font-size:2.7rem;line-height:1;font-weight:800;color:var(--good);margin:8px 0 0}
+.person.sick .count{color:var(--bad)}
+.person .unit{color:var(--muted);font-size:.72rem;letter-spacing:.02em}
+.person .ill{font-size:.74rem;color:var(--bad);margin-top:6px;line-height:1.25;max-width:100%;overflow-wrap:anywhere}
+.person .ill b{font-weight:800}
+.person .rec{font-size:.66rem;color:var(--muted);margin-top:5px}
 
 .btn{
-  border:0;border-radius:12px;padding:11px 10px;font-size:.92rem;font-weight:700;
-  cursor:pointer;color:#fff;width:100%;margin-top:10px
+  border:0;border-radius:13px;padding:11px 10px;font-size:.9rem;font-weight:800;
+  cursor:pointer;color:#fff;width:100%;margin-top:11px;letter-spacing:.01em
 }
-.btn.danger{background:var(--red)} .btn.danger:active{background:var(--red-d)}
-.btn.ok{background:var(--ok)} .btn.ok:active{filter:brightness(.92)}
-.btn.ghost{background:#e2e8f0;color:var(--ink)}
-.hist-link{background:none;border:0;color:var(--teal-d);font-size:.72rem;margin-top:8px;cursor:pointer;text-decoration:underline}
+.btn.danger{background:var(--bad)} .btn.ok{background:var(--good)}
+.btn:active{filter:brightness(.94)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.hist-link{background:none;border:0;color:var(--muted);font-size:.7rem;margin-top:9px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 
-.footer{
-  max-width:560px;margin:0 auto;padding:6px 16px 18px;width:100%;
-  display:flex;align-items:center;justify-content:space-between
-}
-.link-btn{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.8rem}
-.tag{font-size:.72rem;color:var(--teal-d);background:#ccfbf1;padding:3px 10px;border-radius:999px}
+.footer{max-width:560px;margin:0 auto;padding:2px 16px 16px;width:100%;text-align:center}
+.tag{font-size:.68rem;color:var(--good);background:var(--good-soft);padding:3px 12px;border-radius:999px;letter-spacing:.04em}
 
-/* modais */
-.modal{position:fixed;inset:0;background:rgba(2,8,23,.5);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+/* modais (bottom sheet) */
+.modal{position:fixed;inset:0;background:rgba(10,18,14,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50}
 .modal.hidden{display:none}
-.modal-box{background:#fff;width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));animation:up .2s ease;max-height:85vh;overflow:auto}
+.modal-box{
+  background:var(--card);color:var(--ink);width:100%;max-width:560px;border-radius:24px 24px 0 0;
+  padding:22px 20px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25);
+  max-height:86vh;overflow:auto;animation:up .22s ease
+}
+@media (prefers-reduced-motion:reduce){.modal-box{animation:none}}
 @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
-.modal-box h2{margin:0 0 12px;font-size:1.15rem}
-.modal-box label{display:block;font-size:.82rem;color:var(--muted);margin:12px 0 4px;font-weight:600}
-.modal-box input{width:100%;padding:13px;border:1.5px solid #cbd5e1;border-radius:12px;font-size:1rem}
-.modal-box input:focus{outline:none;border-color:var(--teal)}
+.modal-box h2{margin:0 0 12px;font-size:1.2rem;font-weight:800}
+.modal-box label{display:block;font-size:.78rem;color:var(--muted);margin:12px 0 5px;font-weight:700;letter-spacing:.02em}
+.modal-box input[type=text],.modal-box input[type=date]{
+  width:100%;padding:13px;border:1.5px solid var(--line);border-radius:12px;font-size:1rem;
+  background:var(--paper);color:var(--ink);font-family:inherit
+}
+.modal-box input:focus-visible{outline:2px solid var(--good);outline-offset:1px;border-color:var(--good)}
 .modal-actions{display:flex;gap:10px;margin-top:18px}
 .modal-actions .btn{margin-top:0}
 .muted{color:var(--muted);font-size:.9rem;margin:0}
 
+.menu-list{display:flex;flex-direction:column;gap:8px}
+.menu-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
+  background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;color:var(--ink);font-family:inherit}
+.menu-item span{font-weight:800;font-size:.95rem}
+.menu-item small{color:var(--muted);font-size:.74rem}
+.menu-item.danger-text span{color:var(--bad)}
+
 .log{list-style:none;padding:0;margin:6px 0 0}
-.log li{display:flex;align-items:flex-start;gap:8px;border-left:3px solid var(--teal-l);padding:8px 0 8px 12px;margin:8px 0;font-size:.88rem}
-.log .info{flex:1}
-.log .d{color:var(--muted);font-size:.78rem}
+.log li{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-left:4px solid var(--good);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:.9rem}
+.log .info{flex:1;min-width:0}
+.log .info b{font-weight:800}
+.log .d{color:var(--muted);font-size:.76rem;margin-top:2px}
 .log .empty{color:var(--muted);font-style:italic;border:0;padding-left:0}
-.log .del{background:#fee2e2;color:#b91c1c;border:0;border-radius:8px;padding:6px 10px;font-weight:700;cursor:pointer;font-size:.85rem}
+.log .del{background:var(--bad-soft);color:var(--bad);border:0;border-radius:10px;padding:7px 11px;font-weight:800;cursor:pointer;font-size:.9rem;flex-shrink:0}
+:focus-visible{outline:2px solid var(--good);outline-offset:2px}
 
   </style>
 </head>
 <body>
   <header class="topbar">
-    <h1>🩺 Dias sem Doença</h1>
+    <div class="brand"><span class="mark">✚</span> Dias sem Doença</div>
+    <button id="menuBtn" class="icon-btn" aria-label="Opções">⋯</button>
   </header>
 
   <main class="wrap">
+    <!-- placar do casal -->
     <section id="coupleCard" class="couple"></section>
+    <!-- as duas pessoas -->
     <div class="people">
       <section class="person" data-id="di"></section>
       <section class="person" data-id="tati"></section>
     </div>
   </main>
 
-  <footer class="footer">
-    <button id="resetBtn" class="link-btn">Reiniciar tudo</button>
-    <span class="tag">offline ✓</span>
-  </footer>
+  <footer class="footer"><span class="tag">funciona offline</span></footer>
 
   <!-- Modal: registrar doença -->
   <div id="sickModal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
       <h2 id="sickTitle">Registrar doença</h2>
-      <label>Qual doença?</label>
+      <label for="sickName">Qual doença?</label>
       <input id="sickName" type="text" placeholder="Ex.: gripe, virose, dor de garganta" autocomplete="off" />
-      <label>Observação (opcional)</label>
+      <label for="sickNote">Observação (opcional)</label>
       <input id="sickNote" type="text" placeholder="Ex.: febre, foi ao médico..." autocomplete="off" />
-      <label>Começou em</label>
+      <label for="sickDate">Começou em</label>
       <input id="sickDate" type="date" />
       <div class="modal-actions">
         <button class="btn ghost" data-close>Cancelar</button>
@@ -141,7 +190,7 @@ body{
     <div class="modal-box">
       <h2 id="wellTitle">Marcar recuperação</h2>
       <p id="wellInfo" class="muted"></p>
-      <label>Recuperou em</label>
+      <label for="wellDate">Recuperou em</label>
       <input id="wellDate" type="date" />
       <div class="modal-actions">
         <button class="btn ghost" data-close>Cancelar</button>
@@ -160,9 +209,25 @@ body{
       </div>
     </div>
   </div>
+
+  <!-- Modal: menu / backup -->
+  <div id="menuModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Opções</h2>
+      <div class="menu-list">
+        <button id="exportBtn" class="menu-item"><span>⬇️ Salvar backup</span><small>Baixa um arquivo com todos os dados</small></button>
+        <button id="importBtn" class="menu-item"><span>⬆️ Restaurar backup</span><small>Carrega os dados de um arquivo salvo</small></button>
+        <button id="resetBtn" class="menu-item danger-text"><span>🗑️ Reiniciar tudo</span><small>Apaga histórico e zera os contadores</small></button>
+      </div>
+      <input id="importFile" type="file" accept="application/json,.json" hidden />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+      </div>
+    </div>
+  </div>
   <script>
-/* Dias sem Doença — contador offline para Di e Tati (+ contagem do casal).
-   Tudo fica salvo localmente (localStorage), funciona sem internet. */
+/* Dias sem Doença — contador offline para Di e Tati (+ placar do casal).
+   Tudo fica salvo localmente (localStorage). Funciona sem internet. */
 
 (function () {
   "use strict";
@@ -174,101 +239,63 @@ body{
   function defaultState() {
     var now = Date.now();
     function person(name) {
-      return {
-        name: name,
-        status: "healthy",     // "healthy" | "sick"
-        streakStart: now,      // início da sequência saudável atual
-        illness: null,         // { name, note, startedAt }
-        records: [],           // histórico de doenças já recuperadas
-        best: 0                // melhor sequência individual em dias
-      };
+      return { name: name, status: "healthy", streakStart: now, illness: null, records: [], best: 0 };
     }
     return { people: { di: person("Di"), tati: person("Tati") }, coupleBest: 0 };
   }
-
   function load() {
     try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      // migra da versão anterior, se existir
-      if (!raw) { raw = localStorage.getItem("ddsd_v1"); }
+      var raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("ddsd_v1");
       if (!raw) return defaultState();
       var s = JSON.parse(raw);
       if (!s || !s.people || !s.people.di || !s.people.tati) return defaultState();
       if (typeof s.coupleBest !== "number") s.coupleBest = 0;
       return s;
-    } catch (e) {
-      return defaultState();
-    }
+    } catch (e) { return defaultState(); }
   }
-
-  function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
-  }
-
+  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
   var state = load();
 
   // ---------- datas ----------
   function startOfDay(ts) { var d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); }
-  function daysBetween(fromTs, toTs) {
-    return Math.max(0, Math.floor((startOfDay(toTs) - startOfDay(fromTs)) / DAY));
-  }
-  function fmtDate(ts) {
-    return new Date(ts).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-  }
-  function dateInputToTs(value) {
-    if (!value) return Date.now();
-    var p = value.split("-");
-    return new Date(+p[0], +p[1] - 1, +p[2], 12, 0, 0).getTime();
-  }
-  function tsToDateInput(ts) {
-    var d = new Date(ts);
-    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
-  }
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
+  function daysBetween(a, b) { return Math.max(0, Math.floor((startOfDay(b) - startOfDay(a)) / DAY)); }
+  function fmtDate(ts) { return new Date(ts).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }); }
+  function dias(n) { return n === 1 ? "dia" : "dias"; }
+  function dateInputToTs(v) { if (!v) return Date.now(); var p = v.split("-"); return new Date(+p[0], +p[1] - 1, +p[2], 12, 0, 0).getTime(); }
+  function tsToDateInput(ts) { var d = new Date(ts); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
   // ---------- render ----------
   var coupleEl = document.getElementById("coupleCard");
 
   function render() {
-    var now = Date.now();
-    var di = state.people.di, tati = state.people.tati;
-
-    // contadores individuais
+    var now = Date.now(), di = state.people.di, tati = state.people.tati;
     [["di", di], ["tati", tati]].forEach(function (pair) {
       var p = pair[1];
-      if (p.status === "healthy") {
-        var d = daysBetween(p.streakStart, now);
-        if (d > (p.best || 0)) p.best = d;
-      }
+      if (p.status === "healthy") { var d = daysBetween(p.streakStart, now); if (d > (p.best || 0)) p.best = d; }
       renderPerson(pair[0], p, now);
     });
 
-    // contador do casal: dias sem NINGUÉM doente
     var anySick = di.status === "sick" || tati.status === "sick";
     if (!anySick) {
-      var coupleStart = Math.max(di.streakStart, tati.streakStart);
-      var cd = daysBetween(coupleStart, now);
+      var cd = daysBetween(Math.max(di.streakStart, tati.streakStart), now);
       if (cd > (state.coupleBest || 0)) state.coupleBest = cd;
       coupleEl.className = "couple";
       coupleEl.innerHTML =
-        '<div class="ctitle">👫 Di &amp; Tati — juntos</div>' +
-        '<div class="num">' + cd + '</div>' +
-        '<div class="label">' + (cd === 1 ? "dia" : "dias") + ' sem ninguém doente</div>' +
-        '<div class="chips"><span class="chip">recorde do casal: ' + (state.coupleBest || 0) + ' dias</span></div>';
+        '<div class="eyebrow">Di &amp; Tati · juntos</div>' +
+        '<div class="big num">' + cd + '</div>' +
+        '<div class="label">' + dias(cd) + ' sem ninguém doente</div>' +
+        '<div class="record">🏆 recorde do casal: ' + (state.coupleBest || 0) + ' ' + dias(state.coupleBest || 0) + '</div>';
     } else {
       var who = [];
       if (di.status === "sick") who.push("Di");
       if (tati.status === "sick") who.push("Tati");
       coupleEl.className = "couple alert";
       coupleEl.innerHTML =
-        '<div class="ctitle">👫 Di &amp; Tati — juntos</div>' +
-        '<div class="num">0</div>' +
-        '<div class="label">' + who.join(" e ") + (who.length > 1 ? " estão" : " está") + ' doente 🤒</div>' +
-        '<div class="chips"><span class="chip">recorde do casal: ' + (state.coupleBest || 0) + ' dias</span></div>';
+        '<div class="eyebrow">Di &amp; Tati · juntos</div>' +
+        '<div class="big num">0</div>' +
+        '<div class="label">' + who.join(" e ") + (who.length > 1 ? " estão doentes 🤒" : " está doente 🤒") + '</div>' +
+        '<div class="record">🏆 recorde do casal: ' + (state.coupleBest || 0) + ' ' + dias(state.coupleBest || 0) + '</div>';
     }
     save();
   }
@@ -281,25 +308,19 @@ body{
       var d = daysBetween(p.streakStart, now);
       el.className = "person";
       el.innerHTML =
-        '<div class="head"><span class="name">' + escapeHtml(p.name) + '</span>' +
-          '<span class="badge ok">saudável</span></div>' +
-        '<div class="num">' + d + '</div>' +
-        '<div class="label">' + (d === 1 ? "dia" : "dias") + ' sem doença</div>' +
-        '<div class="meta">recorde: ' + (p.best || 0) + ' d</div>' +
-        '<button class="btn danger" data-act="sick">Ficou doente 🤒</button>' +
-        hist;
+        '<div class="name">' + esc(p.name) + '</div><span class="chip ok">saudável</span>' +
+        '<div class="count num">' + d + '</div><div class="unit">' + dias(d) + ' sem doença</div>' +
+        '<div class="rec">recorde: ' + (p.best || 0) + ' ' + dias(p.best || 0) + '</div>' +
+        '<button class="btn danger" data-act="sick">Ficou doente 🤒</button>' + hist;
     } else {
-      var sickDays = daysBetween(p.illness.startedAt, now);
-      var note = p.illness.note ? " · " + escapeHtml(p.illness.note) : "";
+      var sd = daysBetween(p.illness.startedAt, now);
+      var note = p.illness.note ? " · " + esc(p.illness.note) : "";
       el.className = "person sick";
       el.innerHTML =
-        '<div class="head"><span class="name">' + escapeHtml(p.name) + '</span>' +
-          '<span class="badge bad">doente</span></div>' +
-        '<div class="num">' + sickDays + '</div>' +
-        '<div class="label">' + (sickDays === 1 ? "dia" : "dias") + ' doente</div>' +
-        '<div class="ill"><b>' + escapeHtml(p.illness.name) + '</b>' + note + '</div>' +
-        '<button class="btn ok" data-act="well">Sarou 🎉</button>' +
-        hist;
+        '<div class="name">' + esc(p.name) + '</div><span class="chip bad">doente</span>' +
+        '<div class="count num">' + sd + '</div><div class="unit">' + dias(sd) + ' doente</div>' +
+        '<div class="ill"><b>' + esc(p.illness.name) + '</b>' + note + '</div>' +
+        '<button class="btn ok" data-act="well">Sarou 🎉</button>' + hist;
     }
   }
 
@@ -307,6 +328,7 @@ body{
   var sickModal = document.getElementById("sickModal");
   var wellModal = document.getElementById("wellModal");
   var histModal = document.getElementById("histModal");
+  var menuModal = document.getElementById("menuModal");
   var pendingId = null;
 
   function openSick(id) {
@@ -322,111 +344,109 @@ body{
     pendingId = id;
     var p = state.people[id];
     document.getElementById("wellTitle").textContent = "Recuperação — " + p.name;
-    document.getElementById("wellInfo").textContent =
-      "Doença atual: " + p.illness.name + " (desde " + fmtDate(p.illness.startedAt) + ").";
+    document.getElementById("wellInfo").textContent = "Doença atual: " + p.illness.name + " (desde " + fmtDate(p.illness.startedAt) + ").";
     document.getElementById("wellDate").value = tsToDateInput(Date.now());
     wellModal.classList.remove("hidden");
   }
   function openHist(id) {
     pendingId = id;
-    var p = state.people[id];
-    document.getElementById("histTitle").textContent = "Histórico — " + p.name;
+    document.getElementById("histTitle").textContent = "Histórico — " + state.people[id].name;
     renderHistList(id);
     histModal.classList.remove("hidden");
   }
   function renderHistList(id) {
-    var p = state.people[id];
-    var listEl = document.getElementById("histList");
-    if (!p.records.length) {
-      listEl.innerHTML = '<li class="empty">Nenhuma doença registrada ainda 🙌</li>';
-      return;
-    }
+    var p = state.people[id], listEl = document.getElementById("histList");
+    if (!p.records.length) { listEl.innerHTML = '<li class="empty">Nenhuma doença registrada ainda 🙌</li>'; return; }
     listEl.innerHTML = p.records.map(function (r, i) {
       var dur = daysBetween(r.startedAt, r.recoveredAt);
-      var note = r.note ? ' — ' + escapeHtml(r.note) : "";
-      return '<li><div class="info"><b>' + escapeHtml(r.name) + '</b>' + note +
-        '<div class="d">' + fmtDate(r.startedAt) + " → " + fmtDate(r.recoveredAt) +
-        " · " + dur + (dur === 1 ? " dia" : " dias") + ' doente</div></div>' +
-        '<button class="del" data-del="' + i + '">✕</button></li>';
+      var note = r.note ? " — " + esc(r.note) : "";
+      return '<li><div class="info"><b>' + esc(r.name) + '</b>' + note +
+        '<div class="d">' + fmtDate(r.startedAt) + " → " + fmtDate(r.recoveredAt) + " · " + dur + " " + dias(dur) + ' doente</div></div>' +
+        '<button class="del" data-del="' + i + '" aria-label="Excluir">✕</button></li>';
     }).join("");
   }
   function closeModals() {
-    sickModal.classList.add("hidden");
-    wellModal.classList.add("hidden");
-    histModal.classList.add("hidden");
+    [sickModal, wellModal, histModal, menuModal].forEach(function (m) { m.classList.add("hidden"); });
     pendingId = null;
   }
 
-  // cliques nas pessoas
   document.querySelector(".people").addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-act]");
-    if (!btn) return;
+    var btn = e.target.closest("[data-act]"); if (!btn) return;
     var id = e.target.closest("[data-id]").getAttribute("data-id");
     var act = btn.getAttribute("data-act");
-    if (act === "sick") openSick(id);
-    else if (act === "well") openWell(id);
-    else if (act === "hist") openHist(id);
+    if (act === "sick") openSick(id); else if (act === "well") openWell(id); else if (act === "hist") openHist(id);
   });
 
-  // confirmar doença
   document.getElementById("sickConfirm").addEventListener("click", function () {
     if (!pendingId) return;
     var name = document.getElementById("sickName").value.trim();
     if (!name) { document.getElementById("sickName").focus(); return; }
     var p = state.people[pendingId];
     var startedAt = dateInputToTs(document.getElementById("sickDate").value);
-    var streakDays = daysBetween(p.streakStart, startedAt);
-    if (streakDays > (p.best || 0)) p.best = streakDays;
+    var streak = daysBetween(p.streakStart, startedAt);
+    if (streak > (p.best || 0)) p.best = streak;
     p.status = "sick";
     p.illness = { name: name, note: document.getElementById("sickNote").value.trim(), startedAt: startedAt };
-    closeModals();
-    render();
+    closeModals(); render();
   });
 
-  // confirmar recuperação
   document.getElementById("wellConfirm").addEventListener("click", function () {
     if (!pendingId) return;
-    var p = state.people[pendingId];
-    if (!p.illness) { closeModals(); return; }
-    var recoveredAt = dateInputToTs(document.getElementById("wellDate").value);
-    if (recoveredAt < p.illness.startedAt) recoveredAt = p.illness.startedAt;
-    p.records.push({ name: p.illness.name, note: p.illness.note, startedAt: p.illness.startedAt, recoveredAt: recoveredAt });
-    p.status = "healthy";
-    p.streakStart = recoveredAt;
-    p.illness = null;
-    closeModals();
-    render();
+    var p = state.people[pendingId]; if (!p.illness) { closeModals(); return; }
+    var rec = dateInputToTs(document.getElementById("wellDate").value);
+    if (rec < p.illness.startedAt) rec = p.illness.startedAt;
+    p.records.push({ name: p.illness.name, note: p.illness.note, startedAt: p.illness.startedAt, recoveredAt: rec });
+    p.status = "healthy"; p.streakStart = rec; p.illness = null;
+    closeModals(); render();
   });
 
-  // excluir registro do histórico
   document.getElementById("histList").addEventListener("click", function (e) {
-    var del = e.target.closest("[data-del]");
-    if (!del || !pendingId) return;
-    var i = +del.getAttribute("data-del");
-    var p = state.people[pendingId];
-    if (confirm("Excluir o registro de \"" + p.records[i].name + "\"?")) {
-      p.records.splice(i, 1);
-      save();
-      renderHistList(pendingId);
-      render();
+    var del = e.target.closest("[data-del]"); if (!del || !pendingId) return;
+    var i = +del.getAttribute("data-del"), p = state.people[pendingId];
+    if (confirm('Excluir o registro de "' + p.records[i].name + '"?')) {
+      p.records.splice(i, 1); save(); renderHistList(pendingId); render();
     }
   });
 
-  // fechar modais
-  Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) {
-    b.addEventListener("click", closeModals);
-  });
-  [sickModal, wellModal, histModal].forEach(function (m) {
-    m.addEventListener("click", function (e) { if (e.target === m) closeModals(); });
+  // ---------- menu / backup ----------
+  document.getElementById("menuBtn").addEventListener("click", function () { menuModal.classList.remove("hidden"); });
+
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "dias-sem-doenca-backup-" + tsToDateInput(Date.now()) + ".json";
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 100);
   });
 
-  // reiniciar tudo
+  var importFile = document.getElementById("importFile");
+  document.getElementById("importBtn").addEventListener("click", function () { importFile.click(); });
+  importFile.addEventListener("change", function () {
+    var f = importFile.files && importFile.files[0]; if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var s = JSON.parse(reader.result);
+        if (!s || !s.people || !s.people.di || !s.people.tati) throw new Error("formato");
+        if (typeof s.coupleBest !== "number") s.coupleBest = 0;
+        state = s; save(); closeModals(); render();
+        alert("Backup restaurado com sucesso! ✅");
+      } catch (e) { alert("Não consegui ler esse arquivo. Escolha um backup válido (.json)."); }
+      importFile.value = "";
+    };
+    reader.readAsText(f);
+  });
+
   document.getElementById("resetBtn").addEventListener("click", function () {
     if (confirm("Apagar todo o histórico e zerar todos os contadores?")) {
-      state = defaultState();
-      save();
-      render();
+      state = defaultState(); save(); closeModals(); render();
     }
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) { b.addEventListener("click", closeModals); });
+  [sickModal, wellModal, histModal, menuModal].forEach(function (m) {
+    m.addEventListener("click", function (e) { if (e.target === m) closeModals(); });
   });
 
   // ---------- relógio: atualiza sozinho ----------
