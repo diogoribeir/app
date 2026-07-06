@@ -100,6 +100,20 @@ body{
 
 .footer{max-width:560px;margin:0 auto;padding:2px 16px 16px;width:100%;text-align:center}
 .tag{font-size:.68rem;color:var(--good);background:var(--good-soft);padding:3px 12px;border-radius:999px;letter-spacing:.04em}
+.tag.warn{color:var(--bad);background:var(--bad-soft)}
+
+/* tela de login (modo compartilhado) */
+.login{position:fixed;inset:0;z-index:80;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px}
+.login.hidden{display:none}
+.login-box{width:100%;max-width:360px;text-align:center}
+.login-mark{font-size:2.4rem;color:var(--honey);line-height:1}
+.login-box h1{font-size:1.5rem;font-weight:800;margin:8px 0 4px}
+.login-box form{margin-top:16px;text-align:left}
+.login-box label{display:block;font-size:.78rem;color:var(--muted);font-weight:700;letter-spacing:.02em;margin:12px 0 5px}
+.login-box input{width:100%;padding:13px;border:1.5px solid var(--line);border-radius:12px;font-size:1rem;background:var(--card);color:var(--ink);font-family:inherit}
+.login-box input:focus-visible{outline:2px solid var(--good);outline-offset:1px;border-color:var(--good)}
+.login-box .btn{margin-top:18px}
+.login-error{color:var(--bad);font-size:.82rem;margin:12px 0 0;font-weight:600}
 
 /* modais (bottom sheet) */
 .modal{position:fixed;inset:0;background:rgba(10,18,14,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50}

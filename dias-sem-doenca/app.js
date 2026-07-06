@@ -1,5 +1,8 @@
-/* Dias sem Doença — contador offline para Di e Tati (+ placar do casal).
-   Tudo fica salvo localmente (localStorage). Funciona sem internet. */
+/* Dias sem Doença — Di & Tati.
+   Dois modos:
+   - LOCAL: sem config do Firebase → salva só neste aparelho (localStorage).
+   - COMPARTILHADO: com config → login do casal + banco na nuvem (Firebase),
+     sincronizando ao vivo entre os dois celulares. Guarda cópia offline. */
 
 (function () {
   "use strict";
@@ -15,7 +18,7 @@
     }
     return { people: { di: person("Di"), tati: person("Tati") }, coupleBest: 0 };
   }
-  function load() {
+  function readLocal() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("ddsd_v1");
       if (!raw) return defaultState();
@@ -25,10 +28,12 @@
       return s;
     } catch (e) { return defaultState(); }
   }
-  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
-  var state = load();
+  function writeLocal() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
+  function valid(s) { return s && s.people && s.people.di && s.people.tati; }
 
-  // ---------- datas ----------
+  var state = readLocal();
+
+  // ---------- datas / util ----------
   function startOfDay(ts) { var d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); }
   function daysBetween(a, b) { return Math.max(0, Math.floor((startOfDay(b) - startOfDay(a)) / DAY)); }
   function fmtDate(ts) { return new Date(ts).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }); }
@@ -37,21 +42,47 @@
   function tsToDateInput(ts) { var d = new Date(ts); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
+  // ---------- backend (local ou nuvem) ----------
+  var cloud = null;      // { ref } quando conectado
+  var applyingRemote = false;
+
+  function cfgReady() {
+    var c = window.FIREBASE_CONFIG;
+    return c && c.apiKey && c.apiKey.indexOf("COLE_AQUI") === -1 && c.projectId && c.projectId.indexOf("COLE_AQUI") === -1;
+  }
+
+  // grava o estado atual no backend ativo
+  function commit() {
+    writeLocal();
+    if (cloud && !applyingRemote) {
+      cloud.ref.set({ state: state, updatedAt: Date.now() }).catch(function () { setStatus("offline"); });
+    }
+  }
+
+  function setStatus(kind) {
+    var el = document.getElementById("statusTag");
+    if (!el) return;
+    if (kind === "synced") { el.textContent = "sincronizado ✓"; el.className = "tag"; }
+    else if (kind === "offline") { el.textContent = "offline — sincroniza ao voltar"; el.className = "tag warn"; }
+    else if (kind === "connecting") { el.textContent = "conectando…"; el.className = "tag"; }
+    else { el.textContent = "funciona offline"; el.className = "tag"; }
+  }
+
   // ---------- render ----------
   var coupleEl = document.getElementById("coupleCard");
 
   function render() {
-    var now = Date.now(), di = state.people.di, tati = state.people.tati;
+    var now = Date.now(), di = state.people.di, tati = state.people.tati, changed = false;
     [["di", di], ["tati", tati]].forEach(function (pair) {
       var p = pair[1];
-      if (p.status === "healthy") { var d = daysBetween(p.streakStart, now); if (d > (p.best || 0)) p.best = d; }
+      if (p.status === "healthy") { var d = daysBetween(p.streakStart, now); if (d > (p.best || 0)) { p.best = d; changed = true; } }
       renderPerson(pair[0], p, now);
     });
 
     var anySick = di.status === "sick" || tati.status === "sick";
     if (!anySick) {
       var cd = daysBetween(Math.max(di.streakStart, tati.streakStart), now);
-      if (cd > (state.coupleBest || 0)) state.coupleBest = cd;
+      if (cd > (state.coupleBest || 0)) { state.coupleBest = cd; changed = true; }
       coupleEl.className = "couple";
       coupleEl.innerHTML =
         '<div class="eyebrow">Di &amp; Tati · juntos</div>' +
@@ -69,7 +100,9 @@
         '<div class="label">' + who.join(" e ") + (who.length > 1 ? " estão doentes 🤒" : " está doente 🤒") + '</div>' +
         '<div class="record">🏆 recorde do casal: ' + (state.coupleBest || 0) + ' ' + dias(state.coupleBest || 0) + '</div>';
     }
-    save();
+    // só persiste "recordes" automáticos quando não estou aplicando algo remoto
+    if (changed) writeLocal();
+    if (changed && cloud && !applyingRemote) commit();
   }
 
   function renderPerson(id, p, now) {
@@ -159,7 +192,7 @@
     if (streak > (p.best || 0)) p.best = streak;
     p.status = "sick";
     p.illness = { name: name, note: document.getElementById("sickNote").value.trim(), startedAt: startedAt };
-    closeModals(); render();
+    closeModals(); render(); commit();
   });
 
   document.getElementById("wellConfirm").addEventListener("click", function () {
@@ -169,14 +202,14 @@
     if (rec < p.illness.startedAt) rec = p.illness.startedAt;
     p.records.push({ name: p.illness.name, note: p.illness.note, startedAt: p.illness.startedAt, recoveredAt: rec });
     p.status = "healthy"; p.streakStart = rec; p.illness = null;
-    closeModals(); render();
+    closeModals(); render(); commit();
   });
 
   document.getElementById("histList").addEventListener("click", function (e) {
     var del = e.target.closest("[data-del]"); if (!del || !pendingId) return;
     var i = +del.getAttribute("data-del"), p = state.people[pendingId];
     if (confirm('Excluir o registro de "' + p.records[i].name + '"?')) {
-      p.records.splice(i, 1); save(); renderHistList(pendingId); render();
+      p.records.splice(i, 1); renderHistList(pendingId); render(); commit();
     }
   });
 
@@ -200,9 +233,9 @@
     reader.onload = function () {
       try {
         var s = JSON.parse(reader.result);
-        if (!s || !s.people || !s.people.di || !s.people.tati) throw new Error("formato");
+        if (!valid(s)) throw new Error("formato");
         if (typeof s.coupleBest !== "number") s.coupleBest = 0;
-        state = s; save(); closeModals(); render();
+        state = s; closeModals(); render(); commit();
         alert("Backup restaurado com sucesso! ✅");
       } catch (e) { alert("Não consegui ler esse arquivo. Escolha um backup válido (.json)."); }
       importFile.value = "";
@@ -212,8 +245,13 @@
 
   document.getElementById("resetBtn").addEventListener("click", function () {
     if (confirm("Apagar todo o histórico e zerar todos os contadores?")) {
-      state = defaultState(); save(); closeModals(); render();
+      state = defaultState(); closeModals(); render(); commit();
     }
+  });
+
+  document.getElementById("logoutBtn").addEventListener("click", function () {
+    if (window.firebase && firebase.auth) { firebase.auth().signOut(); }
+    closeModals();
   });
 
   Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) { b.addEventListener("click", closeModals); });
@@ -221,13 +259,73 @@
     m.addEventListener("click", function (e) { if (e.target === m) closeModals(); });
   });
 
-  // ---------- relógio: atualiza sozinho ----------
+  // ---------- relógio ----------
   render();
   setInterval(render, 30000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) render(); });
 
-  // ---------- service worker (offline) ----------
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  // ---------- inicialização do modo ----------
+  var loginScreen = document.getElementById("loginScreen");
+
+  function startLocalMode() {
+    setStatus("local");
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+    }
   }
+
+  function startCloudMode() {
+    setStatus("connecting");
+    try { firebase.initializeApp(window.FIREBASE_CONFIG); }
+    catch (e) { startLocalMode(); return; }
+
+    var auth = firebase.auth();
+    var db = firebase.firestore();
+    db.enablePersistence({ synchronizeTabs: true }).catch(function () {});
+    document.getElementById("logoutBtn").classList.remove("hidden");
+
+    // login
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var err = document.getElementById("loginError"); err.hidden = true;
+      var btn = document.getElementById("loginBtn"); btn.disabled = true; btn.textContent = "Entrando…";
+      var email = document.getElementById("email").value.trim();
+      var pass = document.getElementById("pass").value;
+      auth.signInWithEmailAndPassword(email, pass).catch(function (er) {
+        var msg = "Não deu pra entrar. Confira e-mail e senha.";
+        if (er && er.code === "auth/invalid-email") msg = "E-mail inválido.";
+        if (er && (er.code === "auth/wrong-password" || er.code === "auth/invalid-credential")) msg = "E-mail ou senha incorretos.";
+        if (er && er.code === "auth/network-request-failed") msg = "Sem internet. Tente de novo.";
+        err.textContent = msg; err.hidden = false;
+      }).finally(function () { btn.disabled = false; btn.textContent = "Entrar"; });
+    });
+
+    auth.onAuthStateChanged(function (user) {
+      if (!user) { loginScreen.classList.remove("hidden"); return; }
+      loginScreen.classList.add("hidden");
+      var ref = db.collection("casal").doc("estado");
+      cloud = { ref: ref };
+
+      ref.onSnapshot({ includeMetadataChanges: true }, function (snap) {
+        if (!snap.exists) {
+          // primeira vez: sobe o que já existe neste aparelho para a nuvem
+          ref.set({ state: state, updatedAt: Date.now() }).catch(function () {});
+          return;
+        }
+        var data = snap.data();
+        if (data && valid(data.state)) {
+          applyingRemote = true;
+          state = data.state;
+          if (typeof state.coupleBest !== "number") state.coupleBest = 0;
+          writeLocal();
+          render();
+          applyingRemote = false;
+        }
+        setStatus(snap.metadata.fromCache ? "offline" : "synced");
+      }, function () { setStatus("offline"); });
+    });
+  }
+
+  if (cfgReady() && window.firebase) startCloudMode();
+  else startLocalMode();
 })();
