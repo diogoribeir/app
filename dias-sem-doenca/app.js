@@ -171,7 +171,7 @@
     }).join("");
   }
   function closeModals() {
-    [sickModal, wellModal, histModal, menuModal].forEach(function (m) { m.classList.add("hidden"); });
+    Array.prototype.forEach.call(document.querySelectorAll(".modal"), function (m) { m.classList.add("hidden"); });
     pendingId = null;
   }
 
@@ -216,6 +216,49 @@
   // ---------- menu / backup ----------
   document.getElementById("menuBtn").addEventListener("click", function () { menuModal.classList.remove("hidden"); });
 
+  // ---------- compartilhar situação (foto do momento) ----------
+  function personLine(p, now) {
+    if (p.status === "healthy") {
+      var d = daysBetween(p.streakStart, now);
+      return "• " + p.name + ": " + d + " " + dias(d) + " sem doença";
+    }
+    var sd = daysBetween(p.illness.startedAt, now);
+    return "• " + p.name + ": doente 🤒 " + p.illness.name + " — " + sd + " " + dias(sd);
+  }
+  function summaryText() {
+    var now = Date.now(), di = state.people.di, tati = state.people.tati, couple;
+    if (di.status === "sick" || tati.status === "sick") {
+      var who = [];
+      if (di.status === "sick") who.push("Di");
+      if (tati.status === "sick") who.push("Tati");
+      couple = "👫 Casal: " + who.join(" e ") + (who.length > 1 ? " doentes 🤒" : " doente 🤒");
+    } else {
+      var cd = daysBetween(Math.max(di.streakStart, tati.streakStart), now);
+      couple = "👫 Casal: " + cd + " " + dias(cd) + " sem ninguém doente (recorde " + (state.coupleBest || 0) + ")";
+    }
+    return "🩺 Dias sem Doença — " + fmtDate(now) + "\n" + couple + "\n" + personLine(di, now) + "\n" + personLine(tati, now);
+  }
+  var shareModal = document.getElementById("shareModal");
+  document.getElementById("shareBtn").addEventListener("click", function () {
+    var text = summaryText();
+    if (navigator.share) {
+      navigator.share({ title: "Dias sem Doença", text: text }).then(function () { closeModals(); })
+        .catch(function () { openShareModal(text); });
+    } else { openShareModal(text); }
+  });
+  function openShareModal(text) {
+    menuModal.classList.add("hidden");
+    document.getElementById("shareText").value = text;
+    shareModal.classList.remove("hidden");
+  }
+  document.getElementById("shareCopy").addEventListener("click", function () {
+    var ta = document.getElementById("shareText"), btn = this;
+    function done() { btn.textContent = "Copiado ✓"; setTimeout(function () { btn.textContent = "Copiar"; }, 1500); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(ta.value).then(done).catch(function () { ta.focus(); ta.select(); try { document.execCommand("copy"); done(); } catch (e) {} });
+    } else { ta.focus(); ta.select(); try { document.execCommand("copy"); done(); } catch (e) {} }
+  });
+
   document.getElementById("exportBtn").addEventListener("click", function () {
     var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
     var a = document.createElement("a");
@@ -255,7 +298,7 @@
   });
 
   Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) { b.addEventListener("click", closeModals); });
-  [sickModal, wellModal, histModal, menuModal].forEach(function (m) {
+  Array.prototype.forEach.call(document.querySelectorAll(".modal"), function (m) {
     m.addEventListener("click", function (e) { if (e.target === m) closeModals(); });
   });
 

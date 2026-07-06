@@ -152,6 +152,8 @@ body{
 .menu-item span{font-weight:800;font-size:.95rem}
 .menu-item small{color:var(--muted);font-size:.74rem}
 .menu-item.danger-text span{color:var(--bad)}
+.share-text{width:100%;margin-top:10px;padding:12px;border:1.5px solid var(--line);border-radius:12px;
+  font-size:.95rem;background:var(--paper);color:var(--ink);font-family:inherit;resize:none;line-height:1.5}
 
 .log{list-style:none;padding:0;margin:6px 0 0}
 .log li{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-left:4px solid var(--good);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:.9rem}
@@ -244,6 +246,7 @@ body{
     <div class="modal-box">
       <h2>Opções</h2>
       <div class="menu-list">
+        <button id="shareBtn" class="menu-item"><span>📤 Compartilhar situação</span><small>Envia um resumo de como está agora</small></button>
         <button id="exportBtn" class="menu-item"><span>⬇️ Salvar backup</span><small>Baixa um arquivo com todos os dados</small></button>
         <button id="importBtn" class="menu-item"><span>⬆️ Restaurar backup</span><small>Carrega os dados de um arquivo salvo</small></button>
         <button id="logoutBtn" class="menu-item hidden"><span>🚪 Sair da conta</span><small>Desconecta este aparelho</small></button>
@@ -252,6 +255,19 @@ body{
       <input id="importFile" type="file" accept="application/json,.json" hidden />
       <div class="modal-actions">
         <button class="btn ghost" data-close>Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: compartilhar situação -->
+  <div id="shareModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Compartilhar situação</h2>
+      <p class="muted">Um resumo de como está agora. Envie por WhatsApp ou copie.</p>
+      <textarea id="shareText" class="share-text" readonly rows="6"></textarea>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+        <button id="shareCopy" class="btn ok">Copiar</button>
       </div>
     </div>
   </div>
@@ -431,7 +447,7 @@ body{
     }).join("");
   }
   function closeModals() {
-    [sickModal, wellModal, histModal, menuModal].forEach(function (m) { m.classList.add("hidden"); });
+    Array.prototype.forEach.call(document.querySelectorAll(".modal"), function (m) { m.classList.add("hidden"); });
     pendingId = null;
   }
 
@@ -476,6 +492,49 @@ body{
   // ---------- menu / backup ----------
   document.getElementById("menuBtn").addEventListener("click", function () { menuModal.classList.remove("hidden"); });
 
+  // ---------- compartilhar situação (foto do momento) ----------
+  function personLine(p, now) {
+    if (p.status === "healthy") {
+      var d = daysBetween(p.streakStart, now);
+      return "• " + p.name + ": " + d + " " + dias(d) + " sem doença";
+    }
+    var sd = daysBetween(p.illness.startedAt, now);
+    return "• " + p.name + ": doente 🤒 " + p.illness.name + " — " + sd + " " + dias(sd);
+  }
+  function summaryText() {
+    var now = Date.now(), di = state.people.di, tati = state.people.tati, couple;
+    if (di.status === "sick" || tati.status === "sick") {
+      var who = [];
+      if (di.status === "sick") who.push("Di");
+      if (tati.status === "sick") who.push("Tati");
+      couple = "👫 Casal: " + who.join(" e ") + (who.length > 1 ? " doentes 🤒" : " doente 🤒");
+    } else {
+      var cd = daysBetween(Math.max(di.streakStart, tati.streakStart), now);
+      couple = "👫 Casal: " + cd + " " + dias(cd) + " sem ninguém doente (recorde " + (state.coupleBest || 0) + ")";
+    }
+    return "🩺 Dias sem Doença — " + fmtDate(now) + "\n" + couple + "\n" + personLine(di, now) + "\n" + personLine(tati, now);
+  }
+  var shareModal = document.getElementById("shareModal");
+  document.getElementById("shareBtn").addEventListener("click", function () {
+    var text = summaryText();
+    if (navigator.share) {
+      navigator.share({ title: "Dias sem Doença", text: text }).then(function () { closeModals(); })
+        .catch(function () { openShareModal(text); });
+    } else { openShareModal(text); }
+  });
+  function openShareModal(text) {
+    menuModal.classList.add("hidden");
+    document.getElementById("shareText").value = text;
+    shareModal.classList.remove("hidden");
+  }
+  document.getElementById("shareCopy").addEventListener("click", function () {
+    var ta = document.getElementById("shareText"), btn = this;
+    function done() { btn.textContent = "Copiado ✓"; setTimeout(function () { btn.textContent = "Copiar"; }, 1500); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(ta.value).then(done).catch(function () { ta.focus(); ta.select(); try { document.execCommand("copy"); done(); } catch (e) {} });
+    } else { ta.focus(); ta.select(); try { document.execCommand("copy"); done(); } catch (e) {} }
+  });
+
   document.getElementById("exportBtn").addEventListener("click", function () {
     var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
     var a = document.createElement("a");
@@ -515,7 +574,7 @@ body{
   });
 
   Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) { b.addEventListener("click", closeModals); });
-  [sickModal, wellModal, histModal, menuModal].forEach(function (m) {
+  Array.prototype.forEach.call(document.querySelectorAll(".modal"), function (m) {
     m.addEventListener("click", function (e) { if (e.target === m) closeModals(); });
   });
 

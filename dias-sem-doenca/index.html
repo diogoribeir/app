@@ -92,6 +92,7 @@
     <div class="modal-box">
       <h2>Opções</h2>
       <div class="menu-list">
+        <button id="shareBtn" class="menu-item"><span>📤 Compartilhar situação</span><small>Envia um resumo de como está agora</small></button>
         <button id="exportBtn" class="menu-item"><span>⬇️ Salvar backup</span><small>Baixa um arquivo com todos os dados</small></button>
         <button id="importBtn" class="menu-item"><span>⬆️ Restaurar backup</span><small>Carrega os dados de um arquivo salvo</small></button>
         <button id="logoutBtn" class="menu-item hidden"><span>🚪 Sair da conta</span><small>Desconecta este aparelho</small></button>
@@ -100,6 +101,19 @@
       <input id="importFile" type="file" accept="application/json,.json" hidden />
       <div class="modal-actions">
         <button class="btn ghost" data-close>Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: compartilhar situação -->
+  <div id="shareModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Compartilhar situação</h2>
+      <p class="muted">Um resumo de como está agora. Envie por WhatsApp ou copie.</p>
+      <textarea id="shareText" class="share-text" readonly rows="6"></textarea>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+        <button id="shareCopy" class="btn ok">Copiar</button>
       </div>
     </div>
   </div>

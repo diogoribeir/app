@@ -142,6 +142,8 @@ body{
 .menu-item span{font-weight:800;font-size:.95rem}
 .menu-item small{color:var(--muted);font-size:.74rem}
 .menu-item.danger-text span{color:var(--bad)}
+.share-text{width:100%;margin-top:10px;padding:12px;border:1.5px solid var(--line);border-radius:12px;
+  font-size:.95rem;background:var(--paper);color:var(--ink);font-family:inherit;resize:none;line-height:1.5}
 
 .log{list-style:none;padding:0;margin:6px 0 0}
 .log li{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-left:4px solid var(--good);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:.9rem}
