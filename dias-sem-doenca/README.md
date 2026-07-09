@@ -1,40 +1,50 @@
-# 🩺 Dias sem Doença
+# 🩺 Dias sem Doença — Di & Tati
 
-App **offline** que conta há quantos dias **Di** e **Tati** estão sem ficar doentes — no estilo do quadro "X dias sem acidente", mas para doenças.
+App que conta há quantos dias **Di** e **Tati** estão sem ficar doentes (estilo "X dias sem acidente", mas para doenças), com **placar do casal**.
 
-## O que ele faz
-- **Dois contadores**, um para Di e outro para Tati, cada um mostrando os **dias sem doença**.
-- O **relógio conta sozinho**: a contagem aumenta automaticamente a cada dia, mesmo com o app fechado (ele recalcula pela data).
-- Quando alguém **fica doente**, você registra: o contador **zera** e fica marcado como *doente*, guardando **qual foi a doença** (e uma observação opcional).
-- Enquanto a pessoa está doente, aparece **há quantos dias está doente** (acompanha a recuperação).
-- Quando a pessoa **se recupera**, você marca a recuperação: aí o contador de "dias sem doença" **recomeça do zero** a partir da data em que sarou.
-- Guarda o **histórico** de todas as doenças (início, fim e duração) e o **recorde** de maior sequência saudável.
-- **Tudo fica salvo no próprio celular** (não usa internet, não manda dados pra lugar nenhum).
+Funciona em **dois modos**:
 
-## Como instalar no celular (Android)
-Como é um PWA, ele instala direto pelo navegador, sem loja:
+- **Local** (sem configuração): salva só no próprio aparelho (`localStorage`). Ótimo para uso pessoal e offline.
+- **Compartilhado** (com Firebase): login do casal + banco na nuvem, sincronizando **ao vivo** entre os dois celulares, com dados privados.
 
-1. Coloque os arquivos desta pasta em qualquer hospedagem HTTPS (ex.: GitHub Pages) **ou** abra o `index.html` por um servidor local.
-2. Abra o endereço no **Chrome** do Android.
-3. Menu (⋮) → **Adicionar à tela de início** / **Instalar app**.
-4. Pronto: vira um ícone na tela inicial e **abre offline**, como um app normal.
+## Funcionalidades
+- Contadores individuais de **dias sem doença** (Di e Tati) + **placar do casal** (dias sem ninguém doente).
+- Registrar doença (zera o contador da pessoa e guarda a doença), marcar recuperação (recomeça a contagem).
+- **Histórico** com exclusão de registros; **recorde** individual e do casal.
+- **Backup**: exportar/importar os dados (menu ⋯).
+- Tema claro/escuro automático, layout de uma tela só, instalável (PWA), offline.
 
-> No iPhone: abra no **Safari** → botão Compartilhar → **Adicionar à Tela de Início**.
+## Modo compartilhado (Firebase)
+1. Crie um projeto grátis em https://console.firebase.google.com
+2. Registre um app **Web** e copie a config do SDK.
+3. Cole os valores em `firebase-config.js`.
+4. Ative **Authentication → Email/Senha** e crie **um usuário** (a conta do casal). Desative novos cadastros.
+5. Ative **Firestore Database** e use a regra:
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /casal/{doc} {
+         allow read, write: if request.auth != null;
+       }
+     }
+   }
+   ```
+6. Os dois entram no app com o mesmo e-mail/senha e veem os mesmos dados ao vivo.
 
-### Testar no computador
-Dentro desta pasta:
+> Enquanto `firebase-config.js` estiver com `COLE_AQUI`, o app roda no modo **local**.
+
+## Deploy no Vercel
+1. https://vercel.com → login com GitHub → **Add New → Project** → importar este repositório.
+2. **Root Directory:** `dias-sem-doenca` · **Framework Preset:** Other · **Deploy**.
+3. Abra o link `.vercel.app` no celular → **Adicionar à tela de início**.
+
+## Testar no computador
 ```bash
+cd dias-sem-doenca
 python3 -m http.server 8000
 ```
-Abra `http://localhost:8000` no navegador. (Um servidor é necessário para o modo offline / service worker funcionar.)
+Abra `http://localhost:8000`.
 
-## Arquivos
-- `index.html` — tela do app
-- `styles.css` — visual
-- `app.js` — lógica (contagem, doenças, histórico, salvamento local)
-- `manifest.webmanifest` — define o app instalável
-- `sw.js` — service worker (faz funcionar offline)
-- `icons/` — ícones do app
-
-## Reiniciar
-O botão **"Reiniciar tudo"** no rodapé apaga o histórico e zera os dois contadores.
+## Arquivo único (uso pessoal, offline)
+`Dias-sem-Doenca.html` é uma versão **local** em arquivo único: baixe e abra no navegador, sem servidor.

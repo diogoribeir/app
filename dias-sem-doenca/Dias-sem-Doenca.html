@@ -1,3 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1E2E26" />
+  <title>Dias sem Doença — Di &amp; Tati</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <style>
+/* Dias sem Doença — identidade "farmácia caseira": sage + floresta + mel + coral */
+:root{
+  --paper:#ECEFE8; --card:#FBFCF8; --ink:#17241E; --muted:#5F6F65; --line:#DCE2D6;
+  --good:#2E8B57; --good-soft:#DEEEE3; --bad:#CE5439; --bad-soft:#F6E1DA;
+  --honey:#B98A2E;
+  --hero-bg:#1E2E26; --hero-bg2:#26382E; --hero-ink:#F2EFE4; --hero-accent:#E7B54E; --hero-alert:#E27A5A;
+  --shadow:0 6px 20px rgba(21,40,31,.10);
+  --r:20px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#0F1512; --card:#18211C; --ink:#E8EEE6; --muted:#93A399; --line:#273128;
+    --good:#57B885; --good-soft:#16281E; --bad:#E8735A; --bad-soft:#2A1A15;
+    --honey:#E0B357;
+    --hero-bg:#16211C; --hero-bg2:#1E2C24; --hero-ink:#F2EFE4; --hero-accent:#E7B54E; --hero-alert:#E8735A;
+    --shadow:0 6px 20px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="light"]{
+  --paper:#ECEFE8; --card:#FBFCF8; --ink:#17241E; --muted:#5F6F65; --line:#DCE2D6;
+  --good:#2E8B57; --good-soft:#DEEEE3; --bad:#CE5439; --bad-soft:#F6E1DA; --honey:#B98A2E;
+  --hero-bg:#1E2E26; --hero-bg2:#26382E; --hero-ink:#F2EFE4; --hero-accent:#E7B54E; --hero-alert:#E27A5A;
+  --shadow:0 6px 20px rgba(21,40,31,.10);
+}
+:root[data-theme="dark"]{
+  --paper:#0F1512; --card:#18211C; --ink:#E8EEE6; --muted:#93A399; --line:#273128;
+  --good:#57B885; --good-soft:#16281E; --bad:#E8735A; --bad-soft:#2A1A15; --honey:#E0B357;
+  --hero-bg:#16211C; --hero-bg2:#1E2C24; --hero-ink:#F2EFE4; --hero-accent:#E7B54E; --hero-alert:#E8735A;
+  --shadow:0 6px 20px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  font-family:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  background:var(--paper); color:var(--ink);
+  min-height:100%; display:flex; flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* topo */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;
+}
+.brand{font-size:1.05rem;font-weight:800;letter-spacing:.01em;display:flex;align-items:center;gap:7px}
+.brand .mark{color:var(--honey)}
+.icon-btn{
+  background:var(--card);border:1px solid var(--line);color:var(--ink);
+  width:38px;height:38px;border-radius:12px;font-size:1.3rem;line-height:1;cursor:pointer;
+  box-shadow:var(--shadow)
+}
+
+.wrap{flex:1;display:flex;flex-direction:column;gap:14px;padding:4px 14px 10px;max-width:560px;width:100%;margin:0 auto}
+
+/* placar do casal (resumo) */
+.couple{
+  background:linear-gradient(150deg,var(--hero-bg),var(--hero-bg2));
+  color:var(--hero-ink);border-radius:24px;padding:18px 18px 16px;text-align:center;
+  box-shadow:var(--shadow);position:relative;overflow:hidden
+}
+.couple::after{content:"";position:absolute;inset:0;border-radius:24px;border:1px solid rgba(231,181,78,.18);pointer-events:none}
+.couple .eyebrow{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;opacity:.75;font-weight:700}
+.couple .big{font-size:clamp(3.2rem,17vw,4.4rem);line-height:.95;font-weight:800;color:var(--hero-accent);margin:6px 0 2px}
+.couple.alert .big{color:var(--hero-alert)}
+.couple .label{font-size:.9rem;opacity:.92}
+.couple .record{margin-top:10px;display:inline-block;font-size:.72rem;letter-spacing:.02em;
+  background:rgba(231,181,78,.15);color:var(--hero-accent);border:1px solid rgba(231,181,78,.3);
+  padding:4px 12px;border-radius:999px;font-weight:700}
+.couple.alert .record{background:rgba(226,122,90,.16);color:var(--hero-alert);border-color:rgba(226,122,90,.35)}
+
+/* pessoas (detalhe) */
+.people{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.person{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 12px 12px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;text-align:center;position:relative
+}
+.person::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:var(--good)}
+.person.sick::before{background:var(--bad)}
+.person .name{font-size:1.05rem;font-weight:800}
+.chip{font-size:.64rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-top:5px}
+.chip.ok{background:var(--good-soft);color:var(--good)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.person .count{font-size:2.7rem;line-height:1;font-weight:800;color:var(--good);margin:8px 0 0}
+.person.sick .count{color:var(--bad)}
+.person .unit{color:var(--muted);font-size:.72rem;letter-spacing:.02em}
+.person .ill{font-size:.74rem;color:var(--bad);margin-top:6px;line-height:1.25;max-width:100%;overflow-wrap:anywhere}
+.person .ill b{font-weight:800}
+.person .rec{font-size:.66rem;color:var(--muted);margin-top:5px}
+
+.btn{
+  border:0;border-radius:13px;padding:11px 10px;font-size:.9rem;font-weight:800;
+  cursor:pointer;color:#fff;width:100%;margin-top:11px;letter-spacing:.01em
+}
+.btn.danger{background:var(--bad)} .btn.ok{background:var(--good)}
+.btn:active{filter:brightness(.94)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.hist-link{background:none;border:0;color:var(--muted);font-size:.7rem;margin-top:9px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+
+.footer{max-width:560px;margin:0 auto;padding:2px 16px 16px;width:100%;text-align:center}
+.tag{font-size:.68rem;color:var(--good);background:var(--good-soft);padding:3px 12px;border-radius:999px;letter-spacing:.04em}
+.tag.warn{color:var(--bad);background:var(--bad-soft)}
+
+/* tela de login (modo compartilhado) */
+.login{position:fixed;inset:0;z-index:80;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px}
+.login.hidden{display:none}
+.login-box{width:100%;max-width:360px;text-align:center}
+.login-mark{font-size:2.4rem;color:var(--honey);line-height:1}
+.login-box h1{font-size:1.5rem;font-weight:800;margin:8px 0 4px}
+.login-box form{margin-top:16px;text-align:left}
+.login-box label{display:block;font-size:.78rem;color:var(--muted);font-weight:700;letter-spacing:.02em;margin:12px 0 5px}
+.login-box input{width:100%;padding:13px;border:1.5px solid var(--line);border-radius:12px;font-size:1rem;background:var(--card);color:var(--ink);font-family:inherit}
+.login-box input:focus-visible{outline:2px solid var(--good);outline-offset:1px;border-color:var(--good)}
+.login-box .btn{margin-top:18px}
+.login-error{color:var(--bad);font-size:.82rem;margin:12px 0 0;font-weight:600}
+
+/* modais (bottom sheet) */
+.modal{position:fixed;inset:0;background:rgba(10,18,14,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.modal.hidden{display:none}
+.modal-box{
+  background:var(--card);color:var(--ink);width:100%;max-width:560px;border-radius:24px 24px 0 0;
+  padding:22px 20px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25);
+  max-height:86vh;overflow:auto;animation:up .22s ease
+}
+@media (prefers-reduced-motion:reduce){.modal-box{animation:none}}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+.modal-box h2{margin:0 0 12px;font-size:1.2rem;font-weight:800}
+.modal-box label{display:block;font-size:.78rem;color:var(--muted);margin:12px 0 5px;font-weight:700;letter-spacing:.02em}
+.modal-box input[type=text],.modal-box input[type=date]{
+  width:100%;padding:13px;border:1.5px solid var(--line);border-radius:12px;font-size:1rem;
+  background:var(--paper);color:var(--ink);font-family:inherit
+}
+.modal-box input:focus-visible{outline:2px solid var(--good);outline-offset:1px;border-color:var(--good)}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.modal-actions .btn{margin-top:0}
+.muted{color:var(--muted);font-size:.9rem;margin:0}
+
+.menu-list{display:flex;flex-direction:column;gap:8px}
+.menu-item{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;
+  background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;color:var(--ink);font-family:inherit}
+.menu-item span{font-weight:800;font-size:.95rem}
+.menu-item small{color:var(--muted);font-size:.74rem}
+.menu-item.danger-text span{color:var(--bad)}
+.share-text{width:100%;margin-top:10px;padding:12px;border:1.5px solid var(--line);border-radius:12px;
+  font-size:.95rem;background:var(--paper);color:var(--ink);font-family:inherit;resize:none;line-height:1.5}
+
+.log{list-style:none;padding:0;margin:6px 0 0}
+.log li{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-left:4px solid var(--good);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:.9rem}
+.log .info{flex:1;min-width:0}
+.log .info b{font-weight:800}
+.log .d{color:var(--muted);font-size:.76rem;margin-top:2px}
+.log .empty{color:var(--muted);font-style:italic;border:0;padding-left:0}
+.log .del{background:var(--bad-soft);color:var(--bad);border:0;border-radius:10px;padding:7px 11px;font-weight:800;cursor:pointer;font-size:.9rem;flex-shrink:0}
+:focus-visible{outline:2px solid var(--good);outline-offset:2px}
+
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="mark">✚</span> Dias sem Doença</div>
+    <button id="menuBtn" class="icon-btn" aria-label="Opções">⋯</button>
+  </header>
+
+  <main class="wrap">
+    <section id="coupleCard" class="couple"></section>
+    <div class="people">
+      <section class="person" data-id="di"></section>
+      <section class="person" data-id="tati"></section>
+    </div>
+  </main>
+
+  <footer class="footer"><span id="statusTag" class="tag">funciona offline</span></footer>
+
+  <!-- Tela de login (só aparece no modo compartilhado) -->
+  <div id="loginScreen" class="login hidden">
+    <div class="login-box">
+      <div class="login-mark">✚</div>
+      <h1>Dias sem Doença</h1>
+      <p class="muted">Entre com a conta do casal para ver e atualizar juntos.</p>
+      <form id="loginForm">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" autocomplete="username" placeholder="email@exemplo.com" required />
+        <label for="pass">Senha</label>
+        <input id="pass" type="password" autocomplete="current-password" placeholder="••••••••" required />
+        <p id="loginError" class="login-error" hidden></p>
+        <button id="loginBtn" class="btn ok" type="submit">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: registrar doença -->
+  <div id="sickModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="sickTitle">Registrar doença</h2>
+      <label for="sickName">Qual doença?</label>
+      <input id="sickName" type="text" placeholder="Ex.: gripe, virose, dor de garganta" autocomplete="off" />
+      <label for="sickNote">Observação (opcional)</label>
+      <input id="sickNote" type="text" placeholder="Ex.: febre, foi ao médico..." autocomplete="off" />
+      <label for="sickDate">Começou em</label>
+      <input id="sickDate" type="date" />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="sickConfirm" class="btn danger">Marcar como doente</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: recuperação -->
+  <div id="wellModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="wellTitle">Marcar recuperação</h2>
+      <p id="wellInfo" class="muted"></p>
+      <label for="wellDate">Recuperou em</label>
+      <input id="wellDate" type="date" />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="wellConfirm" class="btn ok">Recuperado! 🎉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: histórico -->
+  <div id="histModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="histTitle">Histórico</h2>
+      <ul id="histList" class="log"></ul>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: menu / backup -->
+  <div id="menuModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Opções</h2>
+      <div class="menu-list">
+        <button id="shareBtn" class="menu-item"><span>📤 Compartilhar situação</span><small>Envia um resumo de como está agora</small></button>
+        <button id="exportBtn" class="menu-item"><span>⬇️ Salvar backup</span><small>Baixa um arquivo com todos os dados</small></button>
+        <button id="importBtn" class="menu-item"><span>⬆️ Restaurar backup</span><small>Carrega os dados de um arquivo salvo</small></button>
+        <button id="logoutBtn" class="menu-item hidden"><span>🚪 Sair da conta</span><small>Desconecta este aparelho</small></button>
+        <button id="resetBtn" class="menu-item danger-text"><span>🗑️ Reiniciar tudo</span><small>Apaga histórico e zera os contadores</small></button>
+      </div>
+      <input id="importFile" type="file" accept="application/json,.json" hidden />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: compartilhar situação -->
+  <div id="shareModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Compartilhar situação</h2>
+      <p class="muted">Um resumo de como está agora. Envie por WhatsApp ou copie.</p>
+      <textarea id="shareText" class="share-text" readonly rows="6"></textarea>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+        <button id="shareCopy" class="btn ok">Copiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase (só usado quando a config estiver preenchida) -->
+  <script>
 /* Dias sem Doença — Di & Tati.
    Dois modos:
    - LOCAL: sem config do Firebase → salva só neste aparelho (localStorage).
@@ -372,3 +648,7 @@
   if (cfgReady() && window.firebase) startCloudMode();
   else startLocalMode();
 })();
+
+  </script>
+</body>
+</html>

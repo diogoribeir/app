@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0d9488" />
-  <title>Dias sem Doença</title>
+  <meta name="theme-color" content="#1E2E26" />
+  <title>Dias sem Doença — Di &amp; Tati</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -14,26 +14,46 @@
 </head>
 <body>
   <header class="topbar">
-    <h1>🩺 Dias sem Doença</h1>
-    <p class="sub">Quantos dias cada um fica saudável</p>
+    <div class="brand"><span class="mark">✚</span> Dias sem Doença</div>
+    <button id="menuBtn" class="icon-btn" aria-label="Opções">⋯</button>
   </header>
 
-  <main id="cards" class="cards"></main>
+  <main class="wrap">
+    <section id="coupleCard" class="couple"></section>
+    <div class="people">
+      <section class="person" data-id="di"></section>
+      <section class="person" data-id="tati"></section>
+    </div>
+  </main>
 
-  <footer class="footer">
-    <button id="resetBtn" class="link-btn">Reiniciar tudo</button>
-    <span id="offlineTag" class="tag">offline ✓</span>
-  </footer>
+  <footer class="footer"><span id="statusTag" class="tag">funciona offline</span></footer>
+
+  <!-- Tela de login (só aparece no modo compartilhado) -->
+  <div id="loginScreen" class="login hidden">
+    <div class="login-box">
+      <div class="login-mark">✚</div>
+      <h1>Dias sem Doença</h1>
+      <p class="muted">Entre com a conta do casal para ver e atualizar juntos.</p>
+      <form id="loginForm">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" autocomplete="username" placeholder="email@exemplo.com" required />
+        <label for="pass">Senha</label>
+        <input id="pass" type="password" autocomplete="current-password" placeholder="••••••••" required />
+        <p id="loginError" class="login-error" hidden></p>
+        <button id="loginBtn" class="btn ok" type="submit">Entrar</button>
+      </form>
+    </div>
+  </div>
 
   <!-- Modal: registrar doença -->
   <div id="sickModal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
       <h2 id="sickTitle">Registrar doença</h2>
-      <label>Qual doença?</label>
+      <label for="sickName">Qual doença?</label>
       <input id="sickName" type="text" placeholder="Ex.: gripe, virose, dor de garganta" autocomplete="off" />
-      <label>Observação (opcional)</label>
+      <label for="sickNote">Observação (opcional)</label>
       <input id="sickNote" type="text" placeholder="Ex.: febre, foi ao médico..." autocomplete="off" />
-      <label>Começou em</label>
+      <label for="sickDate">Começou em</label>
       <input id="sickDate" type="date" />
       <div class="modal-actions">
         <button class="btn ghost" data-close>Cancelar</button>
@@ -47,7 +67,7 @@
     <div class="modal-box">
       <h2 id="wellTitle">Marcar recuperação</h2>
       <p id="wellInfo" class="muted"></p>
-      <label>Recuperou em</label>
+      <label for="wellDate">Recuperou em</label>
       <input id="wellDate" type="date" />
       <div class="modal-actions">
         <button class="btn ghost" data-close>Cancelar</button>
@@ -56,6 +76,53 @@
     </div>
   </div>
 
+  <!-- Modal: histórico -->
+  <div id="histModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="histTitle">Histórico</h2>
+      <ul id="histList" class="log"></ul>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: menu / backup -->
+  <div id="menuModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Opções</h2>
+      <div class="menu-list">
+        <button id="shareBtn" class="menu-item"><span>📤 Compartilhar situação</span><small>Envia um resumo de como está agora</small></button>
+        <button id="exportBtn" class="menu-item"><span>⬇️ Salvar backup</span><small>Baixa um arquivo com todos os dados</small></button>
+        <button id="importBtn" class="menu-item"><span>⬆️ Restaurar backup</span><small>Carrega os dados de um arquivo salvo</small></button>
+        <button id="logoutBtn" class="menu-item hidden"><span>🚪 Sair da conta</span><small>Desconecta este aparelho</small></button>
+        <button id="resetBtn" class="menu-item danger-text"><span>🗑️ Reiniciar tudo</span><small>Apaga histórico e zera os contadores</small></button>
+      </div>
+      <input id="importFile" type="file" accept="application/json,.json" hidden />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: compartilhar situação -->
+  <div id="shareModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Compartilhar situação</h2>
+      <p class="muted">Um resumo de como está agora. Envie por WhatsApp ou copie.</p>
+      <textarea id="shareText" class="share-text" readonly rows="6"></textarea>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+        <button id="shareCopy" class="btn ok">Copiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase (só usado quando a config estiver preenchida) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
