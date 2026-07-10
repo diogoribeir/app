@@ -91,6 +91,18 @@ details.gsec[open] summary::after{transform:rotate(180deg)}
 .gtitle{font-weight:700;font-size:13.5px;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
 .gnote{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5}
 .gcard .selmeta{margin:5px 0 0}
+.brow{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow)}
+.bhead{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.bname{font-weight:650;font-size:13.5px}
+.btotal{font-variant-numeric:tabular-nums;font-weight:800;color:var(--accent);white-space:nowrap}
+.bnote{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45}
+.bctrl{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+.bfield{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:700}
+.bfield input{width:80px;font:inherit;font-size:15px;font-variant-numeric:tabular-nums;text-align:right;border:1.5px solid var(--accent);border-radius:8px;padding:7px 8px;background:var(--accent-soft);color:var(--ink)}
+.bfix{font-size:12px;color:var(--muted);font-weight:700;align-self:center}
+.brow.sum{background:var(--surface2);border-color:var(--accent)}
+.brow.sum .bname{font-size:14px;font-weight:800}
+.brow.sum .btotal{font-size:17px}
 section.tab{display:none;animation:fade .18s ease}
 section.tab.on{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
@@ -214,7 +226,7 @@ footer{color:var(--muted);font-size:12px;margin-top:28px;text-align:center}
       <p class="sub" id="subline">11–18/09/2026 · casal · sem subir a Torre Eiffel · sem Catacumbas</p>
     </div>
     <div class="totalpill">
-      <div class="lbl">Orçamento do casal (sem aéreo)</div>
+      <div class="lbl">Gastos na viagem (sem hotel e sem aéreo)</div>
       <div class="val" id="grandTotal">€ —</div>
       <div class="per" id="grandPer">—</div>
     </div>
@@ -318,7 +330,7 @@ const DAYS = [
  {id:"d5",num:"D5",date:"Seg 14/09",title:"Trocadéro + Champs-Élysées + Arco do Triunfo",sub:"Orsay/Versalhes fecham segunda",
   logic:"Segunda Orsay e Versalhes FECHAM → dia perfeito para o eixo Trocadéro–Champs–Arco (abertos). Navigo Semaine comprado hoje rende a semana inteira, incluindo o RER de Versalhes.",
   slots:[
-   {t:"9h–9h30",w:"COMPRAR NAVIGO SEMAINE (€32,40 p/p + cartão €5) — vale até dom 20/09, cobre Versalhes",m:"estação",tp:"desloc",c:75},
+   {t:"9h–9h30",w:"COMPRAR NAVIGO SEMAINE (€32,40 p/p + cartão €5) — vale seg 14→dom 20: metrô ilimitado, cobre Versalhes E o RER pro aeroporto na volta",m:"estação",tp:"desloc",c:75},
    {t:"9h30–10h",w:"Metrô ao Trocadéro",m:"Trocadéro (6/9)",tp:"desloc"},
    {t:"10h–11h30",w:"TROCADÉRO: a melhor vista da Torre Eiffel sem subir. Fotos + descer ao Champ de Mars",m:"a pé",tp:"destaque",sel:"trocadero"},
    {t:"11h30–12h30",w:"Champ de Mars por baixo da torre + travessia até o 7e",m:"a pé",tp:"livre"},
@@ -373,7 +385,7 @@ const DAYS = [
  {id:"d9",num:"D9",date:"Sex 18/09",title:"Voo de volta",sub:"Saída de madrugada — sem passeio",
   logic:"Voo CDG → GRU 08:15 (KLM, conexão em Amsterdã, nº 2006/791). Sair do hotel ~5h com as malas prontas da véspera. Dia 18 é só a volta, sem roteiro.",
   slots:[
-   {t:"~5h",w:"Sair do hotel com as malas (feitas na véspera) — RER B/táxi ao CDG, chegar ~3h antes",m:"CDG",tp:"desloc",c:28},
+   {t:"~5h",w:"Sair do hotel com as malas (feitas na véspera) — RER B ao CDG COBERTO pelo Navigo Semaine, chegar ~3h antes",m:"CDG",tp:"desloc"},
    {t:"8h15",w:"Decolagem CDG → GRU (KLM, conexão em Amsterdã). Chegada a São Paulo 19:50",m:"Voo KLM",tp:"desloc"}
   ]}
 ];
@@ -615,8 +627,6 @@ function calcBudget(){
     if(state.sel[it.id]) atracoes += it.p;
   }
   const linhas = [
-    {n:"Hospedagem (quarto casal/noite)", unit:b.hospUnit, qtd:nights, edit:"hospUnit",
-     obs:`${nights} noites (11→18/09)`, total:b.hospUnit*nights},
     {n:"Alimentação (casal/dia em Paris)", unit:b.alimUnit, qtd:days, edit:"alimUnit",
      obs:"Café boulangerie + almoço barato + jantar médio", total:b.alimUnit*days},
     {n:"Jantares especiais (extra s/ a média)", unit:b.jantUnit, qtd:b.jantQty, edit:"jantUnit", editQty:"jantQty",
@@ -625,14 +635,15 @@ function calcBudget(){
      obs:"Soma automática do que está SIM na aba Seleção (o cruzeiro tem linha própria)"},
     {n:"Cruzeiro Sena (casal)", total: state.sel.cruzeiro ? 30 : 0, auto:true,
      obs: state.sel.cruzeiro ? "Vedettes du Pont Neuf online" : "Cortado na Seleção — zera sozinho"},
-    {n:"Transporte urbano (casal)", total:175, auto:true,
-     obs:"Aeroporto 56 + Navigo Easy/Découverte 14 + avulsos sex–dom ~40 + Navigo Semaine 65"},
+    {n:"Transporte urbano (casal)", total:147, auto:true,
+     obs:"RER B na chegada 28 + avulsos sex 11–dom 13 ~40 + cartões 14 + NAVIGO SEMAINE 65 (seg 14→dom 20: metrô ILIMITADO, cobre Versalhes e o RER pro aeroporto na volta sex 18)"},
     {n:"Brechós / compras", unit:b.brechos, qtd:1, edit:"brechos", obs:"Ajuste ao apetite de garimpo", total:b.brechos},
     {n:"Reserva de emergência (~10%)", unit:b.reserva, qtd:1, edit:"reserva",
      obs:"Imprevistos, chuva, multa de quem não validou o bilhete :)", total:b.reserva}
   ];
   const total = linhas.reduce((s,l)=>s+l.total,0);
-  return {linhas, total, perPessoa: total/2, perDia: total/tripDays, tripDays};
+  const hotelTotal = b.hospUnit*nights;
+  return {linhas, total, perPessoa: total/2, perDia: total/tripDays, tripDays, hotelTotal, hotelNights: nights};
 }
 function fmtEUR(v){ return "€ " + v.toLocaleString("pt-BR",{maximumFractionDigits:0}); }
 
@@ -742,24 +753,42 @@ function viewRoteiro(){
 
 /* ---------- Orçamento ---------- */
 function viewOrcamento(){
-  const {linhas, total, perPessoa, perDia, tripDays} = calcBudget();
-  const rows = linhas.map(l => `<tr>
-      <td>${esc(l.n)}<span class="note">${esc(l.obs||"")}</span></td>
-      <td class="num">${l.edit? `<input type="number" min="0" step="5" value="${l.unit}" data-budget="${l.edit}" aria-label="€ por unidade — ${esc(l.n)}">` : (l.unit!=null? l.unit : "—")}</td>
-      <td class="num">${l.editQty? `<input type="number" min="0" step="1" value="${l.qtd}" data-budget="${l.editQty}" aria-label="quantidade — ${esc(l.n)}">` : (l.qtd!=null? l.qtd : (l.auto? `<span class="auto">auto</span>`:"—"))}</td>
-      <td class="num"><strong>${fmtEUR(l.total)}</strong></td>
-    </tr>`).join("");
+  const {linhas, total, perPessoa, perDia, tripDays, hotelTotal, hotelNights} = calcBudget();
+  const budRow = l => {
+    const unit = l.edit
+      ? `<label class="bfield">€/unid. <input type="number" min="0" step="5" value="${l.unit}" data-budget="${l.edit}" aria-label="€ por unidade — ${esc(l.n)}"></label>`
+      : (l.unit!=null ? `<span class="bfix">€ ${l.unit} /unid.</span>` : "");
+    const qty = l.editQty
+      ? `<label class="bfield">qtd <input type="number" min="0" step="1" value="${l.qtd}" data-budget="${l.editQty}" aria-label="quantidade — ${esc(l.n)}"></label>`
+      : (l.qtd!=null ? `<span class="bfix">× ${l.qtd}</span>` : (l.auto? `<span class="auto">auto</span>`:""));
+    return `<div class="brow">
+      <div class="bhead"><span class="bname">${esc(l.n)}</span><span class="btotal">${fmtEUR(l.total)}</span></div>
+      ${l.obs?`<div class="bnote">${esc(l.obs)}</div>`:""}
+      ${(unit||qty)?`<div class="bctrl">${unit}${qty}</div>`:""}
+    </div>`;
+  };
+  const sumRow = (n, v) => `<div class="brow sum"><div class="bhead"><span class="bname">${n}</span><span class="btotal">${v}</span></div></div>`;
   return `<section class="tab on">
-    <h2>Orçamento do casal</h2>
-    <p class="lead">Edite os campos azuis — tudo recalcula na hora. As linhas <span class="auto">auto</span> vêm da aba Escolher.</p>
-    <div class="tablewrap budget"><table>
-      <thead><tr><th>Categoria</th><th style="text-align:right">€/unid.</th><th style="text-align:right">Qtd</th><th style="text-align:right">Total</th></tr></thead>
-      <tbody>${rows}
-        <tr class="totalrow"><td>TOTAL (casal, sem passagem aérea)</td><td></td><td></td><td class="num">${fmtEUR(total)}</td></tr>
-        <tr class="totalrow"><td>Por pessoa</td><td></td><td></td><td class="num">${fmtEUR(perPessoa)}</td></tr>
-        <tr class="totalrow"><td>Por dia de viagem (casal, ${tripDays} dias)</td><td></td><td></td><td class="num">${fmtEUR(Math.round(perDia))}</td></tr>
-      </tbody>
-    </table></div>
+    <h2>💶 Gastos na viagem</h2>
+    <p class="lead">O que vocês gastam EM Paris: comida, passeios, metrô (com o bilhete SEMANAL Navigo) e compras.
+    Edite os campos azuis — recalcula na hora. As linhas <span class="auto">auto</span> vêm da aba Escolher.
+    <strong>Hotel e passagem aérea ficam separados abaixo e NÃO entram neste total.</strong></p>
+    ${linhas.map(budRow).join("")}
+    ${sumRow("TOTAL na viagem (casal)", fmtEUR(total))}
+    ${sumRow("Por pessoa", fmtEUR(perPessoa))}
+    ${sumRow(`Por dia (casal, ${tripDays} dias)`, fmtEUR(Math.round(perDia)))}
+
+    <h2>🏨 Separado — dinheiro já reservado</h2>
+    <p class="lead">Hotel e aéreo já têm dinheiro guardado, então ficam fora do total de viagem acima.</p>
+    <div class="brow">
+      <div class="bhead"><span class="bname">Hospedagem (quarto casal/noite)</span><span class="btotal">${fmtEUR(hotelTotal)}</span></div>
+      <div class="bnote">${hotelNights} noites (11→18/09) — dinheiro separado</div>
+      <div class="bctrl"><label class="bfield">€/noite <input type="number" min="0" step="5" value="${state.budget.hospUnit}" data-budget="hospUnit" aria-label="€ por noite — hospedagem"></label><span class="bfix">× ${hotelNights}</span></div>
+    </div>
+    <div class="brow">
+      <div class="bhead"><span class="bname">Passagem aérea (GRU ↔ CDG)</span><span class="btotal" style="color:var(--ok)">✓ paga</span></div>
+      <div class="bnote">Já comprada — Air France ida 10/09 · KLM volta 18/09. Fora do orçamento.</div>
+    </div>
   </section>`;
 }
 
