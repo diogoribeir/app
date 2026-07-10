@@ -43,7 +43,7 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 .serif{font-family:"Didot","Bodoni MT","Playfair Display",Georgia,"Times New Roman",serif}
-.wrap{max-width:980px;margin:0 auto;padding:0 14px 80px}
+.wrap{max-width:980px;margin:0 auto;padding:0 14px calc(96px + env(safe-area-inset-bottom))}
 header.hero{padding:26px 0 12px}
 .hero-top{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 18px;justify-content:space-between}
 h1{font-size:clamp(30px,6vw,44px);margin:0;letter-spacing:.5px;font-weight:500;text-wrap:balance}
@@ -57,30 +57,40 @@ h1 em{font-style:italic;color:var(--accent)}
 .totalpill .val{font-size:24px;font-variant-numeric:tabular-nums;font-weight:650;color:var(--accent)}
 .totalpill .per{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 6px}
-.seg{display:inline-flex;background:var(--chip);border-radius:12px;padding:3px;border:1px solid var(--line)}
-.seg button{
-  border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;font-size:13px;
-  padding:7px 16px;border-radius:9px;cursor:pointer;
-}
-.seg button.on{background:var(--accent);color:var(--accent-ink)}
-.seg button:focus-visible,.btn:focus-visible,.tabbar button:focus-visible,.simnao:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn:focus-visible,.tabbar button:focus-visible,.simnao:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .btn{
   border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13px;
   font-weight:600;padding:8px 14px;border-radius:10px;cursor:pointer;box-shadow:var(--shadow);
 }
 .btn:hover{border-color:var(--accent)}
-.hint-ext{font-size:12.5px;color:var(--ext);font-weight:600}
 .tabbar{
-  position:sticky;top:0;z-index:30;display:flex;gap:6px;overflow-x:auto;padding:10px 0;
-  background:linear-gradient(var(--bg) 85%,transparent);
-  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;gap:2px;
+  background:var(--surface);border-top:1px solid var(--line);
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+  box-shadow:0 -6px 20px rgba(0,0,0,.07);
 }
-.tabbar::-webkit-scrollbar{display:none}
 .tabbar button{
-  flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);
-  font:inherit;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;cursor:pointer;
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  border:0;background:none;color:var(--muted);font:inherit;font-size:11px;font-weight:700;
+  padding:6px 2px;border-radius:12px;cursor:pointer;
 }
-.tabbar button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tabbar button .ic{font-size:17px;line-height:1}
+.tabbar button.on{color:var(--accent);background:var(--accent-soft)}
+@media (min-width:700px){
+  .tabbar{left:50%;right:auto;transform:translateX(-50%);width:520px;border:1px solid var(--line);border-radius:16px;bottom:12px}
+}
+.selgroup{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:18px 2px 8px;font-weight:800}
+.nextbtn{width:100%;margin-top:16px;padding:13px;font-size:14px;color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
+details.gsec{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden}
+details.gsec summary{cursor:pointer;list-style:none;padding:14px 16px;font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:8px}
+details.gsec summary::-webkit-details-marker{display:none}
+details.gsec summary::after{content:"\25BE";margin-left:auto;color:var(--muted);transition:transform .15s}
+details.gsec[open] summary::after{transform:rotate(180deg)}
+.gbody{padding:0 12px 12px}
+.gcard{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:var(--surface2)}
+.gtitle{font-weight:700;font-size:13.5px;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
+.gnote{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+.gcard .selmeta{margin:5px 0 0}
 section.tab{display:none;animation:fade .18s ease}
 section.tab.on{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
@@ -171,7 +181,7 @@ details.day summary::-webkit-details-marker{display:none}
 .checkrow label{font-size:13.5px}
 .checkrow.done label{text-decoration:line-through;color:var(--muted)}
 .toast{
-  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);
   padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:var(--shadow);
   opacity:0;pointer-events:none;transition:opacity .25s;z-index:99;
 }
@@ -180,7 +190,17 @@ footer{color:var(--muted);font-size:12px;margin-top:28px;text-align:center}
 @media (max-width:560px){
   .slot{grid-template-columns:1fr}
   .slot .t{padding-top:0}
-  .totalpill{flex:1}
+  header.hero{padding:14px 0 4px}
+  h1{font-size:25px}
+  .sub{font-size:12.5px}
+  .totalpill{width:100%;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:8px 12px}
+  .totalpill .lbl{flex:1}
+  .totalpill .val{font-size:19px;white-space:nowrap}
+  .totalpill .per{text-align:right;max-width:40%}
+  .controls{margin:10px 0 2px}
+  .controls .btn{font-size:12px;padding:7px 10px}
+  th,td{padding:7px 8px;font-size:12.5px}
+  h2{font-size:17px;margin:16px 0 4px}
 }
 </style>
 </head>
@@ -200,7 +220,6 @@ footer{color:var(--muted);font-size:12px;margin-top:28px;text-align:center}
     </div>
   </div>
   <div class="controls">
-    <span style="flex:1"></span>
     <span class="chip ok" id="syncChip" hidden></span>
     <button class="btn" id="syncBtn" type="button" hidden>Sincronizar entre aparelhos</button>
     <button class="btn" id="shareBtn" type="button">Copiar link com meu plano</button>
@@ -627,10 +646,12 @@ function dayCost(day){
 
 /* ================= RENDER ================= */
 const TABS = [
- ["resumo","Resumo"],["roteiro","Roteiro"],["selecao","Seleção"],["orcamento","Orçamento"],
- ["atracoes","Atrações"],["comer","Comer"],["brechos","Brechós"],["transporte","Transporte"],["evitar","Evitar"]
+ ["selecao","Escolher","☑️"],
+ ["roteiro","Roteiro","🗓"],
+ ["orcamento","Orçamento","💶"],
+ ["guia","Guia","📖"]
 ];
-let activeTab = "resumo";
+let activeTab = "selecao";
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 
@@ -642,38 +663,50 @@ function renderHeader(){
 }
 
 function renderTabs(){
-  $("#tabbar").innerHTML = TABS.map(([id,label]) =>
-    `<button type="button" data-tab="${id}" class="${id===activeTab?'on':''}">${label}</button>`).join("");
+  $("#tabbar").innerHTML = TABS.map(([id,label,ic]) =>
+    `<button type="button" data-tab="${id}" class="${id===activeTab?'on':''}"><span class="ic">${ic}</span><span>${label}</span></button>`).join("");
 }
 
-function chipFor(pr){
-  if(pr.startsWith("Imperdível")) return `<span class="chip imp">${esc(pr)}</span>`;
-  if(pr.startsWith("Só se")) return `<span class="chip ext">${esc(pr)}</span>`;
-  if(pr.startsWith("Reserva")) return `<span class="chip res">${esc(pr)}</span>`;
-  return `<span class="chip">${esc(pr)}</span>`;
+/* ---------- 1º passo: Escolher ---------- */
+function selRow(it){
+  const on = !!state.sel[it.id];
+  return `<div class="selrow">
+    <button type="button" class="simnao ${on?'sim':'nao'}" data-sel="${it.id}" aria-pressed="${on}">${on?'SIM':'NÃO'}</button>
+    <div class="selbody">
+      <div class="selname ${on?'':'cut'}">${esc(it.n)}</div>
+      <div class="selmeta">
+        <span class="chip">${esc(it.t)}</span>
+        ${it.d!=="—"?`<span class="chip">${esc(it.d)}</span>`:""}
+        ${it.p?`<span class="price">€ ${it.p} casal</span>`:`<span class="price" style="color:var(--ok)">grátis</span>`}
+      </div>
+      <div class="cutnote ${!on && it.cut!=="—" ? "show-sub":""}">${!on && it.cut!=="—" ? "No lugar: " : (it.cut!=="—" ? "Se cortar: " : "")}${esc(it.cut==="—"?"":it.cut)}</div>
+    </div>
+  </div>`;
 }
-
-function viewResumo(){
-  const cards = RESUMO.map(([k,v]) =>
-    `<div class="card kv"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join("");
-  const checks = RESERVAS.filter(r => !r.ext).map(r => {
-    const done = !!state.checks[r.id];
-    return `<div class="checkrow ${done?'done':''}">
-      <input type="checkbox" id="${r.id}" data-check="${r.id}" ${done?'checked':''}>
-      <label for="${r.id}">${esc(r.n)}</label></div>`;
+function viewSelecao(){
+  const groups = [
+    ["⭐ Imperdíveis", it=>it.pr.startsWith("Imperdível")],
+    ["👍 Recomendados", it=>it.pr.startsWith("Recomendado")],
+    ["🤔 Opcionais", it=>it.pr.startsWith("Opcional")],
+    ["🌧️ Curingas (chuva / extras)", it=>it.pr.startsWith("Reserva")]
+  ];
+  const totalN = SEL_ITEMS.length, onCount = SEL_ITEMS.filter(i=>state.sel[i.id]).length;
+  const html = groups.map(([label,test])=>{
+    const its = SEL_ITEMS.filter(test);
+    if(!its.length) return "";
+    return `<h3 class="selgroup">${label}</h3><div class="card">${its.map(selRow).join("")}</div>`;
   }).join("");
   return `<section class="tab on">
-    <h2>Reservar com antecedência</h2>
-    <p class="lead">Marque conforme for reservando — fica salvo.</p>
-    <div class="card">${checks}</div>
-    <h2>Informações-chave</h2>
-    <div class="grid2">${cards}</div>
+    <h2>1º passo: escolher os passeios</h2>
+    <p class="lead">Marque <strong>SIM</strong> no que entra e <strong>NÃO</strong> no que sai — o roteiro risca a atividade, mostra o substituto e o orçamento recalcula na hora. <strong>${onCount} de ${totalN}</strong> no plano.</p>
+    ${html}
+    <button type="button" class="btn nextbtn" data-tab="roteiro">Ver o roteiro dia a dia →</button>
   </section>`;
 }
 
+/* ---------- Roteiro ---------- */
 function viewRoteiro(){
-  const days = DAYS;
-  const html = days.map(d => {
+  const html = DAYS.map(d => {
     const cost = dayCost(d);
     const slots = d.slots.map(sl => {
       const cut = sl.sel && !state.sel[sl.sel];
@@ -685,7 +718,7 @@ function viewRoteiro(){
             <span class="tag ${sl.tp==='desloc'?'desloc':sl.tp}">${sl.tp==='desloc'?'trajeto':sl.tp}</span>
             ${sl.m && sl.m!=="—" ? `<span class="metro">${esc(sl.m)}</span>`:""}
             ${sl.c ? `<span class="cost">€ ${sl.c}</span>`:""}
-            ${cut ? `<span class="cutflag">cortado na Seleção${item&&item.cut&&item.cut!=="—"?" · no lugar: "+esc(item.cut):""}</span>`:""}
+            ${cut ? `<span class="cutflag">cortado no Escolher${item&&item.cut&&item.cut!=="—"?" · no lugar: "+esc(item.cut):""}</span>`:""}
           </div>
         </div>
       </div>`;
@@ -702,38 +735,12 @@ function viewRoteiro(){
   }).join("");
   return `<section class="tab on">
     <h2>Roteiro dia a dia</h2>
-    <p class="lead">Toque num dia para abrir o hora a hora. O custo do dia já desconta o que você cortou na aba Seleção.
-</p>
+    <p class="lead">Toque num dia para abrir o hora a hora. O custo do dia já desconta o que você cortou na aba Escolher.</p>
     ${html}
   </section>`;
 }
 
-function viewSelecao(){
-  const rows = SEL_ITEMS.map(it => {
-    const on = !!state.sel[it.id];
-    return `<div class="selrow">
-      <button type="button" class="simnao ${on?'sim':'nao'}" data-sel="${it.id}"
-        aria-pressed="${on}">${on?'SIM':'NÃO'}</button>
-      <div class="selbody">
-        <div class="selname ${on?'':'cut'}">${esc(it.n)}</div>
-        <div class="selmeta">
-          <span class="chip">${esc(it.t)}</span>
-          ${it.d!=="—"?`<span class="chip">${esc(it.d)}</span>`:""}
-          ${chipFor(it.pr)}
-          ${it.p?`<span class="price">€ ${it.p} casal</span>`:`<span class="price" style="color:var(--ok)">grátis</span>`}
-        </div>
-        <div class="cutnote ${!on && it.cut!=="—" ? "show-sub":""}">${!on && it.cut!=="—" ? "No lugar: " : (it.cut!=="—" ? "Se cortar: " : "")}${esc(it.cut==="—"?"":it.cut)}</div>
-      </div>
-    </div>`;
-  }).join("");
-  return `<section class="tab on">
-    <h2>Seleção de locais</h2>
-    <p class="lead">Mude para NÃO o que quiser cortar — o roteiro risca a atividade, mostra o substituto sugerido e o orçamento recalcula na hora.
-    Os dois últimos (Panthéon, Rodin) são curingas de dia de chuva: mude para SIM para incluí-los na conta.</p>
-    <div class="card">${rows}</div>
-  </section>`;
-}
-
+/* ---------- Orçamento ---------- */
 function viewOrcamento(){
   const {linhas, total, perPessoa, perDia, tripDays} = calcBudget();
   const rows = linhas.map(l => `<tr>
@@ -744,8 +751,7 @@ function viewOrcamento(){
     </tr>`).join("");
   return `<section class="tab on">
     <h2>Orçamento do casal</h2>
-    <p class="lead">Edite os campos azuis — tudo recalcula na hora, como as fórmulas da planilha.
-    As linhas marcadas <span class="auto">auto</span> vêm da Seleção e do cenário ${tripDays} dias.</p>
+    <p class="lead">Edite os campos azuis — tudo recalcula na hora. As linhas <span class="auto">auto</span> vêm da aba Escolher.</p>
     <div class="tablewrap budget"><table>
       <thead><tr><th>Categoria</th><th style="text-align:right">€/unid.</th><th style="text-align:right">Qtd</th><th style="text-align:right">Total</th></tr></thead>
       <tbody>${rows}
@@ -757,72 +763,58 @@ function viewOrcamento(){
   </section>`;
 }
 
-function viewAtracoes(){
-  const rows = ATRACOES.map(r => `<tr>
-    <td><strong>${esc(r[0])}</strong></td><td class="num">${esc(r[1])}</td><td>${esc(r[2])}</td>
-    <td>${/Segunda|Terça/.test(r[3])? `<span class="chip res">${esc(r[3])}</span>` : `<span class="chip ok">${esc(r[3])}</span>`}</td>
-    <td><span class="metro">${esc(r[4])}</span></td><td>${esc(r[5])}</td><td>${esc(r[6])}</td></tr>`).join("");
+/* ---------- Guia (tudo de consulta num lugar só) ---------- */
+function gcard(title, chips, note){
+  return `<div class="gcard">
+    <div class="gtitle">${title}</div>
+    ${chips? `<div class="selmeta">${chips}</div>`:""}
+    ${note? `<div class="gnote">${note}</div>`:""}
+  </div>`;
+}
+function viewGuia(){
+  const checks = RESERVAS.filter(r=>!r.ext).map(r=>{
+    const done = !!state.checks[r.id];
+    return `<div class="checkrow ${done?'done':''}">
+      <input type="checkbox" id="${r.id}" data-check="${r.id}" ${done?'checked':''}>
+      <label for="${r.id}">${esc(r.n)}</label></div>`;
+  }).join("");
+  const info = RESUMO.map(([k,v])=>`<div class="gcard"><div class="gtitle" style="color:var(--accent)">${esc(k)}</div><div class="gnote">${esc(v)}</div></div>`).join("");
+  const atr = ATRACOES.map(r=>{
+    const price = /^\d/.test(r[1]) ? "€ "+r[1]+" /pessoa" : r[1];
+    return gcard(
+      `${esc(r[0])} <span class="price">${esc(price)}</span>`,
+      `${/Segunda|Terça/.test(r[3])?`<span class="chip res">fecha: ${esc(r[3])}</span>`:`<span class="chip ok">${esc(r[3])}</span>`}<span class="metro">${esc(r[4])}</span><span class="chip">${esc(r[5])}</span>`,
+      `${esc(r[2])} · ${esc(r[6])}`);
+  }).join("");
+  const comer = COMER.map(g=>`<h3 class="selgroup">${esc(g.grupo)}</h3>`+g.itens.map(r=>gcard(
+    `${esc(r[0])} <span class="price">${esc(r[4])}</span>`,
+    `<span class="chip">${esc(r[1])}</span><span class="chip">${esc(r[2])}</span><span class="metro">${esc(r[3])}</span>`,
+    esc(r[5]))).join("")).join("");
+  const brech = BRECHOS.map(r=>gcard(
+    `${esc(r[0])} <span class="price">${esc(r[3])}</span>`,
+    `<span class="chip">${esc(r[1])}</span><span class="metro">${esc(r[2])}</span>`,
+    esc(r[4]))).join("");
+  const transp = TRANSPORTE.map(r=>{
+    const price = r[1]==="—" ? "" : `<span class="price">${/^\d/.test(r[1])?"€ ":""}${esc(r[1])}</span>`;
+    return gcard(`${esc(r[0])} ${price}`, "", esc(r[2]));
+  }).join("") + `<h3 class="selgroup">Regras de ouro</h3>` +
+    REGRAS_OURO.map((r,i)=>`<div class="checkrow"><span class="chip imp" style="flex:0 0 auto">${i+1}</span><label>${esc(r)}</label></div>`).join("");
+  const evitar = EVITAR.map(g=>`<h3 class="selgroup">${esc(g.grupo)}</h3>`+g.itens.map(r=>gcard(esc(r[0]),"",esc(r[1]))).join("")).join("");
+  const sec = (title, inner, open) => `<details class="gsec"${open?" open":""}><summary>${title}</summary><div class="gbody">${inner}</div></details>`;
   return `<section class="tab on">
-    <h2>Atrações — preços 2026 (tarifa não-UE)</h2>
-    <p class="lead">Preço por pessoa. Louvre fecha terça; Versalhes e Orsay fecham segunda.</p>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Atração</th><th>€/pessoa</th><th>Horário</th><th>Fecha em</th><th>Metrô</th><th>Tempo</th><th>Observações</th></tr></thead>
-      <tbody>${rows}</tbody></table></div>
+    <h2>Guia de bolso</h2>
+    <p class="lead">Tudo de consulta num lugar só — toque numa seção para abrir.</p>
+    ${sec("📌 Reservar com antecedência", checks, true)}
+    ${sec("ℹ️ Informações-chave", info)}
+    ${sec("🏛️ Atrações — preços 2026", atr)}
+    ${sec("🍽️ Onde comer", comer)}
+    ${sec("🛍️ Brechós bons e confiáveis", brech)}
+    ${sec("🚇 Transporte — tarifas 2026", transp)}
+    ${sec("⚠️ Evitar & golpes", evitar)}
   </section>`;
 }
 
-function viewComer(){
-  const rows = COMER.map(g =>
-    `<tr class="groupline"><td colspan="6">${esc(g.grupo)}</td></tr>` +
-    g.itens.map(r => `<tr><td><strong>${esc(r[0])}</strong></td><td>${esc(r[1])}</td><td>${esc(r[2])}</td>
-      <td><span class="metro">${esc(r[3])}</span></td><td class="num">${esc(r[4])}</td><td>${esc(r[5])}</td></tr>`).join("")
-  ).join("");
-  return `<section class="tab on">
-    <h2>Onde comer</h2>
-    <p class="lead">Preço por pessoa. Bouillons = comida francesa honesta e barata; a lista “comer bem” pede reserva.</p>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Lugar</th><th>Tipo</th><th>Bairro</th><th>Metrô</th><th>Preço</th><th>Por que ir</th></tr></thead>
-      <tbody>${rows}</tbody></table></div>
-  </section>`;
-}
-
-function viewBrechos(){
-  const rows = BRECHOS.map(r => `<tr><td><strong>${esc(r[0])}</strong></td><td>${esc(r[1])}</td>
-    <td><span class="metro">${esc(r[2])}</span></td><td>${esc(r[3])}</td><td>${esc(r[4])}</td></tr>`).join("");
-  return `<section class="tab on">
-    <h2>Brechós bons e confiáveis</h2>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Brechó</th><th>Bairro</th><th>Metrô</th><th>Faixa de preço</th><th>Estilo / dica</th></tr></thead>
-      <tbody>${rows}</tbody></table></div>
-  </section>`;
-}
-
-function viewTransporte(){
-  const rows = TRANSPORTE.map(r => `<tr><td><strong>${esc(r[0])}</strong></td><td class="num">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join("");
-  const regras = REGRAS_OURO.map((r,i)=>`<div class="checkrow"><span class="chip imp" style="flex:0 0 auto">${i+1}</span><label>${esc(r)}</label></div>`).join("");
-  return `<section class="tab on">
-    <h2>Transporte — tarifas 2026</h2>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Item</th><th>Preço (€)</th><th>Detalhes</th></tr></thead>
-      <tbody>${rows}</tbody></table></div>
-    <h2>Regras de ouro</h2>
-    <div class="card">${regras}</div>
-  </section>`;
-}
-
-function viewEvitar(){
-  const rows = EVITAR.map(g =>
-    `<tr class="groupline"><td colspan="2">${esc(g.grupo)}</td></tr>` +
-    g.itens.map(r => `<tr><td style="min-width:180px"><strong>${esc(r[0])}</strong></td><td>${esc(r[1])}</td></tr>`).join("")
-  ).join("");
-  return `<section class="tab on">
-    <h2>Lugares a evitar e golpes comuns</h2>
-    <div class="tablewrap"><table><tbody>${rows}</tbody></table></div>
-  </section>`;
-}
-
-const VIEWS = {resumo:viewResumo, roteiro:viewRoteiro, selecao:viewSelecao, orcamento:viewOrcamento,
-  atracoes:viewAtracoes, comer:viewComer, brechos:viewBrechos, transporte:viewTransporte, evitar:viewEvitar};
+const VIEWS = {selecao:viewSelecao, roteiro:viewRoteiro, orcamento:viewOrcamento, guia:viewGuia};
 
 function render(){
   renderHeader();
