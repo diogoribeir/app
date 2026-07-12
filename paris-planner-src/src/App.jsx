@@ -1210,9 +1210,27 @@ function getSector(address) {
   return "Outra região";
 }
 
-/* ---------- storage helpers ---------- */
+/* ---------- storage helpers ----------
+   Nuvem: Firebase Realtime Database do casal (projeto apps-4b887), nó
+   planos/ (mesmas regras já publicadas para o roteiro). Os dados carregam
+   da nuvem ao abrir e salvam na nuvem a cada mudança; o localStorage fica
+   como cópia offline. Ao voltar pro app, se houver versão mais nova na
+   nuvem, a página recarrega sozinha. */
+
+const SYNC_URL = "https://apps-4b887-default-rtdb.firebaseio.com/planos/paris-planner-dt2026";
+let syncStamp = 0;
 
 async function loadKey(key, fallback) {
+  try {
+    const r = await fetch(`${SYNC_URL}/${key}.json`, { cache: "no-store" });
+    if (r.ok) {
+      const v = await r.json();
+      if (v != null) {
+        try { localStorage.setItem(key, v); } catch (e) {}
+        return JSON.parse(v);
+      }
+    }
+  } catch (e) {}
   try {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
@@ -1221,12 +1239,24 @@ async function loadKey(key, fallback) {
   }
 }
 async function saveKey(key, value) {
+  const s = JSON.stringify(value);
+  try { localStorage.setItem(key, s); } catch (e) {}
   try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (e) {
-    console.error("storage set failed", e);
-  }
+    await fetch(`${SYNC_URL}/${key}.json`, { method: "PUT", body: JSON.stringify(s) });
+    syncStamp = Date.now();
+    fetch(`${SYNC_URL}/_at.json`, { method: "PUT", body: JSON.stringify(syncStamp) }).catch(() => {});
+  } catch (e) {}
 }
+// carimbo inicial + recarregar ao voltar pro app se alguém salvou depois
+fetch(`${SYNC_URL}/_at.json`, { cache: "no-store" })
+  .then(r => r.json()).then(v => { if (typeof v === "number") syncStamp = v; }).catch(() => {});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  fetch(`${SYNC_URL}/_at.json`, { cache: "no-store" })
+    .then(r => r.json())
+    .then(v => { if (typeof v === "number" && v > syncStamp + 1500) location.reload(); })
+    .catch(() => {});
+});
 
 /* ---------- small UI atoms ---------- */
 
