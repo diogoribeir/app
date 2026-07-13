@@ -4,6 +4,9 @@ Este repositório hospeda **3 apps** do casal Di (Diogo) & Tati, publicados junt
 Este arquivo é o contexto completo para qualquer sessão nova do Claude: estrutura, Firebase,
 como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 
+> 🧱 **Para criar um APP NOVO neste esquema** (pasta → deploy no Pages → sincronização no
+> Firebase, com código pronto e checklist): seguir a receita técnica em **`docs/NOVO-APP.md`**.
+
 ---
 
 ## Visão geral da infraestrutura
