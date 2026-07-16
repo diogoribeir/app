@@ -21,7 +21,7 @@ Quando chegar um `paris-trip-planner.tsx` novo (exportado do artifact do Claude)
 4. Commit + push + merge → o GitHub Pages republica no mesmo link.
 
 ## Configuração
-- `vite.config.js` usa `base: /Web-scraping-Sample/paris-planner/` (caminho do Pages).
+- `vite.config.js` usa `base: /app/paris-planner/` (caminho do Pages).
 - Tailwind com as cores do app (`limestone`, `ink`, `seine`, `wine`, `brass`).
 - Fontes Google (Fraunces, Work Sans, IBM Plex Mono) via `@import` em `src/index.css`.
 

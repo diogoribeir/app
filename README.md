@@ -1,15 +1,12 @@
-### Web-scraping-Sample
-First web project scrapping with Python
+# app — Di & Tati
 
-### Date created
-06/12/2019
+Apps do casal, publicados juntos no GitHub Pages: **https://diogoribeir.github.io/app/**
 
-### Description
-Extraction of open site data for ATM database creation for analysis
+| App | Caminho | Pasta |
+|---|---|---|
+| 🩺 Dias sem Doença | `/dias-sem-doenca/` | `dias-sem-doenca/` |
+| 📊 Roteiro Paris | `/roteiro-paris/` | `roteiro-paris/` |
+| ✈️ Paris Trip Planner | `/paris-planner/` | `paris-planner/` (build) + `paris-planner-src/` (fonte) |
 
-
-### Files used
-lat.csv and long.csv
-
-### Source
-https://www.banco24horas.com.br
+- Contexto completo para o Claude: **`CLAUDE.md`**
+- Receita para criar um app novo: **`docs/NOVO-APP.md`**

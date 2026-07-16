@@ -1,8 +1,10 @@
 name: Publicar apps no GitHub Pages
 
-# Publica os apps no GitHub Pages:
-#   raiz do site      -> dias-sem-doenca (URL antiga preservada)
-#   /roteiro-paris/   -> planejador da viagem a Paris
+# Publica os apps no GitHub Pages (site https://diogoribeir.github.io/app/):
+#   raiz do site        -> home (pagina inicial com a lista de apps)
+#   /dias-sem-doenca/   -> contador de dias sem doenca
+#   /roteiro-paris/     -> roteiro da viagem a Paris (planilha/escolhas)
+#   /paris-planner/     -> planejador React da viagem
 # Roda automaticamente quando um app muda no master, e pode ser
 # disparado manualmente na aba Actions (botao "Run workflow").
 
@@ -10,6 +12,7 @@ on:
   push:
     branches: [master]
     paths:
+      - "home/**"
       - "dias-sem-doenca/**"
       - "roteiro-paris/**"
       - "paris-planner/**"
@@ -40,10 +43,11 @@ jobs:
         with:
           enablement: true
 
-      - name: Montar o site (dias-sem-doenca na raiz + roteiro-paris + paris-planner)
+      - name: Montar o site (home na raiz + um caminho por app)
         run: |
-          mkdir -p _site/roteiro-paris _site/paris-planner
-          cp -r dias-sem-doenca/. _site/
+          mkdir -p _site/dias-sem-doenca _site/roteiro-paris _site/paris-planner
+          cp -r home/. _site/
+          cp -r dias-sem-doenca/. _site/dias-sem-doenca/
           cp -r roteiro-paris/. _site/roteiro-paris/
           cp -r paris-planner/. _site/paris-planner/
 

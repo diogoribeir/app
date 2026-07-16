@@ -159,7 +159,7 @@ O workflow `.github/workflows/deploy-pages.yml` publica no push para `master`:
 - raiz do site → app `dias-sem-doenca` (URL antiga preservada)
 - `/roteiro-paris/` → este app
 
-URL final: `https://diogoribeir.github.io/Web-scraping-Sample/roteiro-paris/`
+URL final: `https://diogoribeir.github.io/app/roteiro-paris/`
 
 ### Alternativas
 

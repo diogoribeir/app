@@ -13,15 +13,16 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 
 | Peça | O quê | Onde |
 |---|---|---|
-| **GitHub (código + site)** | Repositório `diogoribeir/Web-scraping-Sample`, branch principal `master` | https://github.com/diogoribeir/Web-scraping-Sample |
-| **Site (GitHub Pages)** | Publicado pelo workflow do Actions | https://diogoribeir.github.io/Web-scraping-Sample/ |
+| **GitHub (código + site)** | Repositório `diogoribeir/app`, branch principal `master` | https://github.com/diogoribeir/app |
+| **Site (GitHub Pages)** | Publicado pelo workflow do Actions | https://diogoribeir.github.io/app/ |
 | **Firebase (Google)** | Projeto **`apps-4b887`** — banco de dados dos apps (Firestore + Realtime Database) | https://console.firebase.google.com/project/apps-4b887 |
 | **Vercel** | **NÃO é usado.** Se o Diogo receber notificações da Vercel, pode deletar o projeto lá sem quebrar nada | — |
 
 ### Como funciona o deploy
 - O workflow `.github/workflows/deploy-pages.yml` roda **a cada push no `master`** (ou manualmente:
   aba **Actions → "Publicar apps no GitHub Pages" → Run workflow**).
-- Ele monta o site assim: raiz → `dias-sem-doenca/` · `/roteiro-paris/` → `roteiro-paris/` · `/paris-planner/` → `paris-planner/`.
+- Ele monta o site assim: raiz → `home/` (página inicial com a lista de apps) · `/dias-sem-doenca/` →
+  `dias-sem-doenca/` · `/roteiro-paris/` → `roteiro-paris/` · `/paris-planner/` → `paris-planner/`.
 - Fluxo de trabalho do Claude: **branch → commit → push → PR → merge no `master`** (o Diogo autoriza o
   Claude a mergear via ferramentas do GitHub). Depois do merge, verificar que o run terminou `success`.
 - O site atualiza ~1 min após o deploy (o cache do celular pode segurar alguns minutos).
@@ -29,7 +30,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 ---
 
 ## App 1 — 🩺 Dias sem Doença (Di & Tati)
-- **URL:** https://diogoribeir.github.io/Web-scraping-Sample/ (raiz do site)
+- **URL:** https://diogoribeir.github.io/app/dias-sem-doenca/
 - **Pasta:** `dias-sem-doenca/` — HTML/CSS/JS puro, PWA (manifest + service worker `sw.js`).
 - **O que faz:** conta dias sem doença de cada um + placar do casal; registrar doença zera o contador
   da pessoa e guarda no histórico; recuperação reinicia a contagem; backup exportar/importar no menu ⋯.
@@ -41,7 +42,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   (`CACHE = "dias-sem-doenca-vN"`).
 
 ## App 2 — 📊 Roteiro Paris (o do Diogo)
-- **URL:** https://diogoribeir.github.io/Web-scraping-Sample/roteiro-paris/
+- **URL:** https://diogoribeir.github.io/app/roteiro-paris/
 - **Pasta:** `roteiro-paris/` — **arquivo único** `index.html` (dados embutidos em constantes JS).
 - **Viagem (datas FIXAS — respeitar sempre):** ida GRU→CDG **10/09/2026 19:35** (Air France 459,
   chega 11/09 11:55) · volta CDG→GRU **18/09/2026 08:15** (KLM 2006/791, conexão Amsterdã).
@@ -58,7 +59,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   `COMER`, `BRECHOS`, `TRANSPORTE`, `EVITAR`; fórmulas em `calcBudget()`).
 
 ## App 3 — ✈️ Paris Trip Planner (o da Tati, React)
-- **URL:** https://diogoribeir.github.io/Web-scraping-Sample/paris-planner/
+- **URL:** https://diogoribeir.github.io/app/paris-planner/
 - **Pastas:** `paris-planner-src/` (fonte Vite + React + Tailwind + lucide-react) e
   `paris-planner/` (o build publicado — index.html + assets/).
 - **Quem desenvolve:** a **Tati**, num artifact do claude.ai dela. Ela exporta um `paristripplanner.tsx`
@@ -78,7 +79,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 3. Compilar: `cd paris-planner-src && npm install && npm run build`
 4. Publicar o build: `rm -rf ../paris-planner/assets ../paris-planner/index.html && cp -r dist/. ../paris-planner/`
 5. Testar antes (ver "Convenções" abaixo), commit, push, PR, merge → Pages republica.
-- ⚠️ `paris-planner-src/vite.config.js` tem `base: "/Web-scraping-Sample/paris-planner/"` — se o
+- ⚠️ `paris-planner-src/vite.config.js` tem `base: "/app/paris-planner/"` — se o
   repositório for renomeado um dia, **atualizar essa base** e recompilar.
 
 ---

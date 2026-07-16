@@ -12,8 +12,8 @@ Siga na ordem. Os blocos de código são reais (copiados dos apps que já funcio
 
 | Item | Valor |
 |---|---|
-| Repositório | `diogoribeir/Web-scraping-Sample` · branch principal `master` |
-| Site | `https://diogoribeir.github.io/Web-scraping-Sample/<pasta-do-app>/` |
+| Repositório | `diogoribeir/app` · branch principal `master` |
+| Site | `https://diogoribeir.github.io/app/<pasta-do-app>/` |
 | Deploy | GitHub Actions → `.github/workflows/deploy-pages.yml` (roda no push ao `master`) |
 | Banco | Firebase, projeto único **`apps-4b887`** (Firestore + Realtime Database) |
 | Fluxo git | branch → commit → push → PR → merge no `master` (Claude pode mergear) |
@@ -39,7 +39,7 @@ No `vite.config.js`, **obrigatório** apontar a base para o caminho do Pages:
 ```js
 export default defineConfig({
   plugins: [react()],
-  base: "/Web-scraping-Sample/meu-app/"   // <- nome do repo + pasta publicada
+  base: "/app/meu-app/"   // <- nome do repo + pasta publicada
 })
 ```
 Compilar e copiar o build para a pasta publicada:
@@ -61,19 +61,21 @@ Editar `.github/workflows/deploy-pages.yml` em **2 lugares**:
       - "meu-app/**"
 ```
 
-**(2)** no passo "Montar o site":
+**(2)** no passo "Montar o site" (a raiz recebe a página inicial `home/`; cada app tem sua pasta):
 ```yaml
       - name: Montar o site
         run: |
-          mkdir -p _site/roteiro-paris _site/paris-planner _site/meu-app
-          cp -r dias-sem-doenca/. _site/
+          mkdir -p _site/dias-sem-doenca _site/roteiro-paris _site/paris-planner _site/meu-app
+          cp -r home/. _site/
+          cp -r dias-sem-doenca/. _site/dias-sem-doenca/
           cp -r roteiro-paris/. _site/roteiro-paris/
           cp -r paris-planner/. _site/paris-planner/
           cp -r meu-app/. _site/meu-app/
 ```
+**(3)** adicionar o card do app novo na página inicial `home/index.html`.
 
 Depois do merge no `master`, o workflow publica sozinho. Conferir na aba Actions que o run
-terminou `success` — o app fica em `https://diogoribeir.github.io/Web-scraping-Sample/meu-app/`.
+terminou `success` — o app fica em `https://diogoribeir.github.io/app/meu-app/`.
 
 ---
 

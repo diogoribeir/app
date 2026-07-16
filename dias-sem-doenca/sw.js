@@ -1,6 +1,6 @@
 /* Service worker: faz o app funcionar 100% offline.
    Guarda os arquivos no cache na instalação e serve do cache depois. */
-var CACHE = "dias-sem-doenca-v3";
+var CACHE = "dias-sem-doenca-v4";
 var ASSETS = [
   "./",
   "./index.html",
