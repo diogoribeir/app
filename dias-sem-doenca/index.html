@@ -28,23 +28,6 @@
 
   <footer class="footer"><span id="statusTag" class="tag">funciona offline</span></footer>
 
-  <!-- Tela de login (só aparece no modo compartilhado) -->
-  <div id="loginScreen" class="login hidden">
-    <div class="login-box">
-      <div class="login-mark">✚</div>
-      <h1>Dias sem Doença</h1>
-      <p class="muted">Entre com a conta do casal para ver e atualizar juntos.</p>
-      <form id="loginForm">
-        <label for="email">E-mail</label>
-        <input id="email" type="email" autocomplete="username" placeholder="email@exemplo.com" required />
-        <label for="pass">Senha</label>
-        <input id="pass" type="password" autocomplete="current-password" placeholder="••••••••" required />
-        <p id="loginError" class="login-error" hidden></p>
-        <button id="loginBtn" class="btn ok" type="submit">Entrar</button>
-      </form>
-    </div>
-  </div>
-
   <!-- Modal: registrar doença -->
   <div id="sickModal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
@@ -87,6 +70,25 @@
     </div>
   </div>
 
+  <!-- Modal: editar registro do histórico -->
+  <div id="histEditModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Corrigir registro</h2>
+      <label for="heName">Doença</label>
+      <input id="heName" type="text" autocomplete="off" />
+      <label for="heNote">Observação</label>
+      <input id="heNote" type="text" autocomplete="off" />
+      <label for="heStart">Começou em</label>
+      <input id="heStart" type="date" />
+      <label for="heEnd">Recuperou em</label>
+      <input id="heEnd" type="date" />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="heSave" class="btn ok">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: menu / backup -->
   <div id="menuModal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
@@ -95,7 +97,6 @@
         <button id="shareBtn" class="menu-item"><span>📤 Compartilhar situação</span><small>Envia um resumo de como está agora</small></button>
         <button id="exportBtn" class="menu-item"><span>⬇️ Salvar backup</span><small>Baixa um arquivo com todos os dados</small></button>
         <button id="importBtn" class="menu-item"><span>⬆️ Restaurar backup</span><small>Carrega os dados de um arquivo salvo</small></button>
-        <button id="logoutBtn" class="menu-item hidden"><span>🚪 Sair da conta</span><small>Desconecta este aparelho</small></button>
         <button id="resetBtn" class="menu-item danger-text"><span>🗑️ Reiniciar tudo</span><small>Apaga histórico e zera os contadores</small></button>
       </div>
       <input id="importFile" type="file" accept="application/json,.json" hidden />
@@ -118,11 +119,6 @@
     </div>
   </div>
 
-  <!-- Firebase (só usado quando a config estiver preenchida) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

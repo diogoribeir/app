@@ -1,12 +1,11 @@
 /* Service worker: faz o app funcionar 100% offline.
    Guarda os arquivos no cache na instalação e serve do cache depois. */
-var CACHE = "dias-sem-doenca-v4";
+var CACHE = "dias-sem-doenca-v5";
 var ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
-  "./firebase-config.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png"

@@ -139,11 +139,11 @@ Igual à 1, mas o usuário escolhe um código no app (`planos/<código>`) e comp
 `connectSync()/pushSync()` de `roteiro-paris/index.html` (importa o SDK do
 `gstatic.com/firebasejs` sob demanda). Usar quando o usuário deve poder trocar/criar planos.
 
-### Receita 3 — Firestore com login (dados privados; usada no `dias-sem-doenca`)
+### Receita 3 — Firestore com login (dados privados)
 Para dados que **precisam de proteção de verdade** (ex.: saúde). Login e-mail/senha do casal
 (Authentication já ativado; usuário já existe). Scripts `firebase-*-compat.js` no HTML +
-`onSnapshot` no documento. Copiar o padrão de `dias-sem-doenca/app.js` (funções
-`startCloudMode`, tela de login) e `firebase-config.js`.
+`onSnapshot` no documento. Exemplo completo no histórico do git: versão do
+`dias-sem-doenca/app.js` anterior a jul/2026 (o app migrou para a receita 1).
 Regras do Firestore para um novo doc/coleção (console → Firestore → Regras):
 ```
 match /minha-colecao/{doc} {

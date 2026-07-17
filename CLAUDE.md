@@ -35,9 +35,12 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Pasta:** `dias-sem-doenca/` — HTML/CSS/JS puro, PWA (manifest + service worker `sw.js`).
 - **O que faz:** conta dias sem doença de cada um + placar do casal; registrar doença zera o contador
   da pessoa e guarda no histórico; recuperação reinicia a contagem; backup exportar/importar no menu ⋯.
-- **Sincronização:** **Firestore** (documento `casal/estado`), com **login e-mail/senha** (Firebase
-  Authentication — 1 usuário do casal; a senha fica com o Diogo). Config em `dias-sem-doenca/firebase-config.js`.
-- **Regras do Firestore:** leitura/escrita em `/casal/{doc}` apenas com `request.auth != null`.
+- **Sincronização:** Realtime Database via REST, nó **`planos/dias-sem-doenca-dt2026`** — **sem login**
+  (mesma receita 1 dos outros). localStorage é a cópia offline; recarrega ao voltar se houver gravação nova.
+- **Edição de registros:** histórico com ✏️ (corrigir nome/observação/datas) e link "corrigir" na doença
+  atual (ajusta sem zerar contador).
+- **Migração jul/2026:** antes usava Firestore + login; os dados antigos seguem no Firestore
+  (`casal/estado`) como backup. Authentication/Firestore podem ser desativados no console se quiser.
 - **Edição:** direto nos arquivos da pasta. Ao mexer no `app.js`/`styles.css`/`index.html`, regenerar o
   arquivo único com `python3 dias-sem-doenca/build-standalone.py` e subir a versão de cache no `sw.js`
   (`CACHE = "dias-sem-doenca-vN"`).

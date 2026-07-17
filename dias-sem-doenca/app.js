@@ -1,13 +1,13 @@
 /* Dias sem Doença — Di & Tati.
-   Dois modos:
-   - LOCAL: sem config do Firebase → salva só neste aparelho (localStorage).
-   - COMPARTILHADO: com config → login do casal + banco na nuvem (Firebase),
-     sincronizando ao vivo entre os dois celulares. Guarda cópia offline. */
+   Sincronização igual aos outros apps: Realtime Database do casal (REST),
+   gaveta planos/dias-sem-doenca-dt2026 — SEM login. localStorage é a cópia
+   offline (e a origem da migração: a 1ª abertura sobe os dados atuais). */
 
 (function () {
   "use strict";
 
   var STORAGE_KEY = "ddsd_v2";
+  var SYNC_URL = "https://apps-4b887-default-rtdb.firebaseio.com/planos/dias-sem-doenca-dt2026";
   var DAY = 86400000;
 
   // ---------- estado ----------
@@ -18,20 +18,59 @@
     }
     return { people: { di: person("Di"), tati: person("Tati") }, coupleBest: 0 };
   }
+  function valid(s) { return s && s.people && s.people.di && s.people.tati; }
   function readLocal() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("ddsd_v1");
       if (!raw) return defaultState();
       var s = JSON.parse(raw);
-      if (!s || !s.people || !s.people.di || !s.people.tati) return defaultState();
+      if (!valid(s)) return defaultState();
       if (typeof s.coupleBest !== "number") s.coupleBest = 0;
       return s;
     } catch (e) { return defaultState(); }
   }
   function writeLocal() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
-  function valid(s) { return s && s.people && s.people.di && s.people.tati; }
 
   var state = readLocal();
+  var cloudOK = false;
+  var syncStamp = 0;
+
+  // grava local + nuvem
+  function commit() {
+    writeLocal();
+    fetch(SYNC_URL + "/state.json", { method: "PUT", body: JSON.stringify(state) })
+      .then(function () {
+        cloudOK = true; syncStamp = Date.now();
+        fetch(SYNC_URL + "/_at.json", { method: "PUT", body: JSON.stringify(syncStamp) }).catch(function(){});
+        setStatus();
+      })
+      .catch(function () { cloudOK = false; setStatus(); });
+  }
+  function boot() {
+    fetch(SYNC_URL + "/state.json", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (v) {
+        cloudOK = true;
+        if (valid(v)) {
+          state = v;
+          if (typeof state.coupleBest !== "number") state.coupleBest = 0;
+          writeLocal();
+        } else {
+          commit();                      // 1ª vez: sobe os dados deste aparelho
+        }
+        render();
+      })
+      .catch(function () { cloudOK = false; setStatus(); });
+    fetch(SYNC_URL + "/_at.json", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (v) { if (typeof v === "number") syncStamp = v; }).catch(function(){});
+  }
+  function setStatus() {
+    var el = document.getElementById("statusTag");
+    if (!el) return;
+    if (cloudOK) { el.textContent = "sincronizado ✓"; el.className = "tag"; }
+    else { el.textContent = "offline — salva no aparelho"; el.className = "tag warn"; }
+  }
 
   // ---------- datas / util ----------
   function startOfDay(ts) { var d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); }
@@ -42,47 +81,21 @@
   function tsToDateInput(ts) { var d = new Date(ts); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
 
-  // ---------- backend (local ou nuvem) ----------
-  var cloud = null;      // { ref } quando conectado
-  var applyingRemote = false;
-
-  function cfgReady() {
-    var c = window.FIREBASE_CONFIG;
-    return c && c.apiKey && c.apiKey.indexOf("COLE_AQUI") === -1 && c.projectId && c.projectId.indexOf("COLE_AQUI") === -1;
-  }
-
-  // grava o estado atual no backend ativo
-  function commit() {
-    writeLocal();
-    if (cloud && !applyingRemote) {
-      cloud.ref.set({ state: state, updatedAt: Date.now() }).catch(function () { setStatus("offline"); });
-    }
-  }
-
-  function setStatus(kind) {
-    var el = document.getElementById("statusTag");
-    if (!el) return;
-    if (kind === "synced") { el.textContent = "sincronizado ✓"; el.className = "tag"; }
-    else if (kind === "offline") { el.textContent = "offline — sincroniza ao voltar"; el.className = "tag warn"; }
-    else if (kind === "connecting") { el.textContent = "conectando…"; el.className = "tag"; }
-    else { el.textContent = "funciona offline"; el.className = "tag"; }
-  }
-
   // ---------- render ----------
   var coupleEl = document.getElementById("coupleCard");
 
   function render() {
-    var now = Date.now(), di = state.people.di, tati = state.people.tati, changed = false;
+    var now = Date.now(), di = state.people.di, tati = state.people.tati;
     [["di", di], ["tati", tati]].forEach(function (pair) {
       var p = pair[1];
-      if (p.status === "healthy") { var d = daysBetween(p.streakStart, now); if (d > (p.best || 0)) { p.best = d; changed = true; } }
+      if (p.status === "healthy") { var d = daysBetween(p.streakStart, now); if (d > (p.best || 0)) p.best = d; }
       renderPerson(pair[0], p, now);
     });
 
     var anySick = di.status === "sick" || tati.status === "sick";
     if (!anySick) {
       var cd = daysBetween(Math.max(di.streakStart, tati.streakStart), now);
-      if (cd > (state.coupleBest || 0)) { state.coupleBest = cd; changed = true; }
+      if (cd > (state.coupleBest || 0)) state.coupleBest = cd;
       coupleEl.className = "couple";
       coupleEl.innerHTML =
         '<div class="eyebrow">Di &amp; Tati · juntos</div>' +
@@ -100,9 +113,8 @@
         '<div class="label">' + who.join(" e ") + (who.length > 1 ? " estão doentes 🤒" : " está doente 🤒") + '</div>' +
         '<div class="record">🏆 recorde do casal: ' + (state.coupleBest || 0) + ' ' + dias(state.coupleBest || 0) + '</div>';
     }
-    // só persiste "recordes" automáticos quando não estou aplicando algo remoto
-    if (changed) writeLocal();
-    if (changed && cloud && !applyingRemote) commit();
+    writeLocal();
+    setStatus();
   }
 
   function renderPerson(id, p, now) {
@@ -124,7 +136,8 @@
       el.innerHTML =
         '<div class="name">' + esc(p.name) + '</div><span class="chip bad">doente</span>' +
         '<div class="count num">' + sd + '</div><div class="unit">' + dias(sd) + ' doente</div>' +
-        '<div class="ill"><b>' + esc(p.illness.name) + '</b>' + note + '</div>' +
+        '<div class="ill"><b>' + esc(p.illness.name) + '</b>' + note +
+          ' <button class="fixlink" data-act="fixill">corrigir ✏️</button></div>' +
         '<button class="btn ok" data-act="well">Sarou 🎉</button>' + hist;
     }
   }
@@ -134,14 +147,21 @@
   var wellModal = document.getElementById("wellModal");
   var histModal = document.getElementById("histModal");
   var menuModal = document.getElementById("menuModal");
+  var histEditModal = document.getElementById("histEditModal");
   var pendingId = null;
+  var fixingIllness = false;   // sickModal em modo correção (não zera nada)
+  var editRecIdx = null;       // índice do registro do histórico em edição
 
-  function openSick(id) {
+  function openSick(id, fix) {
     pendingId = id;
-    document.getElementById("sickTitle").textContent = "Registrar doença — " + state.people[id].name;
-    document.getElementById("sickName").value = "";
-    document.getElementById("sickNote").value = "";
-    document.getElementById("sickDate").value = tsToDateInput(Date.now());
+    fixingIllness = !!fix;
+    var p = state.people[id];
+    document.getElementById("sickTitle").textContent =
+      (fix ? "Corrigir doença — " : "Registrar doença — ") + p.name;
+    document.getElementById("sickConfirm").textContent = fix ? "Salvar correção" : "Marcar como doente";
+    document.getElementById("sickName").value = fix ? p.illness.name : "";
+    document.getElementById("sickNote").value = fix ? (p.illness.note || "") : "";
+    document.getElementById("sickDate").value = tsToDateInput(fix ? p.illness.startedAt : Date.now());
     sickModal.classList.remove("hidden");
     setTimeout(function () { document.getElementById("sickName").focus(); }, 50);
   }
@@ -167,19 +187,33 @@
       var note = r.note ? " — " + esc(r.note) : "";
       return '<li><div class="info"><b>' + esc(r.name) + '</b>' + note +
         '<div class="d">' + fmtDate(r.startedAt) + " → " + fmtDate(r.recoveredAt) + " · " + dur + " " + dias(dur) + ' doente</div></div>' +
+        '<button class="edit" data-editrec="' + i + '" aria-label="Editar">✏️</button>' +
         '<button class="del" data-del="' + i + '" aria-label="Excluir">✕</button></li>';
     }).join("");
   }
+  function openHistEdit(i) {
+    editRecIdx = i;
+    var r = state.people[pendingId].records[i];
+    document.getElementById("heName").value = r.name;
+    document.getElementById("heNote").value = r.note || "";
+    document.getElementById("heStart").value = tsToDateInput(r.startedAt);
+    document.getElementById("heEnd").value = tsToDateInput(r.recoveredAt);
+    histModal.classList.add("hidden");
+    histEditModal.classList.remove("hidden");
+  }
   function closeModals() {
     Array.prototype.forEach.call(document.querySelectorAll(".modal"), function (m) { m.classList.add("hidden"); });
-    pendingId = null;
+    pendingId = null; fixingIllness = false; editRecIdx = null;
   }
 
   document.querySelector(".people").addEventListener("click", function (e) {
     var btn = e.target.closest("[data-act]"); if (!btn) return;
     var id = e.target.closest("[data-id]").getAttribute("data-id");
     var act = btn.getAttribute("data-act");
-    if (act === "sick") openSick(id); else if (act === "well") openWell(id); else if (act === "hist") openHist(id);
+    if (act === "sick") openSick(id, false);
+    else if (act === "fixill") openSick(id, true);
+    else if (act === "well") openWell(id);
+    else if (act === "hist") openHist(id);
   });
 
   document.getElementById("sickConfirm").addEventListener("click", function () {
@@ -188,10 +222,17 @@
     if (!name) { document.getElementById("sickName").focus(); return; }
     var p = state.people[pendingId];
     var startedAt = dateInputToTs(document.getElementById("sickDate").value);
-    var streak = daysBetween(p.streakStart, startedAt);
-    if (streak > (p.best || 0)) p.best = streak;
-    p.status = "sick";
-    p.illness = { name: name, note: document.getElementById("sickNote").value.trim(), startedAt: startedAt };
+    if (fixingIllness && p.illness) {
+      // só corrige os dados da doença atual — não mexe em contador nem histórico
+      p.illness.name = name;
+      p.illness.note = document.getElementById("sickNote").value.trim();
+      p.illness.startedAt = startedAt;
+    } else {
+      var streak = daysBetween(p.streakStart, startedAt);
+      if (streak > (p.best || 0)) p.best = streak;
+      p.status = "sick";
+      p.illness = { name: name, note: document.getElementById("sickNote").value.trim(), startedAt: startedAt };
+    }
     closeModals(); render(); commit();
   });
 
@@ -205,7 +246,10 @@
     closeModals(); render(); commit();
   });
 
+  // histórico: editar / excluir
   document.getElementById("histList").addEventListener("click", function (e) {
+    var ed = e.target.closest("[data-editrec]");
+    if (ed && pendingId) { openHistEdit(+ed.getAttribute("data-editrec")); return; }
     var del = e.target.closest("[data-del]"); if (!del || !pendingId) return;
     var i = +del.getAttribute("data-del"), p = state.people[pendingId];
     if (confirm('Excluir o registro de "' + p.records[i].name + '"?')) {
@@ -213,10 +257,26 @@
     }
   });
 
-  // ---------- menu / backup ----------
+  document.getElementById("heSave").addEventListener("click", function () {
+    if (pendingId == null || editRecIdx == null) { closeModals(); return; }
+    var name = document.getElementById("heName").value.trim();
+    if (!name) { document.getElementById("heName").focus(); return; }
+    var r = state.people[pendingId].records[editRecIdx];
+    r.name = name;
+    r.note = document.getElementById("heNote").value.trim();
+    r.startedAt = dateInputToTs(document.getElementById("heStart").value);
+    r.recoveredAt = dateInputToTs(document.getElementById("heEnd").value);
+    if (r.recoveredAt < r.startedAt) r.recoveredAt = r.startedAt;
+    var keep = pendingId;
+    histEditModal.classList.add("hidden");
+    editRecIdx = null;
+    render(); commit();
+    openHist(keep);   // volta pro histórico atualizado
+  });
+
+  // ---------- menu / compartilhar / backup ----------
   document.getElementById("menuBtn").addEventListener("click", function () { menuModal.classList.remove("hidden"); });
 
-  // ---------- compartilhar situação (foto do momento) ----------
   function personLine(p, now) {
     if (p.status === "healthy") {
       var d = daysBetween(p.streakStart, now);
@@ -292,83 +352,27 @@
     }
   });
 
-  document.getElementById("logoutBtn").addEventListener("click", function () {
-    if (window.firebase && firebase.auth) { firebase.auth().signOut(); }
-    closeModals();
-  });
-
   Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) { b.addEventListener("click", closeModals); });
   Array.prototype.forEach.call(document.querySelectorAll(".modal"), function (m) {
     m.addEventListener("click", function (e) { if (e.target === m) closeModals(); });
   });
 
-  // ---------- relógio ----------
+  // ---------- relógio + volta pro app ----------
   render();
   setInterval(render, 30000);
-  document.addEventListener("visibilitychange", function () { if (!document.hidden) render(); });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) return;
+    render();
+    fetch(SYNC_URL + "/_at.json", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (v) { if (typeof v === "number" && v > syncStamp + 1500) location.reload(); })
+      .catch(function(){});
+  });
 
-  // ---------- inicialização do modo ----------
-  var loginScreen = document.getElementById("loginScreen");
-
-  function startLocalMode() {
-    setStatus("local");
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
-    }
+  // ---------- service worker (offline) ----------
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
   }
 
-  function startCloudMode() {
-    setStatus("connecting");
-    try { firebase.initializeApp(window.FIREBASE_CONFIG); }
-    catch (e) { startLocalMode(); return; }
-
-    var auth = firebase.auth();
-    var db = firebase.firestore();
-    db.enablePersistence({ synchronizeTabs: true }).catch(function () {});
-    document.getElementById("logoutBtn").classList.remove("hidden");
-
-    // login
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      var err = document.getElementById("loginError"); err.hidden = true;
-      var btn = document.getElementById("loginBtn"); btn.disabled = true; btn.textContent = "Entrando…";
-      var email = document.getElementById("email").value.trim();
-      var pass = document.getElementById("pass").value;
-      auth.signInWithEmailAndPassword(email, pass).catch(function (er) {
-        var msg = "Não deu pra entrar. Confira e-mail e senha.";
-        if (er && er.code === "auth/invalid-email") msg = "E-mail inválido.";
-        if (er && (er.code === "auth/wrong-password" || er.code === "auth/invalid-credential")) msg = "E-mail ou senha incorretos.";
-        if (er && er.code === "auth/network-request-failed") msg = "Sem internet. Tente de novo.";
-        err.textContent = msg; err.hidden = false;
-      }).finally(function () { btn.disabled = false; btn.textContent = "Entrar"; });
-    });
-
-    auth.onAuthStateChanged(function (user) {
-      if (!user) { loginScreen.classList.remove("hidden"); return; }
-      loginScreen.classList.add("hidden");
-      var ref = db.collection("casal").doc("estado");
-      cloud = { ref: ref };
-
-      ref.onSnapshot({ includeMetadataChanges: true }, function (snap) {
-        if (!snap.exists) {
-          // primeira vez: sobe o que já existe neste aparelho para a nuvem
-          ref.set({ state: state, updatedAt: Date.now() }).catch(function () {});
-          return;
-        }
-        var data = snap.data();
-        if (data && valid(data.state)) {
-          applyingRemote = true;
-          state = data.state;
-          if (typeof state.coupleBest !== "number") state.coupleBest = 0;
-          writeLocal();
-          render();
-          applyingRemote = false;
-        }
-        setStatus(snap.metadata.fromCache ? "offline" : "synced");
-      }, function () { setStatus("offline"); });
-    });
-  }
-
-  if (cfgReady() && window.firebase) startCloudMode();
-  else startLocalMode();
+  boot();
 })();

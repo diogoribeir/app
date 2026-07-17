@@ -153,3 +153,5 @@ body{
 .log .empty{color:var(--muted);font-style:italic;border:0;padding-left:0}
 .log .del{background:var(--bad-soft);color:var(--bad);border:0;border-radius:10px;padding:7px 11px;font-weight:800;cursor:pointer;font-size:.9rem;flex-shrink:0}
 :focus-visible{outline:2px solid var(--good);outline-offset:2px}
+.log .edit{background:var(--good-soft);color:var(--good);border:0;border-radius:10px;padding:7px 10px;cursor:pointer;font-size:.9rem;flex-shrink:0;margin-right:2px}
+.fixlink{background:none;border:0;color:var(--bad);text-decoration:underline;cursor:pointer;font:inherit;font-size:.7rem;padding:0 2px}
