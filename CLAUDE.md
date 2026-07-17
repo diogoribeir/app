@@ -92,9 +92,13 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   📊 Estatísticas (distribuição, top horas, por gênero, insights, motivos de drop) · 🗓 Plano 2026.
 - **Filosofia (respeitar):** veredicto categórico, NUNCA notas numéricas na interface;
   componentes H/G/D/FF discretos como "análise interna". Detalhes em `perfil-gamer-src/README.md`.
-- **Sincronização:** não tem (dados versionados no repositório; app é leitura).
-- **Atualização:** editar `perfil-gamer-src/biblioteca_jogos.xlsx` → `python3 gerar_doc.py` +
-  `python3 gerar_dados.py` (regenera `perfil-gamer/dados.js`) → commit/PR/merge.
+- **EDITÁVEL no app** (igual aos outros): botão "➕ Registrar jogo" + Editar/Excluir em cada card.
+- **Sincronização:** Realtime Database via REST, nó **`planos/perfil-gamer-dt2026`** — a nuvem é a
+  fonte da verdade; `perfil-gamer/dados.js` é só a carga inicial (seed). localStorage = cópia offline;
+  recarrega ao voltar se houver gravação mais nova (mesma receita 1 do paris-planner).
+- **Atualização em massa/histórico:** `perfil-gamer-src/biblioteca_jogos.xlsx` + `gerar_doc.py` +
+  `gerar_dados.py` (regenera o seed). ⚠️ O seed NÃO sobrescreve a nuvem — para repor a nuvem a partir
+  do xlsx é preciso apagar o nó `planos/perfil-gamer-dt2026/jogos` (o app então sobe o seed de novo).
 - **Agente de apoio:** `.claude/agents/perfil-gamer.md` (psicólogo comportamental + estatístico +
   especialista em jogos) — usar para registrar jogos, propor veredictos e análises.
 
