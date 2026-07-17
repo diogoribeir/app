@@ -72,11 +72,24 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
   color:var(--ink);font:inherit;font-size:.95rem}
 .search::placeholder{color:var(--muted)}
 .search:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
-.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-.filters label{display:block;font-size:.58rem;color:var(--muted);font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin:0 2px 4px}
-.filters select{width:100%;padding:11px 10px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);
+.fbar{display:flex;gap:8px;margin-top:10px}
+.fbtn{flex:1;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;
+  font-size:.88rem;font-weight:800;padding:12px;border-radius:13px;cursor:pointer}
+.fbtn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.fbar select{flex:1;padding:12px 10px;border:1.5px solid var(--line);border-radius:13px;background:var(--surface);
   color:var(--ink);font:inherit;font-size:.86rem;font-weight:600}
-.filters select.active{border-color:var(--accent);color:var(--accent);font-weight:800}
+.achips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.achip{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;padding:7px 12px;cursor:pointer;
+  font:inherit;font-size:.74rem;font-weight:800;background:var(--vs,var(--accent-soft));color:var(--vc,var(--accent))}
+.achip .x{opacity:.7;font-weight:800}
+.achip.clear{background:var(--surface2);color:var(--muted)}
+.fgroup{margin-top:14px}
+.fgroup .glabel{font-size:.62rem;color:var(--muted);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin:0 2px 8px}
+.tchips{display:flex;flex-wrap:wrap;gap:8px}
+.tchip{border:1.5px solid var(--line);background:var(--bg);color:var(--muted);font:inherit;font-size:.84rem;
+  font-weight:700;padding:11px 15px;border-radius:12px;cursor:pointer}
+.tchip.on{border-color:var(--vc,var(--accent));color:var(--vc,var(--accent));background:var(--vs,var(--accent-soft));font-weight:800}
+.tchip:active{transform:scale(.97)}
 .toolrow{display:flex;align-items:center;gap:8px;margin:8px 0 12px}
 .toolrow select{flex:1;padding:10px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);
   color:var(--ink);font:inherit;font-size:.84rem;font-weight:600}
@@ -227,6 +240,19 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
   </div>
 </div>
 
+<div id="fmodal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="mbox">
+    <h2>🎚 Filtros</h2>
+    <p style="margin:4px 0 0;font-size:.74rem;color:var(--muted);line-height:1.5">Toque para ligar/desligar — pode escolher vários.</p>
+    <div class="fgroup"><div class="glabel">Status</div><div class="tchips" id="fgStatus"></div></div>
+    <div class="fgroup"><div class="glabel">Veredicto</div><div class="tchips" id="fgVer"></div></div>
+    <div class="mactions">
+      <button type="button" class="btn btn-ghost" id="fClear">Limpar</button>
+      <button type="button" class="btn btn-save" id="fApply">Mostrar tudo</button>
+    </div>
+  </div>
+</div>
+
 <nav class="tabbar" id="tabbar" aria-label="Abas"></nav>
 <script src="dados.js"></script>
 <script>
@@ -277,10 +303,16 @@ document.addEventListener("visibilitychange", () => {
 /* ---------- estado da UI ---------- */
 const TABS = [["jogos","Jogos","🎮"],["stats","Estatísticas","📊"],["plano","Plano 2026","🗓"]];
 let tab = "jogos";
-let fStatus = "todos";   // todos | S | N | #
-let fVer = "todos";      // todos | <veredicto>
+const fStatus = new Set();   // multi: S, N, #
+const fVer = new Set();      // multi: veredictos
 let busca = "";
 let ordem = "horas";
+const STATUS_LABEL = {"S":"✅ Zerados","N":"❌ Dropados","#":"🔄 Jogando"};
+function aplicarFiltros(lst){
+  if (fStatus.size) lst = lst.filter(g=>fStatus.has(g.enc));
+  if (fVer.size) lst = lst.filter(g=>fVer.has(g.v));
+  return lst;
+}
 
 function statusTxt(e){ return e==="S"?"✅ zerado":(e==="N"?"❌ dropado":"🔄 jogando"); }
 function vpill(v){
@@ -326,8 +358,7 @@ function gameCard(g){
 function viewJogos(){
   let lst = J.slice();
   if (busca) { const b = busca.toLowerCase(); lst = lst.filter(g=>g.nome.toLowerCase().includes(b)||(g.genres||"").toLowerCase().includes(b)); }
-  if (fStatus!=="todos") lst = lst.filter(g=>g.enc===fStatus);
-  if (fVer!=="todos") lst = lst.filter(g=>g.v===fVer);
+  lst = aplicarFiltros(lst);
   const ords = {
     horas:(a,b)=>b.horas-a.horas,
     veredicto:(a,b)=>(ORD.indexOf(b.v)-ORD.indexOf(a.v))||(b.horas-a.horas),
@@ -361,29 +392,21 @@ function viewJogos(){
   </div>
   <button type="button" class="addbtn" id="btnAdd">➕ Registrar jogo</button>
   <input class="search" id="busca" type="search" placeholder="Buscar jogo ou gênero…" value="${esc(busca)}" />
-  <div class="filters">
-    <div><label for="fStatusSel">Status</label>
-      <select id="fStatusSel" class="${fStatus!=="todos"?"active":""}">
-        <option value="todos" ${fStatus==="todos"?"selected":""}>Todos</option>
-        <option value="S" ${fStatus==="S"?"selected":""}>✅ Zerados</option>
-        <option value="N" ${fStatus==="N"?"selected":""}>❌ Dropados</option>
-        <option value="#" ${fStatus==="#"?"selected":""}>🔄 Jogando</option>
-      </select></div>
-    <div><label for="fVerSel">Veredicto</label>
-      <select id="fVerSel" class="${fVer!=="todos"?"active":""}">
-        <option value="todos" ${fVer==="todos"?"selected":""}>Todos</option>
-        ${ORD.slice().reverse().map(v=>`<option value="${esc(v)}" ${fVer===v?"selected":""}>${VC[v][2]} ${esc(v)}</option>`).join("")}
-      </select></div>
-  </div>
-  <div class="toolrow">
+  <div class="fbar">
+    <button type="button" class="fbtn ${(fStatus.size+fVer.size)?"on":""}" id="btnFiltro">🎚 Filtros${(fStatus.size+fVer.size)?` (${fStatus.size+fVer.size})`:""}</button>
     <select id="ordem" aria-label="Ordenar">
       <option value="horas" ${ordem==="horas"?"selected":""}>⏱ Mais horas</option>
       <option value="veredicto" ${ordem==="veredicto"?"selected":""}>🏆 Melhor veredicto</option>
       <option value="custo" ${ordem==="custo"?"selected":""}>💰 Melhor custo/hora</option>
       <option value="nome" ${ordem==="nome"?"selected":""}>🔤 Nome (A–Z)</option>
     </select>
-    <span class="count num">${lst.length} jogo(s)</span>
   </div>
+  ${(fStatus.size+fVer.size) ? `<div class="achips">
+    ${[...fStatus].map(s=>`<button class="achip" data-unstatus="${esc(s)}">${STATUS_LABEL[s]} <span class="x">✕</span></button>`).join("")}
+    ${[...fVer].map(v=>`<button class="achip" style="--vc:${VC[v]?VC[v][0]:"var(--accent)"};--vs:${VC[v]?VC[v][1]:"var(--accent-soft)"}" data-unver="${esc(v)}">${VC[v]?VC[v][2]+" ":""}${esc(v)} <span class="x">✕</span></button>`).join("")}
+    ${(fStatus.size+fVer.size)>1?`<button class="achip clear" data-unall="1">limpar tudo</button>`:""}
+  </div>`:""}
+  <div class="toolrow"><span class="count num">${lst.length} jogo(s) na lista</span></div>
   ${lst.map(gameCard).join("") || '<p class="lead">Nenhum jogo com esse filtro.</p>'}`;
 }
 
@@ -443,8 +466,7 @@ function render(){
     const pos = b.selectionStart; render(); const nb=$("#busca"); if(nb){ nb.focus(); nb.setSelectionRange(pos,pos); }
   }); }
   const o = $("#ordem"); if (o) o.addEventListener("change", e=>{ ordem=e.target.value; render(); });
-  const fs = $("#fStatusSel"); if (fs) fs.addEventListener("change", e=>{ fStatus=e.target.value; render(); });
-  const fv = $("#fVerSel"); if (fv) fv.addEventListener("change", e=>{ fVer=e.target.value; render(); });
+
 }
 
 /* ---------- registrar / editar / excluir ---------- */
@@ -488,8 +510,33 @@ $("#mSave").addEventListener("click", ()=>{
   closeModal(); saveJogos(); render();
 });
 
+/* ---------- painel de filtros ---------- */
+function renderSheet(){
+  $("#fgStatus").innerHTML = Object.entries(STATUS_LABEL).map(([s,l])=>
+    `<button type="button" class="tchip ${fStatus.has(s)?"on":""}" data-tstatus="${esc(s)}">${l}</button>`).join("");
+  $("#fgVer").innerHTML = ORD.slice().reverse().map(v=>
+    `<button type="button" class="tchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]};--vs:${VC[v][1]}" data-tver="${esc(v)}">${VC[v][2]} ${esc(v)}</button>`).join("");
+  const n = aplicarFiltros(J.slice()).length;
+  $("#fApply").textContent = (fStatus.size+fVer.size) ? `Mostrar ${n} jogo(s)` : "Mostrar tudo";
+}
+function openSheet(){ renderSheet(); $("#fmodal").classList.remove("hidden"); }
+function closeSheet(){ $("#fmodal").classList.add("hidden"); render(); }
+$("#fApply").addEventListener("click", closeSheet);
+$("#fClear").addEventListener("click", ()=>{ fStatus.clear(); fVer.clear(); renderSheet(); });
+$("#fmodal").addEventListener("click", e=>{ if (e.target === $("#fmodal")) closeSheet(); });
+
 document.addEventListener("click", e=>{
   const t = e.target.closest("[data-tab]"); if (t){ tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
+  if (e.target.closest("#btnFiltro")){ openSheet(); return; }
+  const ts = e.target.closest("[data-tstatus]");
+  if (ts){ const s=ts.dataset.tstatus; fStatus.has(s)?fStatus.delete(s):fStatus.add(s); renderSheet(); return; }
+  const tv = e.target.closest("[data-tver]");
+  if (tv){ const v=tv.dataset.tver; fVer.has(v)?fVer.delete(v):fVer.add(v); renderSheet(); return; }
+  const us = e.target.closest("[data-unstatus]");
+  if (us){ fStatus.delete(us.dataset.unstatus); render(); return; }
+  const uv = e.target.closest("[data-unver]");
+  if (uv){ fVer.delete(uv.dataset.unver); render(); return; }
+  if (e.target.closest("[data-unall]")){ fStatus.clear(); fVer.clear(); render(); return; }
   if (e.target.closest("#btnAdd")){ openModal(null); return; }
   const hh = e.target.closest("[data-editar-hero]");
   if (hh){ const g = J.find(x=>String(x.id)===hh.dataset.editarHero); if (g) openModal(g); return; }
