@@ -72,11 +72,11 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
   color:var(--ink);font:inherit;font-size:.95rem}
 .search::placeholder{color:var(--muted)}
 .search:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
-.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.chips::-webkit-scrollbar{display:none}
-.fchip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--muted);
-  font:inherit;font-size:.74rem;font-weight:700;padding:8px 13px;border-radius:999px;cursor:pointer}
-.fchip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.filters label{display:block;font-size:.58rem;color:var(--muted);font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin:0 2px 4px}
+.filters select{width:100%;padding:11px 10px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);
+  color:var(--ink);font:inherit;font-size:.86rem;font-weight:600}
+.filters select.active{border-color:var(--accent);color:var(--accent);font-weight:800}
 .toolrow{display:flex;align-items:center;gap:8px;margin:8px 0 12px}
 .toolrow select{flex:1;padding:10px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);
   color:var(--ink);font:inherit;font-size:.84rem;font-weight:600}
@@ -277,7 +277,8 @@ document.addEventListener("visibilitychange", () => {
 /* ---------- estado da UI ---------- */
 const TABS = [["jogos","Jogos","🎮"],["stats","Estatísticas","📊"],["plano","Plano 2026","🗓"]];
 let tab = "jogos";
-let filtro = "todos";
+let fStatus = "todos";   // todos | S | N | #
+let fVer = "todos";      // todos | <veredicto>
 let busca = "";
 let ordem = "horas";
 
@@ -325,10 +326,8 @@ function gameCard(g){
 function viewJogos(){
   let lst = J.slice();
   if (busca) { const b = busca.toLowerCase(); lst = lst.filter(g=>g.nome.toLowerCase().includes(b)||(g.genres||"").toLowerCase().includes(b)); }
-  if (filtro!=="todos"){
-    if (["S","N","#"].includes(filtro)) lst = lst.filter(g=>g.enc===filtro);
-    else lst = lst.filter(g=>g.v===filtro);
-  }
+  if (fStatus!=="todos") lst = lst.filter(g=>g.enc===fStatus);
+  if (fVer!=="todos") lst = lst.filter(g=>g.v===fVer);
   const ords = {
     horas:(a,b)=>b.horas-a.horas,
     veredicto:(a,b)=>(ORD.indexOf(b.v)-ORD.indexOf(a.v))||(b.horas-a.horas),
@@ -353,9 +352,6 @@ function viewJogos(){
       </div>
     </div>` : "";
 
-  const chips = [["todos","Todos"],["S","✅ Zerados"],["N","❌ Dropados"],["#","🔄 Jogando"],
-    ...ORD.slice().reverse().map(v=>[v, (VC[v]?VC[v][2]+" ":"")+v])];
-
   return `${hero}
   <div class="strip">
     <div class="cell"><div class="v num">${tot}</div><div class="k">jogos</div></div>
@@ -365,7 +361,20 @@ function viewJogos(){
   </div>
   <button type="button" class="addbtn" id="btnAdd">➕ Registrar jogo</button>
   <input class="search" id="busca" type="search" placeholder="Buscar jogo ou gênero…" value="${esc(busca)}" />
-  <div class="chips">${chips.map(([id,l])=>`<button class="fchip ${filtro===id?'on':''}" data-filtro="${esc(id)}">${l}</button>`).join("")}</div>
+  <div class="filters">
+    <div><label for="fStatusSel">Status</label>
+      <select id="fStatusSel" class="${fStatus!=="todos"?"active":""}">
+        <option value="todos" ${fStatus==="todos"?"selected":""}>Todos</option>
+        <option value="S" ${fStatus==="S"?"selected":""}>✅ Zerados</option>
+        <option value="N" ${fStatus==="N"?"selected":""}>❌ Dropados</option>
+        <option value="#" ${fStatus==="#"?"selected":""}>🔄 Jogando</option>
+      </select></div>
+    <div><label for="fVerSel">Veredicto</label>
+      <select id="fVerSel" class="${fVer!=="todos"?"active":""}">
+        <option value="todos" ${fVer==="todos"?"selected":""}>Todos</option>
+        ${ORD.slice().reverse().map(v=>`<option value="${esc(v)}" ${fVer===v?"selected":""}>${VC[v][2]} ${esc(v)}</option>`).join("")}
+      </select></div>
+  </div>
   <div class="toolrow">
     <select id="ordem" aria-label="Ordenar">
       <option value="horas" ${ordem==="horas"?"selected":""}>⏱ Mais horas</option>
@@ -412,8 +421,8 @@ function viewPlano(){
   const rows = (window.PLANO||[]).map(p=>`
     <div class="pitem">
       <span class="pwhen">${esc(p.lanc)}</span>
-      <div class="pbody"><div class="t">${esc(p.jogo)}</div><div class="s">${esc(p.status)}</div></div>
-      <span class="pest num">${esc(p.est)}</span>
+      <div class="pbody"><div class="t">${esc(p.jogo)}</div>
+        <div class="s num">estimativa ${esc(p.est)} · ${esc(p.status)}</div></div>
     </div>`).join("");
   const notas = (window.NOTAS_PLANO||[]).map(n=>`<div class="pitem"><div class="pbody"><div class="s">${esc(n)}</div></div></div>`).join("");
   return `<p class="lead">Fila de 2026 com estimativas de horas, na ordem de lançamento.</p>
@@ -434,6 +443,8 @@ function render(){
     const pos = b.selectionStart; render(); const nb=$("#busca"); if(nb){ nb.focus(); nb.setSelectionRange(pos,pos); }
   }); }
   const o = $("#ordem"); if (o) o.addEventListener("change", e=>{ ordem=e.target.value; render(); });
+  const fs = $("#fStatusSel"); if (fs) fs.addEventListener("change", e=>{ fStatus=e.target.value; render(); });
+  const fv = $("#fVerSel"); if (fv) fv.addEventListener("change", e=>{ fVer=e.target.value; render(); });
 }
 
 /* ---------- registrar / editar / excluir ---------- */
@@ -479,7 +490,6 @@ $("#mSave").addEventListener("click", ()=>{
 
 document.addEventListener("click", e=>{
   const t = e.target.closest("[data-tab]"); if (t){ tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
-  const f = e.target.closest("[data-filtro]"); if (f){ filtro=f.dataset.filtro; render(); return; }
   if (e.target.closest("#btnAdd")){ openModal(null); return; }
   const hh = e.target.closest("[data-editar-hero]");
   if (hh){ const g = J.find(x=>String(x.id)===hh.dataset.editarHero); if (g) openModal(g); return; }
