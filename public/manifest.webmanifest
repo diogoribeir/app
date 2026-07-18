@@ -1,0 +1,19 @@
+{
+  "name": "Lingo — Francês que faz sentido",
+  "short_name": "Lingo",
+  "description": "Francês para quem fala português: gramática-ponte, frases com voz para usar na hora e um tutor que mostra E fala.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1020",
+  "theme_color": "#0d1020",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

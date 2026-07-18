@@ -1,0 +1,37 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+
+# local env files — NUNCA comitar chaves
+.env
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# dados de runtime (estado do usuário)
+/data/db.json
+
+# dumps brutos do Tatoeba (baixados; não versionar)
+/data/raw
+
+.vercel
+.env*
+
+# logs e config local
+dev.log
+.claude/settings.local.json

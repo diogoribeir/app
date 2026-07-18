@@ -1,0 +1,176 @@
+{
+  "_fonte": "Curadoria de DIÁLOGOS de viagem (Cenas ao vivo). Falas do atendente: francês padrão simples (nível A1). Falas do aluno: frases já verificadas em content.json (ou combinações delas). Nada gerado por IA em tempo de execução.",
+  "dialogos": [
+    {
+      "id": "d-cafe",
+      "titulo": "No café",
+      "contexto": "restaurante",
+      "emoji": "☕",
+      "papel": "o garçom",
+      "status": "verificado",
+      "fonte": "curado",
+      "intro": "Fim de tarde em Paris. Você senta num café da esquina e o garçom se aproxima…",
+      "final": "Voilà ! Você pediu seu café e croissant em francês de verdade — e ainda saiu elegante. ☕🥐",
+      "turnos": [
+        {
+          "falaFR": "Bonjour ! Vous désirez ?",
+          "falaPT": "Bom dia! O que vai querer?",
+          "pronuncia": "bõ-JUR! vu dê-zi-RÊ?",
+          "objetivo": "Peça um café, com educação",
+          "opcoes": [
+            { "fr": "Je voudrais un café, s'il vous plaît.", "pt": "Eu gostaria de um café, por favor.", "ok": true },
+            { "fr": "L'addition, s'il vous plaît.", "pt": "A conta, por favor.", "ok": false, "porQue": "Calma! Isso pede a CONTA — você ainda nem pediu nada. 😅" },
+            { "fr": "Où sont les toilettes ?", "pt": "Onde fica o banheiro?", "ok": false, "porQue": "Isso pergunta onde é o BANHEIRO. Válido, mas o garçom esperava um pedido…" }
+          ]
+        },
+        {
+          "falaFR": "Très bien. Et avec ça ?",
+          "falaPT": "Muito bem. Algo mais?",
+          "pronuncia": "tré bi-ÃN. ê a-vék SA?",
+          "objetivo": "Peça também um croissant",
+          "opcoes": [
+            { "fr": "Un croissant, s'il vous plaît.", "pt": "Um croissant, por favor.", "ok": true },
+            { "fr": "Avez-vous une chambre pour ce soir ?", "pt": "Vocês têm um quarto para esta noite?", "ok": false, "porQue": "Isso pede um QUARTO — aqui é um café, não um hotel! 🛏️" },
+            { "fr": "Je suis perdu.", "pt": "Estou perdido.", "ok": false, "porQue": "'Estou perdido'?! Sentado no café? O garçom ia chamar a polícia. 😅" }
+          ]
+        },
+        {
+          "falaFR": "Et voilà ! Bonne dégustation.",
+          "falaPT": "Aqui está! Bom apetite.",
+          "pronuncia": "ê vua-LÁ! bón dê-güs-ta-si-Õ",
+          "objetivo": "Agradeça",
+          "opcoes": [
+            { "fr": "Merci beaucoup !", "pt": "Muito obrigado(a)!", "ok": true },
+            { "fr": "Au secours !", "pt": "Socorro!", "ok": false, "porQue": "SOCORRO?! É só um croissant chegando! 😱" },
+            { "fr": "C'est trop cher.", "pt": "É caro demais.", "ok": false, "porQue": "Reclamar do preço antes de ver a conta? Deselegante, non? 🧐" }
+          ]
+        },
+        {
+          "falaFR": "Bonne journée !",
+          "falaPT": "Tenha um bom dia!",
+          "pronuncia": "bón jur-NÊ",
+          "objetivo": "Despeça-se",
+          "opcoes": [
+            { "fr": "Au revoir !", "pt": "Até logo!", "ok": true },
+            { "fr": "Bonsoir !", "pt": "Boa noite! (ao chegar)", "ok": false, "porQue": "'Bonsoir' é para CHEGAR no fim do dia — para sair, 'au revoir'." },
+            { "fr": "Je ne comprends pas.", "pt": "Não entendo.", "ok": false, "porQue": "Entendeu sim! 'Bonne journée' = tenha um bom dia. Responda à altura!" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d-hotel",
+      "titulo": "Check-in no hotel",
+      "contexto": "hotel",
+      "emoji": "🛎️",
+      "papel": "a recepcionista",
+      "status": "verificado",
+      "fonte": "curado",
+      "intro": "Você chega ao hotel com a mala na mão. A recepcionista sorri…",
+      "final": "Chave na mão e café da manhã garantido — check-in impecável, em francês. 🗝️",
+      "turnos": [
+        {
+          "falaFR": "Bonsoir ! Je peux vous aider ?",
+          "falaPT": "Boa noite! Posso ajudar?",
+          "pronuncia": "bõ-SUÁR! jё pê vu-zê-DÊ?",
+          "objetivo": "Diga que você tem uma reserva",
+          "opcoes": [
+            { "fr": "J'ai une réservation.", "pt": "Tenho uma reserva.", "ok": true },
+            { "fr": "Une table pour deux, s'il vous plaît.", "pt": "Uma mesa para dois, por favor.", "ok": false, "porQue": "Mesa para dois? Isso é frase de RESTAURANTE — aqui é a recepção. 🍽️" },
+            { "fr": "Combien ça coûte ?", "pt": "Quanto custa?", "ok": false, "porQue": "Preço antes de dizer quem você é? Comece pela reserva!" }
+          ]
+        },
+        {
+          "falaFR": "Parfait. Votre nom, s'il vous plaît ?",
+          "falaPT": "Perfeito. Seu nome, por favor?",
+          "pronuncia": "par-FÉ. vô-trё NÕ, sil vu PLÉ?",
+          "objetivo": "Diga o seu nome",
+          "opcoes": [
+            { "fr": "Je m'appelle Diogo.", "pt": "Meu nome é Diogo.", "ok": true },
+            { "fr": "Je regarde, merci.", "pt": "Só estou olhando, obrigado.", "ok": false, "porQue": "'Só estou olhando'?! Ela pediu seu NOME, não te ofereceu uma blusa. 😅" },
+            { "fr": "Parlez-vous anglais ?", "pt": "Você fala inglês?", "ok": false, "porQue": "Vale como plano B — mas dizer seu nome você JÁ consegue em francês!" }
+          ]
+        },
+        {
+          "falaFR": "Voici votre clé. Chambre douze.",
+          "falaPT": "Aqui está sua chave. Quarto doze.",
+          "pronuncia": "vua-SI vô-trё CLÊ. CHÃ-brё DUZ",
+          "objetivo": "Pergunte a que horas é o café da manhã",
+          "opcoes": [
+            { "fr": "À quelle heure est le petit-déjeuner ?", "pt": "A que horas é o café da manhã?", "ok": true },
+            { "fr": "Appelez un médecin, s'il vous plaît.", "pt": "Chame um médico, por favor.", "ok": false, "porQue": "Um MÉDICO? Você só pegou a chave do quarto! 😱" },
+            { "fr": "C'est loin d'ici ?", "pt": "É longe daqui?", "ok": false, "porQue": "O quarto doze? É logo ali no corredor. 🚪" }
+          ]
+        },
+        {
+          "falaFR": "À huit heures, au premier étage.",
+          "falaPT": "Às oito, no primeiro andar.",
+          "pronuncia": "a üi-TÊR, ô prё-mi-ê-rê-TAJ",
+          "objetivo": "Agradeça",
+          "opcoes": [
+            { "fr": "Merci beaucoup !", "pt": "Muito obrigado(a)!", "ok": true },
+            { "fr": "Le wifi ne marche pas.", "pt": "O wi-fi não funciona.", "ok": false, "porQue": "Reclamar do wi-fi ANTES de subir ao quarto? Dê uma chance! 📶" },
+            { "fr": "L'addition, s'il vous plaît.", "pt": "A conta, por favor.", "ok": false, "porQue": "A conta do hotel é no check-out — falta muito ainda!" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d-rua",
+      "titulo": "Perdido em Paris",
+      "contexto": "rua",
+      "emoji": "🗺️",
+      "papel": "uma pedestre",
+      "status": "verificado",
+      "fonte": "curado",
+      "intro": "O mapa do celular morreu e as ruas parecem todas iguais. Você aborda uma pedestre…",
+      "final": "À direita, cinco minutos — e chegou! Se perder em Paris deixou de ser um problema. 🧭",
+      "turnos": [
+        {
+          "falaFR": "Oui ?",
+          "falaPT": "Sim?",
+          "pronuncia": "UÍ?",
+          "objetivo": "Peça licença e diga que está perdido",
+          "opcoes": [
+            { "fr": "Excusez-moi. Je suis perdu.", "pt": "Com licença. Estou perdido.", "ok": true },
+            { "fr": "Bonjour ! Vous désirez ?", "pt": "Bom dia! O que vai querer?", "ok": false, "porQue": "Essa é fala de GARÇOM — quem precisa de ajuda aqui é você! ☕" },
+            { "fr": "Une carafe d'eau, s'il vous plaît.", "pt": "Uma jarra de água, por favor.", "ok": false, "porQue": "Água? No meio da calçada? Ela não é um restaurante ambulante. 😅" }
+          ]
+        },
+        {
+          "falaFR": "Ah ! Vous cherchez quoi ?",
+          "falaPT": "Ah! Está procurando o quê?",
+          "pronuncia": "A! vu cher-CHÊ KUÁ?",
+          "objetivo": "Pergunte onde fica a estação de metrô",
+          "opcoes": [
+            { "fr": "Où est la station de métro ?", "pt": "Onde fica a estação de metrô?", "ok": true },
+            { "fr": "Où est la pharmacie ?", "pt": "Onde fica a farmácia?", "ok": false, "porQue": "Farmácia? Você queria o METRÔ — foco na missão! 🚇" },
+            { "fr": "Avez-vous une autre taille ?", "pt": "Tem outro tamanho?", "ok": false, "porQue": "'Outro tamanho'? Isso é frase de provador de loja! 🛍️" }
+          ]
+        },
+        {
+          "falaFR": "C'est à droite, à cinq minutes.",
+          "falaPT": "É à direita, a cinco minutos.",
+          "pronuncia": "sé-ta DRUÁT, a sãk mi-NÜT",
+          "objetivo": "Você não pegou tudo — peça para repetir",
+          "opcoes": [
+            { "fr": "Pouvez-vous répéter, s'il vous plaît ?", "pt": "Pode repetir, por favor?", "ok": true },
+            { "fr": "Je peux payer par carte ?", "pt": "Posso pagar com cartão?", "ok": false, "porQue": "Pagar?! Informação na rua é de graça, mon ami. 😄" },
+            { "fr": "Au revoir !", "pt": "Até logo!", "ok": false, "porQue": "Ainda não! Você não entendeu o caminho — vai se perder de novo." }
+          ]
+        },
+        {
+          "falaFR": "À droite ! Cinq minutes !",
+          "falaPT": "À direita! Cinco minutos!",
+          "pronuncia": "a DRUÁT! sãk mi-NÜT!",
+          "objetivo": "Agradeça e despeça-se",
+          "opcoes": [
+            { "fr": "Merci beaucoup ! Au revoir !", "pt": "Muito obrigado! Até logo!", "ok": true },
+            { "fr": "Je ne comprends pas.", "pt": "Não entendo.", "ok": false, "porQue": "Dessa vez deu: à DIREITA, CINCO minutos. Você entendeu sim!" },
+            { "fr": "C'est trop cher.", "pt": "É caro demais.", "ok": false, "porQue": "Caro? Ela te ajudou DE GRAÇA! 😄" }
+          ]
+        }
+      ]
+    }
+  ]
+}

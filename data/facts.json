@@ -1,0 +1,95 @@
+{
+  "_fonte": "Amostra didática (Fase 1). Na Fase 1.5 isto vem de Verbiste/Lexique.org/Wiktionary.",
+  "conjugacoes": [
+    {
+      "infinitivo": "être",
+      "traducao": "ser/estar",
+      "presente": {
+        "je": "suis",
+        "tu": "es",
+        "il/elle": "est",
+        "nous": "sommes",
+        "vous": "êtes",
+        "ils/elles": "sont"
+      }
+    },
+    {
+      "infinitivo": "avoir",
+      "traducao": "ter",
+      "presente": {
+        "je": "ai",
+        "tu": "as",
+        "il/elle": "a",
+        "nous": "avons",
+        "vous": "avez",
+        "ils/elles": "ont"
+      }
+    },
+    {
+      "infinitivo": "vouloir",
+      "traducao": "querer",
+      "presente": {
+        "je": "veux",
+        "tu": "veux",
+        "il/elle": "veut",
+        "nous": "voulons",
+        "vous": "voulez",
+        "ils/elles": "veulent"
+      }
+    },
+    {
+      "infinitivo": "aller",
+      "traducao": "ir",
+      "presente": {
+        "je": "vais",
+        "tu": "vas",
+        "il/elle": "va",
+        "nous": "allons",
+        "vous": "allez",
+        "ils/elles": "vont"
+      }
+    },
+    {
+      "infinitivo": "pouvoir",
+      "traducao": "poder",
+      "presente": {
+        "je": "peux",
+        "tu": "peux",
+        "il/elle": "peut",
+        "nous": "pouvons",
+        "vous": "pouvez",
+        "ils/elles": "peuvent"
+      }
+    },
+    {
+      "infinitivo": "parler",
+      "traducao": "falar",
+      "presente": {
+        "je": "parle",
+        "tu": "parles",
+        "il/elle": "parle",
+        "nous": "parlons",
+        "vous": "parlez",
+        "ils/elles": "parlent"
+      }
+    }
+  ],
+  "lexico": [
+    { "palavra": "addition", "genero": "f", "traducao": "conta (restaurante)" },
+    { "palavra": "café", "genero": "m", "traducao": "café" },
+    { "palavra": "eau", "genero": "f", "traducao": "água" },
+    { "palavra": "chambre", "genero": "f", "traducao": "quarto" },
+    { "palavra": "train", "genero": "m", "traducao": "trem" },
+    { "palavra": "carte", "genero": "f", "traducao": "cardápio / cartão / mapa" },
+    { "palavra": "menu", "genero": "m", "traducao": "menu (prato fixo)" },
+    { "palavra": "table", "genero": "f", "traducao": "mesa" },
+    { "palavra": "billet", "genero": "m", "traducao": "bilhete / passagem" },
+    { "palavra": "gare", "genero": "f", "traducao": "estação de trem" },
+    { "palavra": "pharmacie", "genero": "f", "traducao": "farmácia" },
+    { "palavra": "médecin", "genero": "m", "traducao": "médico" },
+    { "palavra": "taille", "genero": "f", "traducao": "tamanho" },
+    { "palavra": "serviette", "genero": "f", "traducao": "toalha / guardanapo" },
+    { "palavra": "croissant", "genero": "m", "traducao": "croissant" },
+    { "palavra": "sortie", "genero": "f", "traducao": "saída" }
+  ]
+}

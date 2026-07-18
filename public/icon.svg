@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b7cfa"/>
+      <stop offset="1" stop-color="#9d7bfa"/>
+    </linearGradient>
+    <radialGradient id="ceu" cx="0.3" cy="0" r="1.2">
+      <stop offset="0" stop-color="#1c2244"/>
+      <stop offset="1" stop-color="#0d1020"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="110" fill="url(#ceu)"/>
+  <!-- L com o gradiente-assinatura -->
+  <path d="M186 118 v240 h150" fill="none" stroke="url(#g)" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- estrela dourada (o "hoje") -->
+  <circle cx="352" cy="150" r="26" fill="#e8b45a"/>
+  <!-- filete tricolor discreto -->
+  <rect x="176" y="418" width="53" height="14" rx="7" fill="#5b7cfa"/>
+  <rect x="233" y="418" width="53" height="14" rx="7" fill="#eef1fb" opacity="0.85"/>
+  <rect x="290" y="418" width="53" height="14" rx="7" fill="#f0637a"/>
+</svg>

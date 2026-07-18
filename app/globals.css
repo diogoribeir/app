@@ -1,0 +1,247 @@
+@import "tailwindcss";
+
+/* ── Identidade Lingo v3: "Paris ao anoitecer" ──────────────────────
+   Escuro profundo, cartões de vidro, um gradiente-assinatura
+   (azul → violeta) e dourado para o progresso. Premium e próprio.  */
+
+:root {
+  color-scheme: dark;
+
+  --fundo: #0d1020;
+  --cartao: #161b31;
+  --cartao-2: #1b2140;
+  --borda: #272e52;
+  --borda-forte: #39406e;
+  --texto: #eef1fb;
+  --suave: #9aa1c4;
+
+  /* gradiente-assinatura */
+  --grad-a: #5b7cfa;
+  --grad-b: #9d7bfa;
+
+  /* dourado do progresso */
+  --ouro: #e8b45a;
+  --ouro-claro: rgba(232, 180, 90, 0.14);
+
+  /* paleta funcional (tons vivos que acendem no escuro) */
+  --azul: #5b7cfa;
+  --azul-escuro: #a8bafc;   /* usado como TEXTO sobre fundo escuro */
+  --azul-claro: rgba(91, 124, 250, 0.14);
+  --verde: #34c98e;
+  --verde-escuro: #7fe3bd;
+  --verde-claro: rgba(52, 201, 142, 0.14);
+  --vermelho: #f0637a;
+  --vermelho-escuro: #ffa3b2;
+  --vermelho-claro: rgba(240, 99, 122, 0.14);
+  --laranja: #f59e58;
+  --laranja-escuro: #ffc79b;
+  --laranja-claro: rgba(245, 158, 88, 0.14);
+  --roxo: #a884f5;
+  --roxo-escuro: #cdb6fb;
+  --roxo-claro: rgba(168, 132, 245, 0.16);
+  --ciano: #4cc4d9;
+  --ciano-escuro: #96e0ee;
+  --ciano-claro: rgba(76, 196, 217, 0.14);
+  --amarelo: #e8b45a;
+  --amarelo-escuro: #f3cf8f;
+  --amarelo-claro: rgba(232, 180, 90, 0.14);
+}
+
+html,
+body {
+  background: var(--fundo);
+  color: var(--texto);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  /* céu de Paris: brilho suave no alto */
+  background-image: radial-gradient(
+      900px 480px at 20% -10%,
+      rgba(91, 124, 250, 0.16),
+      transparent 65%
+    ),
+    radial-gradient(
+      700px 420px at 95% -5%,
+      rgba(157, 123, 250, 0.12),
+      transparent 60%
+    );
+  background-attachment: fixed;
+}
+
+/* texto com o gradiente-assinatura */
+.grad-texto {
+  background: linear-gradient(92deg, var(--grad-a), var(--grad-b));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── Botões ─────────────────────────────────────────────────────────*/
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  border-radius: 14px;
+  padding: 13px 22px;
+  color: #fff;
+  background: linear-gradient(92deg, var(--grad-a), var(--grad-b));
+  box-shadow: 0 8px 24px rgba(91, 124, 250, 0.3);
+  border: none;
+  transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  user-select: none;
+  cursor: pointer;
+}
+.botao:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.botao:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+  box-shadow: 0 4px 12px rgba(91, 124, 250, 0.25);
+}
+.botao:disabled {
+  background: var(--cartao-2);
+  box-shadow: none;
+  color: var(--suave);
+  cursor: not-allowed;
+}
+.botao.verde {
+  background: linear-gradient(92deg, #2fb583, #47d6a2);
+  box-shadow: 0 8px 24px rgba(52, 201, 142, 0.28);
+}
+.botao.vermelho {
+  background: linear-gradient(92deg, #e05570, #f0637a);
+  box-shadow: 0 8px 24px rgba(240, 99, 122, 0.25);
+}
+.botao.azul {
+  background: linear-gradient(92deg, var(--grad-a), var(--grad-b));
+}
+.botao.claro {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+  border: 1px solid var(--borda-forte);
+  color: var(--texto);
+}
+.botao.claro:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  filter: none;
+}
+
+/* ── Cartões de vidro ───────────────────────────────────────────────*/
+.cartao {
+  background: linear-gradient(180deg, var(--cartao-2), var(--cartao));
+  border: 1px solid var(--borda);
+  border-radius: 18px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--borda-forte);
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-weight: 600;
+  font-size: 0.98rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s ease, border-color 0.12s, opacity 0.15s;
+}
+.chip:hover {
+  background: var(--azul-claro);
+}
+.chip.ativo {
+  border-color: var(--grad-a);
+  background: var(--azul-claro);
+}
+.chip.usado {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.opcao {
+  width: 100%;
+  text-align: left;
+  background: linear-gradient(180deg, var(--cartao-2), var(--cartao));
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 15px 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease,
+    box-shadow 0.15s ease;
+}
+.opcao:hover {
+  border-color: var(--borda-forte);
+}
+.opcao.selecionada {
+  border-color: var(--grad-a);
+  box-shadow: 0 0 0 1px var(--grad-a), 0 6px 20px rgba(91, 124, 250, 0.22);
+  background: var(--azul-claro);
+}
+.opcao.certa {
+  border-color: var(--verde);
+  box-shadow: 0 0 0 1px var(--verde);
+  background: var(--verde-claro);
+  color: var(--verde-escuro);
+}
+.opcao.errada {
+  border-color: var(--vermelho);
+  box-shadow: 0 0 0 1px var(--vermelho);
+  background: var(--vermelho-claro);
+  color: var(--vermelho-escuro);
+}
+
+/* nav flutuante (vidro) */
+.nav-vidro {
+  background: rgba(17, 21, 41, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--borda);
+}
+
+/* cartão que está FALANDO (phrasebook) */
+.falando {
+  border-color: var(--grad-a) !important;
+  box-shadow: 0 0 0 1px var(--grad-a), 0 0 24px rgba(91, 124, 250, 0.35);
+}
+
+/* ── Animações ──────────────────────────────────────────────────────*/
+@keyframes surgir {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.surgir { animation: surgir 0.25s ease-out; }
+
+@keyframes tremer {
+  0%, 100% { transform: translateX(0); }
+  25%, 75% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+}
+.tremer { animation: tremer 0.32s ease; }
+
+@keyframes celebrar {
+  from { opacity: 0; transform: scale(0.9) translateY(12px); }
+  60% { transform: scale(1.02) translateY(-2px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.celebrar { animation: celebrar 0.5s cubic-bezier(0.2, 1.2, 0.4, 1); }
+
+@keyframes pulsar {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.pulsar { animation: pulsar 1.2s ease-in-out infinite; }
+
+/* barra de rolagem discreta */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--borda-forte) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--borda-forte); border-radius: 8px; }

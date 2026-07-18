@@ -1,0 +1,449 @@
+{
+  "_fonte": "Curadoria gramatical: regras padrão do francês (nível A1/A2), explicadas com PONTES do português brasileiro. Todo conteúdo é gramática francesa consolidada de manuais (Bescherelle, CEFR A1) — nada gerado por IA em tempo de execução.",
+  "topicos": [
+    {
+      "id": "cognatos",
+      "emoji": "🔗",
+      "cor": "azul",
+      "titulo": "Você já sabe milhares de palavras",
+      "subtitulo": "Cognatos: as pontes do português para o francês",
+      "status": "verificado",
+      "fonte": "curadoria gramatical",
+      "secoes": [
+        {
+          "titulo": "Português e francês são irmãos",
+          "corpo": "Os dois vêm do latim. Isso significa que MILHARES de palavras francesas você já conhece — só muda um pedacinho no final e a pronúncia. Aprender esses padrões multiplica seu vocabulário de graça."
+        },
+        {
+          "titulo": "Os padrões que mais rendem",
+          "corpo": "• -ção → -tion: informação → information, estação → station, reserva(ção) → réservation\n• -dade → -té: universidade → université, cidade… cuidado, essa é ville! (nem todo padrão é 100%)\n• -mente → -ment: exatamente → exactement, rapidamente → rapidement\n• -ável / -ível → -able / -ible: possível → possible, confortável → confortable\n• -ário → -aire: necessário → nécessaire, dicionário → dictionnaire"
+        },
+        {
+          "titulo": "Um aviso honesto",
+          "corpo": "Esses padrões funcionam na MAIORIA das vezes, não sempre. Use-os para ENTENDER o que você lê e ouve. Para FALAR, prefira as frases verificadas das lições — assim você nunca inventa uma palavra que não existe."
+        }
+      ],
+      "exemplos": [
+        { "fr": "la station", "pt": "a estação", "pronuncia": "sta-si-Õ" },
+        { "fr": "l'information", "pt": "a informação", "pronuncia": "ãn-for-ma-si-Õ" },
+        { "fr": "la réservation", "pt": "a reserva", "pronuncia": "ré-zer-va-si-Õ" },
+        { "fr": "possible", "pt": "possível", "pronuncia": "po-SI-blё" },
+        { "fr": "exactement", "pt": "exatamente", "pronuncia": "eg-zak-tё-MÃ" }
+      ],
+      "quiz": [
+        {
+          "pergunta": "Seguindo o padrão -ção → -tion, como fica \"nação\" em francês?",
+          "opcoes": ["nation", "naçon", "nazione"],
+          "correta": 0,
+          "explicacao": "-ção vira -tion: nação → nation. A escrita é quase igual à do português."
+        },
+        {
+          "pergunta": "\"Université\" significa…",
+          "opcoes": ["universo", "universidade", "univérsia"],
+          "correta": 1,
+          "explicacao": "-dade → -té: universidade → université."
+        },
+        {
+          "pergunta": "Para que servem os cognatos, principalmente?",
+          "opcoes": [
+            "Para inventar palavras novas ao falar",
+            "Para ENTENDER o que você lê e ouve",
+            "Para substituir as lições"
+          ],
+          "correta": 1,
+          "explicacao": "Os padrões ajudam muito a compreender. Para falar, use as frases verificadas — os padrões têm exceções."
+        }
+      ]
+    },
+    {
+      "id": "genero-artigos",
+      "emoji": "⚖️",
+      "cor": "roxo",
+      "titulo": "Le, la, un, une",
+      "subtitulo": "Gênero e artigos: igual ao português (quase sempre)",
+      "status": "verificado",
+      "fonte": "curadoria gramatical",
+      "secoes": [
+        {
+          "titulo": "Você já domina a ideia",
+          "corpo": "Falante de inglês sofre para aprender gênero. Você não: o português JÁ tem 'o/a' e 'um/uma'. O francês funciona do mesmo jeito:\n• le = o (masculino) · la = a (feminino)\n• un = um · une = uma\n• les = os/as (o plural não separa gênero)"
+        },
+        {
+          "titulo": "O apóstrofo: l'",
+          "corpo": "Antes de vogal (ou h mudo), le e la viram l': l'addition (a conta), l'eau (a água), l'hôtel (o hotel). É só para facilitar a pronúncia — como a gente emenda 'copo d'água'."
+        },
+        {
+          "titulo": "Cuidado: o gênero nem sempre bate com o português",
+          "corpo": "Muitas vezes coincide (la table = a mesa, le café = o café), mas não sempre: 'le voyage' (a viagem) é masculino em francês; 'la voiture' (o carro) é feminino. Quando aprender uma palavra nova, grave-a JUNTO com o artigo: 'une chambre', 'un billet'."
+        }
+      ],
+      "exemplos": [
+        { "fr": "la table", "pt": "a mesa", "pronuncia": "la TÁ-blё" },
+        { "fr": "le café", "pt": "o café", "pronuncia": "lё ca-FÉ" },
+        { "fr": "une chambre", "pt": "um quarto", "pronuncia": "ün CHÃ-brё" },
+        { "fr": "un billet", "pt": "uma passagem", "pronuncia": "ã bi-YÉ" },
+        { "fr": "l'eau", "pt": "a água", "pronuncia": "LÔ" }
+      ],
+      "quiz": [
+        {
+          "pergunta": "Qual artigo equivale a \"uma\" em francês?",
+          "opcoes": ["un", "une", "la"],
+          "correta": 1,
+          "explicacao": "une = uma (feminino); un = um (masculino); la = a."
+        },
+        {
+          "pergunta": "Por que se escreve \"l'addition\" e não \"la addition\"?",
+          "opcoes": [
+            "Porque 'addition' é masculino",
+            "Porque antes de vogal, le/la viram l'",
+            "Porque é plural"
+          ],
+          "correta": 1,
+          "explicacao": "Antes de vogal ou h mudo, le e la se contraem para l' — só para soar melhor."
+        },
+        {
+          "pergunta": "\"Le voyage\" mostra que…",
+          "opcoes": [
+            "o gênero em francês sempre bate com o português",
+            "o gênero nem sempre bate: 'a viagem' é masculina em francês",
+            "viagem não tem artigo em francês"
+          ],
+          "correta": 1,
+          "explicacao": "Na maioria das vezes o gênero coincide com o português, mas há exceções — grave a palavra junto com o artigo."
+        }
+      ]
+    },
+    {
+      "id": "etre-avoir",
+      "emoji": "🧱",
+      "cor": "verde",
+      "titulo": "Être e avoir",
+      "subtitulo": "Os dois verbos que constroem tudo",
+      "status": "verificado",
+      "fonte": "curadoria gramatical",
+      "conjugacoes": ["être", "avoir"],
+      "secoes": [
+        {
+          "titulo": "Être = ser E estar (dois em um!)",
+          "corpo": "O português separa 'ser' e 'estar'; o francês usa UM verbo só: être. 'Je suis brésilien' (sou brasileiro) e 'Je suis perdu' (estou perdido) usam o mesmo verbo. Menos coisa para decorar."
+        },
+        {
+          "titulo": "Avoir = ter",
+          "corpo": "'J'ai une réservation' = tenho uma reserva. E aqui o português te dá vantagem de novo: o francês diz 'TENHO fome' (j'ai faim) e 'TENHO sede' (j'ai soif) — exatamente como a gente fala no dia a dia, e diferente do inglês (I *am* hungry).\nÚnica pegadinha: idade usa avoir — 'J'ai trente ans' = literalmente 'tenho trinta anos'… que também é como o português fala!"
+        },
+        {
+          "titulo": "Por que decorar esses dois",
+          "corpo": "Être e avoir aparecem em quase toda frase e ainda servem de 'ajudantes' para formar o passado (como 'eu TENHO feito'). Dominar os dois no presente destrava metade das conversas de viagem. As tabelas completas estão logo abaixo — ouça e repita."
+        }
+      ],
+      "exemplos": [
+        { "fr": "Je suis perdu.", "pt": "Estou perdido.", "pronuncia": "jё süi per-DÜ" },
+        { "fr": "J'ai une réservation.", "pt": "Tenho uma reserva.", "pronuncia": "jê ün ré-zer-va-si-Õ" },
+        { "fr": "J'ai faim.", "pt": "Estou com fome. (lit.: tenho fome)", "pronuncia": "jê FÃN" },
+        { "fr": "J'ai soif.", "pt": "Estou com sede. (lit.: tenho sede)", "pronuncia": "jê SUÁF" }
+      ],
+      "quiz": [
+        {
+          "pergunta": "Como o francês separa 'ser' e 'estar'?",
+          "opcoes": [
+            "Não separa: être cobre os dois",
+            "Ser = être, estar = avoir",
+            "Depende da região da França"
+          ],
+          "correta": 0,
+          "explicacao": "Être significa ser E estar. 'Je suis brésilien' e 'Je suis perdu' usam o mesmo verbo."
+        },
+        {
+          "pergunta": "\"J'ai faim\" se parece mais com qual jeito de falar?",
+          "opcoes": [
+            "O inglês: 'I am hungry'",
+            "O português: 'tenho fome'",
+            "Nenhum dos dois"
+          ],
+          "correta": 1,
+          "explicacao": "O francês usa avoir (ter) para fome, sede e idade — igualzinho ao português falado."
+        },
+        {
+          "pergunta": "Complete com a camada de fatos: je ___ (être)",
+          "opcoes": ["suis", "es", "sont"],
+          "correta": 0,
+          "explicacao": "je suis, tu es, il est, nous sommes, vous êtes, ils sont."
+        }
+      ]
+    },
+    {
+      "id": "negacao",
+      "emoji": "🚫",
+      "cor": "vermelho",
+      "titulo": "Ne… pas",
+      "subtitulo": "A negação-sanduíche",
+      "status": "verificado",
+      "fonte": "curadoria gramatical",
+      "secoes": [
+        {
+          "titulo": "O português nega antes; o francês abraça",
+          "corpo": "Em português, o 'não' vem antes do verbo: 'eu NÃO entendo'. O francês faz um sanduíche: ne + verbo + pas.\nJe NE comprends PAS. = Eu não entendo.\nLe wifi NE marche PAS. = O wi-fi não funciona.\nPense assim: ne…pas são as duas fatias de pão, e o verbo é o recheio."
+        },
+        {
+          "titulo": "Antes de vogal: n'",
+          "corpo": "Como o artigo, o 'ne' se contrai antes de vogal: Je n'ai pas de réservation (não tenho reserva)."
+        },
+        {
+          "titulo": "Na rua, o 'ne' some",
+          "corpo": "No francês FALADO do dia a dia, os franceses costumam soltar só o 'pas': 'Je comprends pas'. Você vai ouvir muito isso. Para FALAR, aprenda com o 'ne' (é o correto e ninguém estranha); para ENTENDER, saiba que ele some."
+        }
+      ],
+      "exemplos": [
+        { "fr": "Je ne comprends pas.", "pt": "Eu não entendo.", "pronuncia": "jё nё cõ-PRÃ PA" },
+        { "fr": "Le wifi ne marche pas.", "pt": "O wi-fi não funciona.", "pronuncia": "lё ui-FI nё MARCH PA" },
+        { "fr": "Je ne sais pas.", "pt": "Eu não sei.", "pronuncia": "jё nё sé PA" }
+      ],
+      "quiz": [
+        {
+          "pergunta": "Como se nega um verbo em francês?",
+          "opcoes": [
+            "pas antes do verbo",
+            "ne antes + pas depois (sanduíche)",
+            "non antes do verbo"
+          ],
+          "correta": 1,
+          "explicacao": "ne + verbo + pas: Je ne comprends pas."
+        },
+        {
+          "pergunta": "Qual frase está correta?",
+          "opcoes": [
+            "Je ne comprends pas.",
+            "Je pas comprends.",
+            "Ne je comprends."
+          ],
+          "correta": 0,
+          "explicacao": "O verbo fica no meio do sanduíche: ne + comprends + pas."
+        },
+        {
+          "pergunta": "No francês falado informal, o que costuma acontecer?",
+          "opcoes": [
+            "O 'pas' desaparece",
+            "O 'ne' desaparece ('Je comprends pas')",
+            "Nada muda"
+          ],
+          "correta": 1,
+          "explicacao": "Na fala do dia a dia o 'ne' cai: 'Je sais pas'. Bom saber para ENTENDER os franceses."
+        }
+      ]
+    },
+    {
+      "id": "perguntas",
+      "emoji": "❓",
+      "cor": "laranja",
+      "titulo": "Três jeitos de perguntar",
+      "subtitulo": "Do mais fácil (igual ao português) ao mais formal",
+      "status": "verificado",
+      "fonte": "curadoria gramatical",
+      "secoes": [
+        {
+          "titulo": "Jeito 1 — entonação (igualzinho ao português)",
+          "corpo": "Pegue a frase normal e suba o tom no final: 'C'est loin ?' (é longe?). É o jeito mais comum na fala — e o português funciona exatamente assim: 'é longe?'. Você já sabe fazer isso."
+        },
+        {
+          "titulo": "Jeito 2 — Est-ce que… (o coringa)",
+          "corpo": "Cole 'Est-ce que' (pronuncia: és-kё) na frente de qualquer frase e vira pergunta: 'Est-ce que c'est loin ?'. Literalmente é 'é que…?' — parecido com o nosso 'será que…?'."
+        },
+        {
+          "titulo": "Jeito 3 — inversão (educado, ótimo para viagem)",
+          "corpo": "Inverte verbo e pronome, com hífen: 'Parlez-vous anglais ?' (fala inglês?), 'Avez-vous une chambre ?' (tem um quarto?), 'Pouvez-vous m'aider ?' (pode me ajudar?). É o tom educado ideal para falar com atendentes — por isso as frases das lições usam esse formato."
+        }
+      ],
+      "exemplos": [
+        { "fr": "C'est loin d'ici ?", "pt": "É longe daqui?", "pronuncia": "sé luã di-SI" },
+        { "fr": "Est-ce que c'est loin ?", "pt": "(Será que) é longe?", "pronuncia": "és-kё sé LUÃ" },
+        { "fr": "Parlez-vous anglais ?", "pt": "Você fala inglês?", "pronuncia": "par-lê-VU ã-GLÉ" },
+        { "fr": "Avez-vous une chambre ?", "pt": "Vocês têm um quarto?", "pronuncia": "a-vê-VU ün CHÃ-brё" }
+      ],
+      "quiz": [
+        {
+          "pergunta": "Qual jeito de perguntar é IGUAL ao português falado?",
+          "opcoes": [
+            "Entonação: subir o tom no fim ('C'est loin ?')",
+            "Inversão com hífen",
+            "Nenhum"
+          ],
+          "correta": 0,
+          "explicacao": "'C'est loin ?' funciona como 'é longe?' — só a entonação muda a frase em pergunta."
+        },
+        {
+          "pergunta": "O que 'Est-ce que' faz?",
+          "opcoes": [
+            "Nega a frase",
+            "Transforma qualquer frase em pergunta",
+            "Deixa a frase no passado"
+          ],
+          "correta": 1,
+          "explicacao": "É um coringa: Est-ce que + frase = pergunta. Parecido com 'será que…?'."
+        },
+        {
+          "pergunta": "\"Pouvez-vous m'aider ?\" usa qual formato?",
+          "opcoes": [
+            "Entonação",
+            "Est-ce que",
+            "Inversão (verbo-pronome) — o tom educado"
+          ],
+          "correta": 2,
+          "explicacao": "A inversão (Pouvez-vous, Avez-vous, Parlez-vous) é o registro educado, perfeito com atendentes."
+        }
+      ]
+    },
+    {
+      "id": "tu-vous",
+      "emoji": "🎩",
+      "cor": "azul",
+      "titulo": "Tu ou vous?",
+      "subtitulo": "O 'você' de respeito — a regra social nº 1 da França",
+      "status": "verificado",
+      "fonte": "curadoria gramatical",
+      "secoes": [
+        {
+          "titulo": "A ponte com o português",
+          "corpo": "• tu = você (íntimo: amigos, família, crianças)\n• vous = o senhor / a senhora (respeito) E TAMBÉM 'vocês' (plural)\nSe você já usou 'o senhor/a senhora' com um cliente ou uma pessoa mais velha, já entendeu o espírito do vous."
+        },
+        {
+          "titulo": "Em viagem: use vous com todo mundo",
+          "corpo": "Garçom, recepcionista, motorista, desconhecido na rua: sempre vous. Usar 'tu' com um estranho na França soa invasivo — é a gafe clássica do turista. Por isso TODAS as frases das lições já vêm no vous: parlez-vous, avez-vous, pouvez-vous, s'il VOUS plaît."
+        },
+        {
+          "titulo": "A marca do vous: o final -ez",
+          "corpo": "Com vous, o verbo quase sempre termina em -ez (pronuncia 'ê'): vous parlez, vous avez, vous pouvez. Ouviu um verbo terminando em 'ê' depois de vous? É essa regra funcionando."
+        }
+      ],
+      "exemplos": [
+        { "fr": "Parlez-vous anglais ?", "pt": "O senhor fala inglês?", "pronuncia": "par-lê-VU ã-GLÉ" },
+        { "fr": "S'il vous plaît.", "pt": "Por favor. (lit.: se agrada ao senhor)", "pronuncia": "sil vu PLÉ" },
+        { "fr": "Pouvez-vous m'aider ?", "pt": "Pode me ajudar?", "pronuncia": "pu-vê-VU mê-DÊ" }
+      ],
+      "quiz": [
+        {
+          "pergunta": "Com um garçom em Paris, você usa…",
+          "opcoes": ["tu", "vous", "tanto faz"],
+          "correta": 1,
+          "explicacao": "Com desconhecidos e atendentes, sempre vous — como 'o senhor/a senhora'."
+        },
+        {
+          "pergunta": "'Vous' também significa…",
+          "opcoes": ["eles", "vocês (plural)", "a gente"],
+          "correta": 1,
+          "explicacao": "Vous é o 'você' de respeito E o plural 'vocês' — o contexto diferencia."
+        },
+        {
+          "pergunta": "Qual é a marca típica do verbo com vous?",
+          "opcoes": ["final -ez (som de 'ê')", "final -ons", "final -ent"],
+          "correta": 0,
+          "explicacao": "vous parlez, vous avez, vous pouvez — o -ez soa 'ê'."
+        }
+      ]
+    },
+    {
+      "id": "falsos-amigos",
+      "emoji": "🎭",
+      "cor": "vermelho",
+      "titulo": "Falsos amigos",
+      "subtitulo": "Palavras que PARECEM português — mas não são",
+      "status": "verificado",
+      "fonte": "curadoria gramatical",
+      "secoes": [
+        {
+          "titulo": "O outro lado dos cognatos",
+          "corpo": "Se milhares de palavras são iguais, algumas são armadilhas: parecem português e significam OUTRA coisa. Conhecer as principais evita mal-entendidos clássicos."
+        },
+        {
+          "titulo": "As armadilhas clássicas",
+          "corpo": "• attendre = ESPERAR (não 'atender' — atender ao telefone é répondre)\n• entendre = OUVIR (não 'entender'! entender é comprendre — por isso 'Je ne comprends pas')\n• pourtant = NO ENTANTO (não 'portanto' — portanto é donc)\n• salir = SUJAR (não 'sair' — sair é sortir; você verá SORTIE nas placas de saída)\n• subir = SOFRER (não 'subir' — subir é monter)"
+        },
+        {
+          "titulo": "E as pegadinhas de cardápio",
+          "corpo": "• le menu = o prato fixo do dia; o cardápio é la carte\n• un gâteau = um bolo (não 'gato' — gato é un chat)\nRegra prática: se uma palavra 'portuguesa' deixar a frase estranha, desconfie — pode ser falso amigo."
+        }
+      ],
+      "exemplos": [
+        { "fr": "J'attends le train.", "pt": "Estou ESPERANDO o trem. (attendre ≠ atender)", "pronuncia": "ja-TÃ lё TRÃN" },
+        { "fr": "Je ne comprends pas.", "pt": "Não ENTENDO. (entender = comprendre, não entendre)", "pronuncia": "jё nё cõ-PRÃ PA" },
+        { "fr": "Où est la sortie ?", "pt": "Onde fica a SAÍDA? (sortie, de sortir = sair)", "pronuncia": "u é la sor-TI" }
+      ],
+      "quiz": [
+        {
+          "pergunta": "\"Attendre\" significa…",
+          "opcoes": ["atender", "esperar", "entender"],
+          "correta": 1,
+          "explicacao": "attendre = esperar. Atender (ao telefone) é répondre."
+        },
+        {
+          "pergunta": "Para dizer 'não entendo', o verbo certo é…",
+          "opcoes": ["entendre", "comprendre", "attendre"],
+          "correta": 1,
+          "explicacao": "entendre = ouvir; comprendre = entender. Por isso: Je ne comprends pas."
+        },
+        {
+          "pergunta": "Você vê \"SORTIE\" numa placa do metrô. Isso é…",
+          "opcoes": ["a sorte", "a saída", "a sujeira"],
+          "correta": 1,
+          "explicacao": "sortie = saída (de sortir, sair). 'Salir' é que significa sujar!"
+        }
+      ]
+    },
+    {
+      "id": "sons-do-frances",
+      "emoji": "🎵",
+      "cor": "roxo",
+      "titulo": "Os sons do francês",
+      "subtitulo": "Seu ouvido brasileiro sai na frente",
+      "status": "verificado",
+      "fonte": "curadoria gramatical",
+      "secoes": [
+        {
+          "titulo": "Você já tem os sons nasais!",
+          "corpo": "A parte mais difícil do francês para o resto do mundo são as vogais nasais — e o português TEM todas: \n• an / en soa como o Ã de 'maçã': France = 'frÃs'\n• on soa como o ÕN de 'bom': bonjour = 'bÕjur'\n• in / ain soa próximo do IM de 'sim': vin = 'vãn'\nUm americano leva meses nisso. Você já nasceu treinado."
+        },
+        {
+          "titulo": "As letras finais somem",
+          "corpo": "Consoante no fim de palavra geralmente NÃO se pronuncia: Paris = 'pari', beaucoup = 'bocú', comprends = 'cõprã'. Se parecer que o francês 'come' o fim das palavras… é isso mesmo."
+        },
+        {
+          "titulo": "Dois sons para treinar (e a liaison)",
+          "corpo": "• u francês = 'ü': faça bico de U e tente falar I ('tu' = tü). É o único som realmente novo.\n• r francês = raspado na garganta, como o R carioca de 'carro'.\n• Liaison: a consoante final muda e 'gruda' na vogal seguinte: vous avez = 'vu-za-vê'. É por isso que o francês soa emendado — use o botão 🐢 devagar para separar os pedaços."
+        }
+      ],
+      "exemplos": [
+        { "fr": "Bonjour !", "pt": "O 'on' nasal de 'bom'", "pronuncia": "bõ-JUR" },
+        { "fr": "Merci beaucoup !", "pt": "O 'p' final não soa", "pronuncia": "mer-SI bo-KU" },
+        { "fr": "Vous avez", "pt": "Liaison: o s vira z e gruda", "pronuncia": "vu-za-VÊ" },
+        { "fr": "Je ne comprends pas.", "pt": "Nasais + finais mudos juntos", "pronuncia": "jё nё cõ-PRÃ PA" }
+      ],
+      "quiz": [
+        {
+          "pergunta": "Qual vantagem o brasileiro tem na pronúncia do francês?",
+          "opcoes": [
+            "Nenhuma, é tudo novo",
+            "O português já tem as vogais nasais (ã, õ…)",
+            "O francês não tem sons nasais"
+          ],
+          "correta": 1,
+          "explicacao": "As nasais de 'maçã', 'bom' e 'sim' são o grosso das vogais nasais francesas."
+        },
+        {
+          "pergunta": "Como se pronuncia o fim de \"beaucoup\"?",
+          "opcoes": ["bocúp — com p forte", "bocú — o p final não soa", "bocupê"],
+          "correta": 1,
+          "explicacao": "Consoantes finais geralmente são mudas: beaucoup = 'bocú', Paris = 'pari'."
+        },
+        {
+          "pergunta": "O que é a liaison em \"vous avez\" (vu-za-vê)?",
+          "opcoes": [
+            "Um erro comum dos franceses",
+            "A consoante final gruda na vogal da palavra seguinte",
+            "Uma regra só da escrita"
+          ],
+          "correta": 1,
+          "explicacao": "O s de 'vous' vira som de z e emenda com 'avez' — por isso o francês soa 'colado'."
+        }
+      ]
+    }
+  ]
+}

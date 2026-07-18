@@ -1,0 +1,521 @@
+{
+  "_fonte": "Curadoria prática de frases de VIAGEM (pedidos e perguntas que você diz a atendentes/desconhecidos). Francês padrão. Pronúncia simplificada p/ PT-BR. Tatoeba (corpus humano) fica para ampliação futura com filtros melhores.",
+  "itens": [
+    {
+      "id": "r-cognatos",
+      "tipo": "regra",
+      "alvo": "padrão de cognatos -ção → -tion",
+      "traducao": "Boa notícia: você já sabe MUITA palavra. Várias palavras em -ção do português viram -tion em francês: informação → information, estação → station. A escrita é quase igual; só a pronúncia muda.",
+      "contexto": "geral",
+      "fonte": "regra didática",
+      "status": "verificado"
+    },
+
+    {
+      "id": "g1",
+      "tipo": "frase",
+      "alvo": "Bonjour !",
+      "traducao": "Bom dia! / Olá!",
+      "desmontado": "Bonjour = bon (bom) + jour (dia). Cumprimente assim ao chegar em qualquer lugar — é educação básica na França.",
+      "pronuncia": "bõ-JUR",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "g2",
+      "tipo": "frase",
+      "alvo": "S'il vous plaît.",
+      "traducao": "Por favor.",
+      "desmontado": "Fórmula fixa de 'por favor'. Cole no fim de qualquer pedido: 'Un café, s'il vous plaît.'",
+      "pronuncia": "sil vu PLÉ",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "g3",
+      "tipo": "frase",
+      "alvo": "Merci beaucoup !",
+      "traducao": "Muito obrigado(a)!",
+      "desmontado": "Merci (obrigado) + beaucoup (muito). Só 'Merci' também basta.",
+      "pronuncia": "mer-SI bo-KU",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "g4",
+      "tipo": "frase",
+      "alvo": "Excusez-moi.",
+      "traducao": "Com licença. / Desculpe.",
+      "desmontado": "Excusez (desculpe) + moi (me). Use para chamar um atendente ou pedir passagem.",
+      "pronuncia": "eks-kü-zê-MUÁ",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "g5",
+      "tipo": "frase",
+      "alvo": "Parlez-vous anglais ?",
+      "traducao": "Você fala inglês?",
+      "desmontado": "Parlez-vous (você fala) + anglais (inglês). Salva-vidas quando travar.",
+      "pronuncia": "par-lê-VU ã-GLÉ",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "g6",
+      "tipo": "frase",
+      "alvo": "Je ne comprends pas.",
+      "traducao": "Não entendo.",
+      "desmontado": "Je (eu) + ne … pas (não) + comprends (entendo). Avisa que não pegou — quase sempre repetem mais devagar.",
+      "pronuncia": "jё nё cõ-PRÃ PA",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "r1",
+      "tipo": "frase",
+      "alvo": "Une table pour deux, s'il vous plaît.",
+      "traducao": "Uma mesa para dois, por favor.",
+      "desmontado": "Une (uma) + table (mesa) + pour deux (para dois). Troque 'deux' pelo número do seu grupo.",
+      "pronuncia": "ün TÁ-blё pur DÊ, sil vu PLÉ",
+      "contexto": "restaurante",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "r2",
+      "tipo": "frase",
+      "alvo": "La carte, s'il vous plaît.",
+      "traducao": "O cardápio, por favor.",
+      "desmontado": "La carte (o cardápio). Cuidado: 'le menu' costuma ser o prato fixo do dia, não o cardápio.",
+      "pronuncia": "la KART, sil vu PLÉ",
+      "contexto": "restaurante",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "r3",
+      "tipo": "frase",
+      "alvo": "Je voudrais un café, s'il vous plaît.",
+      "traducao": "Eu gostaria de um café, por favor.",
+      "desmontado": "Je voudrais (eu gostaria — pedido educado) + un café. Guarde 'Je voudrais…': pede QUALQUER coisa com educação.",
+      "pronuncia": "jё vu-DRÊ ã ca-FÉ, sil vu PLÉ",
+      "contexto": "restaurante",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "r4",
+      "tipo": "frase",
+      "alvo": "Où sont les toilettes ?",
+      "traducao": "Onde fica o banheiro?",
+      "desmontado": "Où sont (onde ficam) + les toilettes (os banheiros — sempre no plural em francês).",
+      "pronuncia": "u sõ lê tua-LÉT",
+      "contexto": "restaurante",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "r5",
+      "tipo": "frase",
+      "alvo": "L'addition, s'il vous plaît.",
+      "traducao": "A conta, por favor.",
+      "desmontado": "L'addition (a conta). É assim que se pede a conta no restaurante.",
+      "pronuncia": "la-di-si-ÕN, sil vu PLÉ",
+      "contexto": "restaurante",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "h1",
+      "tipo": "frase",
+      "alvo": "J'ai une réservation.",
+      "traducao": "Tenho uma reserva.",
+      "desmontado": "J'ai (eu tenho) + une réservation. Primeira frase no check-in.",
+      "pronuncia": "jê ün ré-zer-va-si-Õ",
+      "contexto": "hotel",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "h2",
+      "tipo": "frase",
+      "alvo": "Avez-vous une chambre pour ce soir ?",
+      "traducao": "Vocês têm um quarto para esta noite?",
+      "desmontado": "Avez-vous (vocês têm) + une chambre (um quarto) + pour ce soir (para esta noite).",
+      "pronuncia": "a-vê-VU ün CHÃ-brё pur sё SUÁR",
+      "contexto": "hotel",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "h3",
+      "tipo": "frase",
+      "alvo": "À quelle heure est le petit-déjeuner ?",
+      "traducao": "A que horas é o café da manhã?",
+      "desmontado": "À quelle heure (a que horas) + le petit-déjeuner (o café da manhã).",
+      "pronuncia": "a kel ÊR é lё pё-ti-dê-jё-NÊ",
+      "contexto": "hotel",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "h4",
+      "tipo": "frase",
+      "alvo": "Pouvez-vous appeler un taxi ?",
+      "traducao": "Pode chamar um táxi?",
+      "desmontado": "Pouvez-vous (você pode) + appeler (chamar) + un taxi. Serve na recepção.",
+      "pronuncia": "pu-vê-VU a-plê ã tak-SI",
+      "contexto": "hotel",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "u1",
+      "tipo": "frase",
+      "alvo": "Où est la gare, s'il vous plaît ?",
+      "traducao": "Onde fica a estação, por favor?",
+      "desmontado": "Où est (onde fica) + la gare (a estação de trem). Troque 'la gare' por outro lugar.",
+      "pronuncia": "u É la GAR, sil vu PLÉ",
+      "contexto": "rua",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "u2",
+      "tipo": "frase",
+      "alvo": "Où est la station de métro ?",
+      "traducao": "Onde fica a estação de metrô?",
+      "desmontado": "Où est (onde fica) + la station de métro (a estação de metrô).",
+      "pronuncia": "u é la sta-si-Õ dё mê-TRÔ",
+      "contexto": "rua",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "u3",
+      "tipo": "frase",
+      "alvo": "C'est loin d'ici ?",
+      "traducao": "É longe daqui?",
+      "desmontado": "C'est (é) + loin (longe) + d'ici (daqui). Pergunta curta e muito útil.",
+      "pronuncia": "sé luã di-SI",
+      "contexto": "rua",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "u4",
+      "tipo": "frase",
+      "alvo": "Je suis perdu.",
+      "traducao": "Estou perdido.",
+      "desmontado": "Je suis (estou) + perdu (perdido). Mulher fala 'perdue' (mesmo som).",
+      "pronuncia": "jё süi per-DÜ",
+      "contexto": "rua",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "u5",
+      "tipo": "frase",
+      "alvo": "Un billet pour Paris, s'il vous plaît.",
+      "traducao": "Uma passagem para Paris, por favor.",
+      "desmontado": "Un billet (um bilhete/passagem) + pour (para) + destino. Troque 'Paris' pelo seu destino.",
+      "pronuncia": "ã bi-YÉ pur pa-RI, sil vu PLÉ",
+      "contexto": "rua",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "c1",
+      "tipo": "frase",
+      "alvo": "Combien ça coûte ?",
+      "traducao": "Quanto custa?",
+      "desmontado": "Combien (quanto) + ça coûte (isso custa). Essencial em compras.",
+      "pronuncia": "com-bi-ÃN sa CUT",
+      "contexto": "compras",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "c2",
+      "tipo": "frase",
+      "alvo": "C'est trop cher.",
+      "traducao": "É caro demais.",
+      "desmontado": "C'est (é) + trop (demais) + cher (caro). Bom para negociar em feira.",
+      "pronuncia": "sé tro CHÉR",
+      "contexto": "compras",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "c3",
+      "tipo": "frase",
+      "alvo": "Je peux payer par carte ?",
+      "traducao": "Posso pagar com cartão?",
+      "desmontado": "Je peux (eu posso) + payer (pagar) + par carte (com cartão).",
+      "pronuncia": "jё pё pê-YÊ par KART",
+      "contexto": "compras",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "c4",
+      "tipo": "frase",
+      "alvo": "Je regarde, merci.",
+      "traducao": "Só estou olhando, obrigado.",
+      "desmontado": "Je regarde (estou olhando). Resposta educada para 'posso ajudar?' na loja.",
+      "pronuncia": "jё rё-GARD, mer-SI",
+      "contexto": "compras",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "e1",
+      "tipo": "frase",
+      "alvo": "Pouvez-vous m'aider, s'il vous plaît ?",
+      "traducao": "Você pode me ajudar, por favor?",
+      "desmontado": "Pouvez-vous (você pode) + m'aider (me ajudar). Frase-chave para qualquer aperto.",
+      "pronuncia": "pu-vê-VU mê-DÊ, sil vu PLÉ",
+      "contexto": "emergencia",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "e2",
+      "tipo": "frase",
+      "alvo": "Au secours !",
+      "traducao": "Socorro!",
+      "desmontado": "Fórmula fixa de socorro, para emergência de verdade.",
+      "pronuncia": "o sё-KUR",
+      "contexto": "emergencia",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "e3",
+      "tipo": "frase",
+      "alvo": "Appelez un médecin, s'il vous plaît.",
+      "traducao": "Chame um médico, por favor.",
+      "desmontado": "Appelez (chame) + un médecin (um médico). Troque por 'la police' (a polícia).",
+      "pronuncia": "a-plê ã mêd-SÃ, sil vu PLÉ",
+      "contexto": "emergencia",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "e4",
+      "tipo": "frase",
+      "alvo": "Où est la pharmacie ?",
+      "traducao": "Onde fica a farmácia?",
+      "desmontado": "Où est (onde fica) + la pharmacie (a farmácia). Cognato fácil.",
+      "pronuncia": "u é la far-ma-SI",
+      "contexto": "emergencia",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "g12",
+      "tipo": "frase",
+      "alvo": "Désolé, je ne parle pas français.",
+      "traducao": "Desculpe, eu não falo francês.",
+      "desmontado": "Désolé (desculpe — mulher escreve 'désolée', o som é o mesmo) + je ne parle pas (eu não falo) + français. Emende com 'Parlez-vous anglais ?' e você tem o kit clássico do turista.",
+      "pronuncia": "dê-zo-LÊ, jё nё PARL pa frã-SÉ",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "g7",
+      "tipo": "frase",
+      "alvo": "Bonsoir !",
+      "traducao": "Boa noite! (ao chegar)",
+      "desmontado": "Bon (boa) + soir (noite/fim de tarde). A partir do fim da tarde, troque 'bonjour' por 'bonsoir'.",
+      "pronuncia": "bõ-SUÁR",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "g8",
+      "tipo": "frase",
+      "alvo": "Au revoir !",
+      "traducao": "Tchau! / Até logo!",
+      "desmontado": "Au revoir = até o rever. É a despedida padrão ao sair de qualquer lugar.",
+      "pronuncia": "ô rё-VUÁR",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "g9",
+      "tipo": "frase",
+      "alvo": "Je m'appelle Diogo.",
+      "traducao": "Meu nome é Diogo.",
+      "desmontado": "Je (eu) + m'appelle (me chamo). Troque 'Diogo' pelo seu nome.",
+      "pronuncia": "jё ma-PÉL di-o-GÔ",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "g10",
+      "tipo": "frase",
+      "alvo": "Comment ça va ?",
+      "traducao": "Como vai?",
+      "desmontado": "Comment (como) + ça va (vai). Entre conhecidos, só 'Ça va ?' já basta.",
+      "pronuncia": "co-MÃ sa VA",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "g11",
+      "tipo": "frase",
+      "alvo": "Ça va bien, merci.",
+      "traducao": "Vou bem, obrigado(a).",
+      "desmontado": "Ça va (vai) + bien (bem) + merci (obrigado). A resposta padrão para 'Comment ça va ?'.",
+      "pronuncia": "sa va bi-ÃN, mer-SI",
+      "contexto": "geral",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "r6",
+      "tipo": "frase",
+      "alvo": "Un croissant, s'il vous plaît.",
+      "traducao": "Um croissant, por favor.",
+      "desmontado": "Un croissant + s'il vous plaît. O pedido mais parisiense que existe — troque por qualquer item do balcão.",
+      "pronuncia": "ã cruá-SÃ, sil vu PLÉ",
+      "contexto": "restaurante",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "r7",
+      "tipo": "frase",
+      "alvo": "Une carafe d'eau, s'il vous plaît.",
+      "traducao": "Uma jarra de água, por favor.",
+      "desmontado": "Une carafe (uma jarra) + d'eau (de água). A carafe d'eau da torneira é GRÁTIS nos restaurantes da França — água engarrafada é paga.",
+      "pronuncia": "ün ca-RAF DÔ, sil vu PLÉ",
+      "contexto": "restaurante",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "r8",
+      "tipo": "frase",
+      "alvo": "C'est délicieux !",
+      "traducao": "Está delicioso!",
+      "desmontado": "C'est (está) + délicieux (delicioso — cognato de 'delícia'). Elogiar a comida abre sorrisos.",
+      "pronuncia": "sé dê-li-si-Ê",
+      "contexto": "restaurante",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "r9",
+      "tipo": "frase",
+      "alvo": "Je suis végétarien.",
+      "traducao": "Sou vegetariano.",
+      "desmontado": "Je suis (sou) + végétarien (vegetariano). Mulher fala 'végétarienne' (o fim soa 'ién').",
+      "pronuncia": "jё süi vê-jê-ta-ri-ÃN",
+      "contexto": "restaurante",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "h5",
+      "tipo": "frase",
+      "alvo": "Le wifi ne marche pas.",
+      "traducao": "O wi-fi não funciona.",
+      "desmontado": "Le wifi + ne … pas (não) + marche (funciona). A negação-sanduíche em ação.",
+      "pronuncia": "lё ui-FI nё MARCH PA",
+      "contexto": "hotel",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "h6",
+      "tipo": "frase",
+      "alvo": "Je voudrais une serviette, s'il vous plaît.",
+      "traducao": "Eu gostaria de uma toalha, por favor.",
+      "desmontado": "Je voudrais (eu gostaria) + une serviette (uma toalha). No restaurante, 'serviette' é o guardanapo.",
+      "pronuncia": "jё vu-DRÊ ün ser-vi-ÉT, sil vu PLÉ",
+      "contexto": "hotel",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "u6",
+      "tipo": "frase",
+      "alvo": "C'est à droite ou à gauche ?",
+      "traducao": "É à direita ou à esquerda?",
+      "desmontado": "C'est (é) + à droite (à direita) + ou (ou) + à gauche (à esquerda). Para entender a resposta de 'où est…?'.",
+      "pronuncia": "sé-ta DRUÁT u a GÔCH",
+      "contexto": "rua",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "u7",
+      "tipo": "frase",
+      "alvo": "Pouvez-vous répéter, s'il vous plaît ?",
+      "traducao": "Pode repetir, por favor?",
+      "desmontado": "Pouvez-vous (você pode) + répéter (repetir — cognato). A frase que destrava qualquer conversa rápida demais.",
+      "pronuncia": "pu-vê-VU rê-pê-TÊ, sil vu PLÉ",
+      "contexto": "rua",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "c5",
+      "tipo": "frase",
+      "alvo": "Je voudrais celui-ci.",
+      "traducao": "Eu quero este aqui.",
+      "desmontado": "Je voudrais (eu gostaria) + celui-ci (este aqui). Aponte e pronto — resolve qualquer compra.",
+      "pronuncia": "jё vu-DRÊ sё-lüi-SI",
+      "contexto": "compras",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+    {
+      "id": "c6",
+      "tipo": "frase",
+      "alvo": "Avez-vous une autre taille ?",
+      "traducao": "Tem outro tamanho?",
+      "desmontado": "Avez-vous (vocês têm) + une autre taille (outro tamanho). 'Taille' soa como 'tai'.",
+      "pronuncia": "a-vê-VU ün Ô-trё TAI",
+      "contexto": "compras",
+      "fonte": "curado",
+      "status": "verificado"
+    },
+
+    {
+      "id": "e5",
+      "tipo": "frase",
+      "alvo": "J'ai besoin d'aide.",
+      "traducao": "Preciso de ajuda.",
+      "desmontado": "J'ai besoin (tenho necessidade = preciso) + d'aide (de ajuda). Note o 'ter' fazendo o papel do nosso 'precisar'.",
+      "pronuncia": "jê bё-zuã DÉD",
+      "contexto": "emergencia",
+      "fonte": "curado",
+      "status": "verificado"
+    }
+  ]
+}
