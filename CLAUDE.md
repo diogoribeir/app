@@ -6,6 +6,8 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 
 > 🧱 **Para criar um APP NOVO neste esquema** (pasta → deploy no Pages → sincronização no
 > Firebase, com código pronto e checklist): seguir a receita técnica em **`docs/NOVO-APP.md`**.
+> 📋 **`RECEITA-APPS.md`** (raiz) = catálogo de todos os apps + receita num arquivo só, para o
+> Diogo anexar em chats novos — **manter a tabela dele atualizada ao criar/alterar apps**.
 
 ---
 
