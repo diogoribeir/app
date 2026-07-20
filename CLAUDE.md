@@ -25,7 +25,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   aba **Actions → "Publicar apps no GitHub Pages" → Run workflow**).
 - Ele monta o site assim: raiz → `home/` (página inicial com a lista de apps) · `/dias-sem-doenca/` →
   `dias-sem-doenca/` · `/roteiro-paris/` → `roteiro-paris/` · `/paris-planner/` → `paris-planner/` ·
-  `/perfil-gamer/` → `perfil-gamer/`.
+  `/perfil-gamer/` → `perfil-gamer/` · `/decoracao/` → `decoracao/`.
 - Fluxo de trabalho do Claude: **branch → commit → push → PR → merge no `master`** (o Diogo autoriza o
   Claude a mergear via ferramentas do GitHub). Depois do merge, verificar que o run terminou `success`.
 - O site atualiza ~1 min após o deploy (o cache do celular pode segurar alguns minutos).
@@ -121,6 +121,27 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   modo demonstração/mock) · `ACCESS_PASSWORD`/`ACCESS_USER` (opcional — senha básica de acesso).
 - **Atualização:** editar `lingo-src/`, e o deploy é pelo Vercel (projeto do Diogo). O card na
   página inicial (`home/index.html`) aponta pro link do Vercel.
+
+## App 6 — 🛋️ Decora (planejador de decoração + orçamento)
+- **URL:** https://diogoribeir.github.io/app/decoracao/
+- **Pasta:** `decoracao/` — **arquivo único** `index.html` (HTML/CSS/JS puro, mobile-first).
+- **O que faz:** a pessoa sobe a **foto (ou planta) do ambiente**, arrasta **móveis de lojas reais**
+  por cima (mover / redimensionar / girar / camadas), e vê o **orçamento somando em tempo real**.
+  4 abas: 🛋️ **Montar** (editor de colagem 2D sobre a foto) · 🛒 **Catálogo** (30 itens com faixa de
+  preço aproximada, loja e link de busca; filtros por categoria/estilo/preço) · 💰 **Orçamento**
+  (teto por ambiente, gasto x meta, gasto por categoria, lista de compras, **recomendações
+  determinísticas** do que falta e cabe no orçamento) · 🗂️ **Projetos** (um ambiente por cômodo).
+- **Filosofia (respeitar):** **preços são faixas aproximadas** (referência), nunca valor exato
+  fingindo precisão — o botão "Buscar" leva à busca na loja para conferir o preço atual. Nada de
+  inventar produto/preço. O catálogo é curado em `CAT` (loja + faixa BRL + estilo + dimensões cm).
+- **Dados 3D-ready:** cada peça guarda dimensões (cm), posição (fração), escala e rotação — o modelo
+  de cena foi pensado para uma futura **vista de planta 2D / 3D** reaproveitar os mesmos dados.
+- **Sincronização:** Realtime Database via REST, nó **`planos/decoracao-dt2026`** (receita 1) — a
+  nuvem é a fonte; localStorage é a cópia offline; recarrega ao voltar se houver gravação mais nova.
+  As fotos do ambiente entram no `state` como dataURL (reduzidas a ~1400px/JPEG antes de salvar).
+- **Edição:** direto em `decoracao/index.html` (constantes `CAT`, `STORES`, `ICONS`, `ROOMS`;
+  lojas com busca em `STORES[...].url(q)`). Para novos móveis, adicionar item em `CAT` e, se for um
+  tipo visual novo, uma silhueta em `ICONS`.
 
 ---
 

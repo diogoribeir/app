@@ -5,6 +5,8 @@ name: Publicar apps no GitHub Pages
 #   /dias-sem-doenca/   -> contador de dias sem doenca
 #   /roteiro-paris/     -> roteiro da viagem a Paris (planilha/escolhas)
 #   /paris-planner/     -> planejador React da viagem
+#   /perfil-gamer/      -> biblioteca de jogos PS4/PS5
+#   /decoracao/         -> planejador de decoracao + orcamento por foto
 # Roda automaticamente quando um app muda no master, e pode ser
 # disparado manualmente na aba Actions (botao "Run workflow").
 
@@ -17,6 +19,7 @@ on:
       - "roteiro-paris/**"
       - "paris-planner/**"
       - "perfil-gamer/**"
+      - "decoracao/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -46,12 +49,13 @@ jobs:
 
       - name: Montar o site (home na raiz + um caminho por app)
         run: |
-          mkdir -p _site/dias-sem-doenca _site/roteiro-paris _site/paris-planner _site/perfil-gamer
+          mkdir -p _site/dias-sem-doenca _site/roteiro-paris _site/paris-planner _site/perfil-gamer _site/decoracao
           cp -r home/. _site/
           cp -r dias-sem-doenca/. _site/dias-sem-doenca/
           cp -r roteiro-paris/. _site/roteiro-paris/
           cp -r paris-planner/. _site/paris-planner/
           cp -r perfil-gamer/. _site/perfil-gamer/
+          cp -r decoracao/. _site/decoracao/
 
       - name: Empacotar o site
         uses: actions/upload-pages-artifact@v3

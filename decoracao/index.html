@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#2A2320" />
+<title>Decora — planeje e orce a decoração</title>
+<style>
+  :root{
+    --paper:#F1ECE4; --card:#FBF8F3; --ink:#26201B; --muted:#7A6E63; --line:#E2D9CC;
+    --accent:#C57B4E; --accent-ink:#fff; --hero:#2A2320; --hero-ink:#F4EEE4;
+    --ok:#3E8E5A; --warn:#C99A2E; --over:#C4553D;
+    --chip:#EFE7DB; --shadow:0 8px 24px rgba(42,35,32,.10);
+    --stage:#DED4C6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#14110F; --card:#1D1815; --ink:#EEE7DD; --muted:#9C8E80; --line:#2E2620;
+      --accent:#E09A64; --accent-ink:#1a120c; --hero:#0F0C0A; --hero-ink:#F4EEE4;
+      --ok:#5BB37C; --warn:#E0B95A; --over:#E0765C;
+      --chip:#251E19; --shadow:0 8px 24px rgba(0,0,0,.45);
+      --stage:#2A231D;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{overflow-x:hidden}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);min-height:100vh;
+    font-family:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(92px + env(safe-area-inset-bottom))}
+  h1,h2,h3{margin:0}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  a{color:var(--accent)}
+
+  /* Header */
+  header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  header .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(150deg,var(--accent),#9c5a34);
+    display:grid;place-items:center;color:#fff;font-size:1.2rem;box-shadow:var(--shadow);flex:0 0 auto}
+  header .htxt{min-width:0;flex:1}
+  header .htxt .t{font-weight:800;font-size:1.12rem;line-height:1.1}
+  header .htxt .s{color:var(--muted);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* Budget bar */
+  .budget{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:12px}
+  .budget .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .budget .spent{font-weight:800;font-size:1.15rem}
+  .budget .cap{color:var(--muted);font-size:.82rem}
+  .budget .track{height:9px;border-radius:6px;background:var(--chip);margin-top:9px;overflow:hidden}
+  .budget .fill{height:100%;border-radius:6px;background:var(--ok);transition:width .25s,background .25s;width:0}
+  .budget.warn .fill{background:var(--warn)} .budget.over .fill{background:var(--over)}
+  .budget .rest{font-size:.8rem;margin-top:6px;color:var(--muted)}
+  .budget .rest b{color:var(--ink)}
+  .budget.over .rest b{color:var(--over)}
+
+  /* Stage / editor */
+  .stage-tools{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .stage{position:relative;width:100%;aspect-ratio:4/3;background:var(--stage);border-radius:18px;overflow:hidden;
+    border:1px solid var(--line);box-shadow:var(--shadow);touch-action:none;user-select:none}
+  .stage .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .stage .room{position:absolute;inset:0;background:
+    linear-gradient(180deg,#00000000 58%, rgba(0,0,0,.06) 58%, rgba(0,0,0,.10) 100%)}
+  .stage .hint{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:22px;
+    color:var(--muted);font-size:.86rem;line-height:1.5;pointer-events:none}
+  .sticker{position:absolute;touch-action:none;will-change:left,top,transform,width}
+  .sticker .art{width:100%;filter:drop-shadow(0 4px 6px rgba(0,0,0,.28));touch-action:none}
+  .sticker .art svg{display:block;width:100%;height:100%}
+  .sticker.sel .art{outline:2px dashed var(--accent);outline-offset:4px;border-radius:6px}
+  .handle{position:absolute;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+    display:none;place-items:center;font-size:.85rem;box-shadow:0 2px 6px rgba(0,0,0,.35);touch-action:none;z-index:5}
+  .sticker.sel .handle{display:grid}
+  .h-rot{top:-34px;left:50%;transform:translateX(-50%)}
+  .h-del{top:-13px;right:-13px;background:var(--over)}
+  .h-scl{bottom:-13px;right:-13px}
+
+  .selbar{display:none;margin-top:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:8px 10px;box-shadow:var(--shadow);align-items:center;gap:8px}
+  .selbar.on{display:flex}
+  .selbar .nm{flex:1;min-width:0;font-weight:700;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .selbar button{background:var(--chip);border-radius:9px;padding:7px 9px;font-size:.9rem}
+
+  /* Buttons */
+  .btn{background:var(--chip);border-radius:12px;padding:10px 12px;font-weight:700;font-size:.86rem;display:inline-flex;align-items:center;gap:6px}
+  .btn.primary{background:var(--accent);color:var(--accent-ink)}
+  .btn.block{display:flex;width:100%;justify-content:center}
+  .btn:active{transform:scale(.98)}
+
+  /* Section titles */
+  .sec-t{font-weight:800;font-size:1rem;margin:18px 2px 10px}
+  .note{font-size:.76rem;color:var(--muted);background:var(--chip);border-radius:10px;padding:8px 10px;line-height:1.4;margin-bottom:12px}
+
+  /* Filters */
+  .filters{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+  .chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-size:.8rem;font-weight:600;white-space:nowrap}
+  .chip.on{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+  select,input[type=text],input[type=number]{
+    width:100%;font-family:inherit;font-size:.92rem;color:var(--ink);background:var(--card);
+    border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+
+  /* Catalog grid */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .pcard .thumb{background:var(--chip);border-radius:11px;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;margin-bottom:8px}
+  .pcard .thumb svg{width:74%;height:74%}
+  .pcard .pn{font-weight:700;font-size:.82rem;line-height:1.2}
+  .pcard .pp{font-weight:800;font-size:.86rem;margin-top:3px}
+  .pcard .pmeta{color:var(--muted);font-size:.72rem;margin-top:2px}
+  .pcard .pacts{display:flex;gap:6px;margin-top:9px}
+  .pcard .pacts .btn{flex:1;justify-content:center;padding:8px 6px;font-size:.76rem}
+
+  /* Lists (budget / projects) */
+  .list{display:flex;flex-direction:column;gap:10px}
+  .litem{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:11px}
+  .litem .ico{width:44px;height:44px;border-radius:11px;background:var(--chip);display:grid;place-items:center;flex:0 0 auto}
+  .litem .ico svg{width:78%;height:78%}
+  .litem .li-b{flex:1;min-width:0}
+  .litem .li-n{font-weight:700;font-size:.86rem;line-height:1.2}
+  .litem .li-s{color:var(--muted);font-size:.75rem;margin-top:2px}
+  .litem .li-p{font-weight:800;font-size:.85rem;text-align:right;white-space:nowrap}
+  .qtybtn{width:26px;height:26px;border-radius:8px;background:var(--chip);font-weight:800;display:grid;place-items:center}
+  .catbar{margin:2px 0 4px}
+  .catbar .cb-top{display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px}
+  .catbar .cb-top b{font-weight:700}
+  .catbar .track{height:7px;border-radius:5px;background:var(--chip);overflow:hidden}
+  .catbar .fill{height:100%;background:var(--accent);border-radius:5px}
+
+  .empty{text-align:center;color:var(--muted);font-size:.86rem;line-height:1.5;padding:30px 16px}
+
+  /* Bottom nav */
+  nav.tab{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:520px;
+    background:var(--card);border-top:1px solid var(--line);display:flex;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:50}
+  nav.tab button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;color:var(--muted);font-size:.66rem;font-weight:700;border-radius:12px}
+  nav.tab button .ic{font-size:1.25rem;line-height:1}
+  nav.tab button.on{color:var(--accent)}
+
+  /* Toast + modal */
+  .toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:.82rem;font-weight:700;
+    opacity:0;pointer-events:none;transition:.25s;z-index:100;box-shadow:var(--shadow)}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:80;padding:0}
+  .modal.on{display:flex}
+  .sheet{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:var(--shadow)}
+  .sheet h3{font-size:1.05rem;margin-bottom:12px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:.78rem;color:var(--muted);font-weight:700;margin-bottom:5px}
+  .sheet-acts{display:flex;gap:8px;margin-top:6px}
+  .sheet-acts .btn{flex:1;justify-content:center}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🛋️</div>
+    <div class="htxt">
+      <div class="t">Decora</div>
+      <div class="s" id="hsub">—</div>
+    </div>
+    <button class="btn" id="projPick">Projetos ▾</button>
+  </header>
+
+  <div id="view"></div>
+</div>
+
+<nav class="tab" id="nav"></nav>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+
+<input type="file" id="fileInput" accept="image/*" class="hidden" />
+
+<script>
+"use strict";
+
+/* ============ Sincronização — Receita 1 (RTDB via REST, nó fixo) ============ */
+const SYNC_URL = "https://apps-4b887-default-rtdb.firebaseio.com/planos/decoracao-dt2026";
+let syncStamp = 0;
+
+async function loadKey(key, fallback){
+  try{
+    const r = await fetch(`${SYNC_URL}/${key}.json`, { cache:"no-store" });
+    if(r.ok){ const v = await r.json();
+      if(v != null){ try{localStorage.setItem(key, v);}catch(e){} return JSON.parse(v); } }
+  }catch(e){}
+  try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+  catch{ return fallback; }
+}
+async function saveKey(key, value){
+  const s = JSON.stringify(value);
+  try{ localStorage.setItem(key, s); }catch(e){}
+  try{
+    await fetch(`${SYNC_URL}/${key}.json`, { method:"PUT", body: JSON.stringify(s) });
+    syncStamp = Date.now();
+    fetch(`${SYNC_URL}/_at.json`, { method:"PUT", body: JSON.stringify(syncStamp) }).catch(()=>{});
+  }catch(e){}
+}
+fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" }).then(r=>r.json())
+  .then(v=>{ if(typeof v === "number") syncStamp = v; }).catch(()=>{});
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden) return;
+  fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" }).then(r=>r.json())
+    .then(v=>{ if(typeof v === "number" && v > syncStamp + 1500) location.reload(); })
+    .catch(()=>{});
+});
+
+/* ============================ Utilidades ============================ */
+const $ = s => document.querySelector(s);
+const el = (h)=>{ const d=document.createElement('div'); d.innerHTML=h.trim(); return d.firstElementChild; };
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = ()=> Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const clamp = (v,a,b)=> Math.max(a, Math.min(b, v));
+const nf = new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
+const brl = n => 'R$ ' + nf.format(Math.round(n||0));
+const brlRange = it => 'R$ ' + nf.format(it.min) + '–' + nf.format(it.max);
+const midOf = it => (it.min + it.max)/2;
+
+let toastT;
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'), 1900);
+}
+
+/* ============================ Ícones (silhuetas) ============================ */
+/* Cada ícone: viewBox próprio (aspecto natural) + markup. Cores fixas para lerem sobre foto. */
+const ICONS = {
+  sofa:{w:100,h:58,svg:'<rect x="4" y="22" width="92" height="28" rx="7" fill="#C98A6B"/><rect x="1" y="15" width="18" height="36" rx="7" fill="#B57A5B"/><rect x="81" y="15" width="18" height="36" rx="7" fill="#B57A5B"/><rect x="14" y="12" width="72" height="17" rx="7" fill="#D6a081"/><rect x="9" y="50" width="9" height="7" rx="2" fill="#6f4632"/><rect x="82" y="50" width="9" height="7" rx="2" fill="#6f4632"/>'},
+  poltrona:{w:62,h:66,svg:'<rect x="9" y="26" width="44" height="28" rx="7" fill="#6B8FB5"/><rect x="3" y="18" width="15" height="38" rx="7" fill="#5B7EA3"/><rect x="44" y="18" width="15" height="38" rx="7" fill="#5B7EA3"/><rect x="15" y="12" width="32" height="20" rx="8" fill="#7FA3C6"/><rect x="12" y="54" width="8" height="8" rx="2" fill="#3f5468"/><rect x="42" y="54" width="8" height="8" rx="2" fill="#3f5468"/>'},
+  mesaCentro:{w:96,h:44,svg:'<rect x="5" y="9" width="86" height="13" rx="4" fill="#B98A4E"/><rect x="9" y="15" width="86" height="4" fill="#00000022"/><rect x="14" y="22" width="7" height="18" rx="2" fill="#8f6a38"/><rect x="75" y="22" width="7" height="18" rx="2" fill="#8f6a38"/>'},
+  rack:{w:100,h:40,svg:'<rect x="4" y="6" width="92" height="26" rx="5" fill="#A9773B"/><line x1="50" y1="8" x2="50" y2="30" stroke="#00000033" stroke-width="2"/><circle cx="42" cy="19" r="2.2" fill="#5c3f1e"/><circle cx="58" cy="19" r="2.2" fill="#5c3f1e"/><rect x="12" y="32" width="6" height="6" fill="#5c3f1e"/><rect x="82" y="32" width="6" height="6" fill="#5c3f1e"/>'},
+  comoda:{w:70,h:66,svg:'<rect x="7" y="6" width="56" height="54" rx="5" fill="#B98A4E"/><line x1="9" y1="24" x2="61" y2="24" stroke="#00000033" stroke-width="2"/><line x1="9" y1="42" x2="61" y2="42" stroke="#00000033" stroke-width="2"/><circle cx="35" cy="15" r="2.4" fill="#5c3f1e"/><circle cx="35" cy="33" r="2.4" fill="#5c3f1e"/><circle cx="35" cy="51" r="2.4" fill="#5c3f1e"/><rect x="11" y="60" width="6" height="6" fill="#5c3f1e"/><rect x="53" y="60" width="6" height="6" fill="#5c3f1e"/>'},
+  estante:{w:66,h:100,svg:'<rect x="9" y="4" width="48" height="92" rx="4" fill="#B98A4E"/><rect x="13" y="8" width="40" height="84" fill="#00000018"/><line x1="13" y1="34" x2="53" y2="34" stroke="#7a5a2e" stroke-width="3"/><line x1="13" y1="63" x2="53" y2="63" stroke="#7a5a2e" stroke-width="3"/><rect x="17" y="14" width="5" height="16" fill="#C4553D"/><rect x="24" y="16" width="5" height="14" fill="#3E8E5A"/><rect x="40" y="42" width="10" height="17" fill="#C99A2E"/>'},
+  cama:{w:100,h:48,svg:'<rect x="4" y="8" width="14" height="38" rx="3" fill="#8f6a38"/><rect x="10" y="24" width="86" height="18" rx="4" fill="#A9773B"/><rect x="14" y="15" width="80" height="13" rx="6" fill="#E7DECE"/><rect x="20" y="10" width="26" height="12" rx="4" fill="#fff"/><rect x="12" y="42" width="7" height="6" fill="#5c3f1e"/><rect x="87" y="42" width="7" height="6" fill="#5c3f1e"/>'},
+  armario:{w:78,h:100,svg:'<rect x="9" y="4" width="60" height="92" rx="4" fill="#B98A4E"/><line x1="39" y1="6" x2="39" y2="94" stroke="#00000030" stroke-width="2.5"/><rect x="33" y="40" width="3" height="16" rx="1.5" fill="#5c3f1e"/><rect x="42" y="40" width="3" height="16" rx="1.5" fill="#5c3f1e"/><rect x="12" y="96" width="7" height="4" fill="#5c3f1e"/><rect x="59" y="96" width="7" height="4" fill="#5c3f1e"/>'},
+  criado:{w:52,h:56,svg:'<rect x="7" y="8" width="38" height="38" rx="5" fill="#B98A4E"/><line x1="9" y1="26" x2="43" y2="26" stroke="#00000030" stroke-width="2"/><circle cx="26" cy="17" r="2.2" fill="#5c3f1e"/><circle cx="26" cy="35" r="2.2" fill="#5c3f1e"/><rect x="10" y="46" width="6" height="9" fill="#5c3f1e"/><rect x="36" y="46" width="6" height="9" fill="#5c3f1e"/>'},
+  mesaJantar:{w:100,h:64,svg:'<rect x="6" y="14" width="88" height="12" rx="4" fill="#B98A4E"/><rect x="10" y="20" width="88" height="4" fill="#00000022"/><rect x="14" y="26" width="7" height="34" rx="2" fill="#8f6a38"/><rect x="79" y="26" width="7" height="34" rx="2" fill="#8f6a38"/><rect x="40" y="26" width="7" height="34" rx="2" fill="#8f6a38"/><rect x="53" y="26" width="7" height="34" rx="2" fill="#8f6a38"/>'},
+  cadeira:{w:46,h:66,svg:'<rect x="12" y="6" width="24" height="30" rx="4" fill="#8FA68E"/><rect x="10" y="34" width="28" height="9" rx="3" fill="#7d947c"/><rect x="12" y="43" width="5" height="20" fill="#5c6f5b"/><rect x="31" y="43" width="5" height="20" fill="#5c6f5b"/>'},
+  cadeiraOffice:{w:60,h:80,svg:'<rect x="16" y="6" width="28" height="34" rx="7" fill="#3f4a55"/><rect x="12" y="40" width="36" height="11" rx="5" fill="#4a5763"/><rect x="27" y="51" width="6" height="15" fill="#2b333b"/><rect x="12" y="66" width="36" height="4" rx="2" fill="#2b333b"/><circle cx="16" cy="74" r="4" fill="#1f262c"/><circle cx="44" cy="74" r="4" fill="#1f262c"/>'},
+  lampFloor:{w:44,h:100,svg:'<circle cx="22" cy="14" r="12" fill="#E3B23C" opacity=".25"/><path d="M11 22 L33 22 L29 6 L15 6 Z" fill="#E3B23C"/><rect x="20" y="22" width="4" height="64" fill="#7a6a48"/><path d="M8 92 L36 92 L30 84 L14 84 Z" fill="#5c503a"/>'},
+  lampTable:{w:38,h:46,svg:'<circle cx="19" cy="16" r="10" fill="#E3B23C" opacity=".25"/><path d="M8 22 L30 22 L26 8 L12 8 Z" fill="#E3B23C"/><rect x="17" y="22" width="4" height="14" fill="#7a6a48"/><rect x="10" y="36" width="18" height="6" rx="3" fill="#5c503a"/>'},
+  lampPend:{w:42,h:48,svg:'<rect x="19" y="0" width="3" height="16" fill="#7a6a48"/><path d="M6 30 C6 20 34 20 34 30 Z" fill="#E3B23C"/><circle cx="20" cy="34" r="9" fill="#E3B23C" opacity=".3"/>'},
+  lampCeil:{w:60,h:22,svg:'<ellipse cx="30" cy="8" rx="26" ry="7" fill="#Eed9a0"/><ellipse cx="30" cy="8" rx="26" ry="7" fill="none" stroke="#d0b56e" stroke-width="1.5"/><ellipse cx="30" cy="12" rx="20" ry="5" fill="#E3B23C" opacity=".4"/>'},
+  tapete:{w:100,h:42,svg:'<path d="M14 8 L86 8 L98 38 L2 38 Z" fill="#7C9CBF"/><path d="M22 14 L78 14 L88 32 L12 32 Z" fill="none" stroke="#e8eef5" stroke-width="2.5"/>'},
+  cortina:{w:82,h:94,svg:'<rect x="4" y="4" width="74" height="6" rx="3" fill="#8a7d6b"/><path d="M8 10 Q12 50 8 90 L26 90 Q22 50 26 10 Z" fill="#9C8AA6"/><path d="M74 10 Q70 50 74 90 L56 90 Q60 50 56 10 Z" fill="#9C8AA6"/><path d="M17 12 L17 88 M65 12 L65 88" stroke="#00000018" stroke-width="4"/>'},
+  planta:{w:46,h:92,svg:'<path d="M23 46 C10 40 8 18 20 10 C18 26 24 34 23 46 Z" fill="#4E8D5B"/><path d="M23 46 C36 38 40 16 27 10 C30 26 22 34 23 46 Z" fill="#5aa06a"/><path d="M23 48 C22 34 22 22 23 14" stroke="#3a6e45" stroke-width="2"/><path d="M14 58 L32 58 L29 88 L17 88 Z" fill="#B07A4A"/><rect x="12" y="52" width="22" height="8" rx="3" fill="#c98a54"/>'},
+  quadro:{w:58,h:78,svg:'<rect x="6" y="6" width="46" height="66" rx="3" fill="#A9773B"/><rect x="12" y="12" width="34" height="54" fill="#f3ecdd"/><circle cx="24" cy="30" r="7" fill="#D98C6A"/><path d="M12 66 L28 44 L38 56 L46 46 L46 66 Z" fill="#6B8FB5"/>'},
+  espelho:{w:46,h:100,svg:'<rect x="8" y="4" width="30" height="92" rx="15" fill="#9FB6C2"/><rect x="12" y="8" width="22" height="84" rx="11" fill="#cfe0e8"/><path d="M18 18 L24 18 L16 44 L14 40 Z" fill="#ffffffaa"/>'},
+  almofada:{w:64,h:44,svg:'<rect x="4" y="12" width="34" height="30" rx="8" fill="#C97F86"/><rect x="28" y="6" width="34" height="30" rx="8" fill="#d99aa0"/><path d="M32 10 L58 32 M58 10 L32 32" stroke="#ffffff44" stroke-width="2"/>'},
+  escrivaninha:{w:100,h:60,svg:'<rect x="4" y="14" width="92" height="11" rx="3" fill="#A9773B"/><rect x="10" y="25" width="34" height="20" rx="3" fill="#B98A4E"/><line x1="10" y1="35" x2="44" y2="35" stroke="#00000030" stroke-width="2"/><circle cx="27" cy="30" r="2" fill="#5c3f1e"/><circle cx="27" cy="40" r="2" fill="#5c3f1e"/><rect x="80" y="25" width="6" height="32" fill="#8f6a38"/><rect x="47" y="25" width="6" height="32" fill="#8f6a38"/>'},
+  tv:{w:80,h:56,svg:'<rect x="4" y="4" width="72" height="42" rx="4" fill="#22262b"/><rect x="8" y="8" width="64" height="34" rx="2" fill="#3b4b5a"/><rect x="34" y="46" width="12" height="6" fill="#22262b"/><rect x="24" y="52" width="32" height="4" rx="2" fill="#22262b"/>'}
+};
+function iconSvg(key){
+  const ic = ICONS[key] || ICONS.mesaCentro;
+  return `<svg viewBox="0 0 ${ic.w} ${ic.h}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">${ic.svg}</svg>`;
+}
+
+/* ============================ Lojas + Catálogo ============================ */
+/* Preços em BRL como FAIXA aproximada (referência) — o link leva à busca na loja. */
+const STORES = {
+  madeira:{ nome:"MadeiraMadeira", url:q=>`https://www.madeiramadeira.com.br/busca?q=${encodeURIComponent(q)}` },
+  mobly:  { nome:"Mobly",          url:q=>`https://www.mobly.com.br/busca/?q=${encodeURIComponent(q)}` },
+  amazon: { nome:"Amazon",         url:q=>`https://www.amazon.com.br/s?k=${encodeURIComponent(q)}` },
+  magalu: { nome:"Magalu",         url:q=>`https://www.magazineluiza.com.br/busca/${encodeURIComponent(q)}/` },
+  tokstok:{ nome:"Tok&Stok",       url:q=>`https://www.tokstok.com.br/busca?q=${encodeURIComponent(q)}` }
+};
+
+/* cat = categoria funcional (usada em essenciais/recomendações); icon = silhueta */
+const CAT = [
+  {id:"sofa3", name:"Sofá retrátil 3 lugares", cat:"sofa", icon:"sofa", styles:["moderno","minimalista"], min:1500, max:3200, store:"madeira", q:"sofá retrátil 3 lugares", wcm:210, hcm:90},
+  {id:"sofa2", name:"Sofá 2 lugares", cat:"sofa", icon:"sofa", styles:["escandinavo","moderno"], min:900, max:2000, store:"mobly", q:"sofá 2 lugares", wcm:160, hcm:85},
+  {id:"poltrona", name:"Poltrona decorativa", cat:"poltrona", icon:"poltrona", styles:["escandinavo","classico"], min:450, max:1200, store:"mobly", q:"poltrona decorativa", wcm:75, hcm:95},
+  {id:"mesacentro", name:"Mesa de centro", cat:"mesa-centro", icon:"mesaCentro", styles:["moderno","industrial"], min:250, max:900, store:"madeira", q:"mesa de centro", wcm:90, hcm:45},
+  {id:"rack", name:"Rack para TV 1,60m", cat:"rack", icon:"rack", styles:["moderno","minimalista"], min:400, max:1200, store:"madeira", q:"rack para tv 160cm", wcm:160, hcm:50},
+  {id:"estante", name:"Estante para livros", cat:"estante", icon:"estante", styles:["industrial","escandinavo"], min:300, max:1100, store:"mobly", q:"estante para livros", wcm:90, hcm:180},
+  {id:"nichos", name:"Kit de nichos de parede", cat:"estante", icon:"estante", styles:["minimalista","moderno"], min:120, max:500, store:"mobly", q:"nicho de parede decorativo", wcm:100, hcm:100},
+  {id:"tapetesala", name:"Tapete de sala 2,0×2,5m", cat:"tapete", icon:"tapete", styles:["escandinavo","classico"], min:200, max:800, store:"amazon", q:"tapete sala 200x250", wcm:250, hcm:90},
+  {id:"lumchao", name:"Luminária de chão (tripé)", cat:"luminaria", icon:"lampFloor", styles:["escandinavo","moderno"], min:180, max:600, store:"madeira", q:"luminária de chão tripé", wcm:40, hcm:160},
+  {id:"pendente", name:"Luminária pendente", cat:"luminaria", icon:"lampPend", styles:["industrial","moderno"], min:120, max:500, store:"amazon", q:"luminária pendente", wcm:35, hcm:45},
+  {id:"plafon", name:"Plafon LED de teto", cat:"luminaria", icon:"lampCeil", styles:["moderno","minimalista"], min:90, max:400, store:"amazon", q:"plafon led sobrepor", wcm:50, hcm:20},
+  {id:"abajur", name:"Abajur de mesa", cat:"luminaria", icon:"lampTable", styles:["classico","escandinavo"], min:90, max:350, store:"amazon", q:"abajur de mesa", wcm:30, hcm:45},
+  {id:"cortinasala", name:"Cortina 2 folhas (sala)", cat:"cortina", icon:"cortina", styles:["classico","moderno"], min:120, max:450, store:"amazon", q:"cortina sala 4 metros", wcm:200, hcm:230},
+  {id:"cortinablk", name:"Cortina blackout (quarto)", cat:"cortina", icon:"cortina", styles:["moderno","minimalista"], min:130, max:500, store:"amazon", q:"cortina blackout quarto", wcm:200, hcm:230},
+  {id:"almofadas", name:"Kit de almofadas decorativas", cat:"decoracao", icon:"almofada", styles:["escandinavo","classico"], min:60, max:200, store:"amazon", q:"kit almofadas decorativas", wcm:45, hcm:45},
+  {id:"quadro", name:"Quadro decorativo", cat:"decoracao", icon:"quadro", styles:["moderno","minimalista"], min:80, max:350, store:"amazon", q:"quadro decorativo sala", wcm:60, hcm:90},
+  {id:"planta", name:"Vaso com planta decorativa", cat:"decoracao", icon:"planta", styles:["escandinavo","rustico"], min:70, max:300, store:"mobly", q:"vaso planta decorativa", wcm:40, hcm:100},
+  {id:"espelho", name:"Espelho decorativo de parede", cat:"decoracao", icon:"espelho", styles:["classico","moderno"], min:150, max:600, store:"madeira", q:"espelho decorativo parede", wcm:60, hcm:150},
+  {id:"tv", name:"Smart TV", cat:"decoracao", icon:"tv", styles:["moderno"], min:1500, max:4500, store:"magalu", q:"smart tv 55", wcm:123, hcm:71},
+  {id:"cama", name:"Cama box casal", cat:"cama", icon:"cama", styles:["moderno","classico"], min:900, max:2500, store:"madeira", q:"cama box casal", wcm:160, hcm:60},
+  {id:"guardaroupa", name:"Guarda-roupa 6 portas", cat:"guarda-roupa", icon:"armario", styles:["moderno","minimalista"], min:900, max:2600, store:"madeira", q:"guarda-roupa casal 6 portas", wcm:230, hcm:210},
+  {id:"criado", name:"Criado-mudo", cat:"criado", icon:"criado", styles:["escandinavo","moderno"], min:150, max:500, store:"mobly", q:"criado mudo", wcm:45, hcm:55},
+  {id:"comoda", name:"Cômoda", cat:"criado", icon:"comoda", styles:["classico","rustico"], min:400, max:1200, store:"madeira", q:"cômoda quarto", wcm:90, hcm:90},
+  {id:"mesajantar4", name:"Mesa de jantar 4 lugares", cat:"mesa-jantar", icon:"mesaJantar", styles:["moderno","rustico"], min:500, max:1800, store:"madeira", q:"mesa de jantar 4 lugares", wcm:120, hcm:75},
+  {id:"mesajantar6", name:"Mesa de jantar 6 lugares", cat:"mesa-jantar", icon:"mesaJantar", styles:["classico","moderno"], min:900, max:2800, store:"madeira", q:"mesa de jantar 6 lugares", wcm:160, hcm:75},
+  {id:"cadeirajantar", name:"Cadeira de jantar (un.)", cat:"cadeira", icon:"cadeira", styles:["escandinavo","moderno"], min:120, max:450, store:"mobly", q:"cadeira de jantar", wcm:45, hcm:90},
+  {id:"buffet", name:"Buffet / Aparador", cat:"rack", icon:"comoda", styles:["classico","rustico"], min:500, max:1600, store:"madeira", q:"buffet aparador sala de jantar", wcm:140, hcm:85},
+  {id:"escrivaninha", name:"Escrivaninha (home office)", cat:"escrivaninha", icon:"escrivaninha", styles:["moderno","industrial"], min:300, max:1100, store:"madeira", q:"escrivaninha home office", wcm:120, hcm:75},
+  {id:"cadeiraoffice", name:"Cadeira de escritório", cat:"cadeira", icon:"cadeiraOffice", styles:["moderno"], min:300, max:1200, store:"amazon", q:"cadeira de escritório ergonômica", wcm:60, hcm:110},
+  {id:"tapetequarto", name:"Tapete de quarto 1,5×2,0m", cat:"tapete", icon:"tapete", styles:["escandinavo","minimalista"], min:150, max:600, store:"amazon", q:"tapete quarto 150x200", wcm:200, hcm:80}
+];
+const catById = Object.fromEntries(CAT.map(c=>[c.id,c]));
+
+const CAT_LABELS = { sofa:"Sofá", poltrona:"Poltrona", "mesa-centro":"Mesa de centro", rack:"Rack / Aparador",
+  estante:"Estante", cama:"Cama", "guarda-roupa":"Guarda-roupa", criado:"Criado / Cômoda", "mesa-jantar":"Mesa de jantar",
+  cadeira:"Cadeira", luminaria:"Iluminação", tapete:"Tapete", cortina:"Cortina", decoracao:"Decoração", escrivaninha:"Escrivaninha" };
+const STYLE_LABELS = { escandinavo:"Escandinavo", moderno:"Moderno", industrial:"Industrial", minimalista:"Minimalista", classico:"Clássico", rustico:"Rústico" };
+const ROOMS = {
+  sala:      { label:"Sala de estar",  ess:["sofa","mesa-centro","rack","tapete","luminaria","cortina","decoracao"] },
+  quarto:    { label:"Quarto",         ess:["cama","guarda-roupa","criado","luminaria","cortina","tapete"] },
+  jantar:    { label:"Sala de jantar", ess:["mesa-jantar","cadeira","rack","luminaria","decoracao"] },
+  escritorio:{ label:"Home office",    ess:["escrivaninha","cadeira","estante","luminaria"] }
+};
+
+/* ============================ Estado ============================ */
+let state = null;
+function defaultState(){
+  const pid = uid();
+  return { v:1, currentId:pid,
+    ui:{ tab:"montar", cat:"", estilo:"", maxPreco:0 },
+    projects:[ { id:pid, name:"Minha Sala", room:"sala", budget:8000, bg:null, items:[] } ] };
+}
+function curProj(){ return state.projects.find(p=>p.id===state.currentId) || state.projects[0]; }
+function sceneSpent(p){ return p.items.reduce((s,i)=> s + midOf(catById[i.catId]||{min:0,max:0}), 0); }
+
+let saveT;
+function saveState(){ clearTimeout(saveT); saveT=setTimeout(()=>saveKey("state", state), 500); }
+
+/* ============================ Render principal ============================ */
+let selId = null;
+
+function render(){
+  const p = curProj();
+  $('#hsub').textContent = `${esc(p.name)} · ${ROOMS[p.room].label}`;
+  renderNav();
+  const v = $('#view'); v.innerHTML = "";
+  const tab = state.ui.tab;
+  if(tab==="montar") renderMontar(v);
+  else if(tab==="catalogo") renderCatalogo(v);
+  else if(tab==="orcamento") renderOrcamento(v);
+  else if(tab==="projetos") renderProjetos(v);
+}
+
+function renderNav(){
+  const tabs = [["montar","🛋️","Montar"],["catalogo","🛒","Catálogo"],["orcamento","💰","Orçamento"],["projetos","🗂️","Projetos"]];
+  const nav = $('#nav'); nav.innerHTML="";
+  tabs.forEach(([k,ic,lb])=>{
+    const b = el(`<button class="${state.ui.tab===k?'on':''}"><span class="ic">${ic}</span><span>${lb}</span></button>`);
+    b.onclick = ()=>{ state.ui.tab=k; selId=null; render(); };
+    nav.appendChild(b);
+  });
+}
+
+function budgetBarHTML(p){
+  const spent = sceneSpent(p), cap = p.budget||0;
+  const pct = cap>0 ? clamp(spent/cap*100,0,100) : 0;
+  const cls = cap>0 && spent>cap ? "over" : (cap>0 && spent>cap*0.85 ? "warn" : "");
+  const rest = cap - spent;
+  const restTxt = cap<=0 ? "Defina um orçamento na aba 💰" :
+    (rest>=0 ? `Sobram <b>${brl(rest)}</b> do orçamento` : `<b>${brl(-rest)}</b> acima do orçamento`);
+  return `<div class="budget ${cls}">
+    <div class="row"><span class="spent">${brl(spent)}</span><span class="cap">de ${cap>0?brl(cap):'—'}</span></div>
+    <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+    <div class="rest">${restTxt}</div></div>`;
+}
+
+/* ============================ Aba: Montar (editor) ============================ */
+function renderMontar(v){
+  const p = curProj();
+  v.appendChild(el(budgetBarHTML(p)));
+
+  const tools = el(`<div class="stage-tools">
+    <button class="btn" id="btPhoto">📷 ${p.bg?'Trocar foto':'Foto do ambiente'}</button>
+    ${p.bg?'<button class="btn" id="btNoPhoto">🗑️ Remover foto</button>':''}
+    <button class="btn primary" id="btAdd">＋ Móveis</button>
+  </div>`);
+  v.appendChild(tools);
+  $('#btPhoto').onclick = ()=> pickPhoto();
+  if($('#btNoPhoto')) $('#btNoPhoto').onclick = ()=>{ p.bg=null; saveState(); render(); };
+  $('#btAdd').onclick = ()=>{ state.ui.tab="catalogo"; render(); };
+
+  const stage = el(`<div class="stage" id="stage">
+    ${p.bg? `<img class="bg" src="${p.bg}" alt="ambiente">` : '<div class="room"></div>'}
+    ${p.items.length===0 && !p.bg ? '<div class="hint">Toque em <b>📷 Foto do ambiente</b> para subir a foto ou planta do lugar,<br>ou em <b>＋ Móveis</b> para começar a montar a decoração.</div>':''}
+    ${p.items.length===0 && p.bg ? '<div class="hint">Agora toque em <b>＋ Móveis</b> e arraste as peças sobre a foto.</div>':''}
+  </div>`);
+  v.appendChild(stage);
+
+  // barra de item selecionado
+  const selbar = el(`<div class="selbar" id="selbar">
+    <span class="nm" id="selName"></span>
+    <button id="selBack" title="Enviar para trás">⬇︎</button>
+    <button id="selFront" title="Trazer para frente">⬆︎</button>
+    <button id="selDup" title="Duplicar">⧉</button>
+  </div>`);
+  v.appendChild(selbar);
+  $('#selBack').onclick = ()=> zChange(-1);
+  $('#selFront').onclick = ()=> zChange(1);
+  $('#selDup').onclick = ()=> dupSel();
+
+  // desenhar peças
+  p.items.slice().sort((a,b)=>a.z-b.z).forEach(it=> stage.appendChild(makeSticker(it)));
+  stage.addEventListener('pointerdown', (e)=>{ if(e.target===stage || e.target.classList.contains('bg') || e.target.classList.contains('room')){ selectItem(null); } });
+  updateSelbar();
+}
+
+function makeSticker(it){
+  const c = catById[it.catId]; if(!c) return el('<div></div>');
+  const s = el(`<div class="sticker" data-id="${it.id}">
+      <div class="art">${iconSvg(c.icon)}</div>
+      <button class="handle h-rot" title="Girar">⟳</button>
+      <button class="handle h-del" title="Remover">✕</button>
+      <button class="handle h-scl" title="Redimensionar">⇲</button>
+    </div>`);
+  applyStyle(s, it);
+  s.querySelector('.art').addEventListener('pointerdown', e=> startDrag(e, it, 'move'));
+  s.querySelector('.h-rot').addEventListener('pointerdown', e=> startDrag(e, it, 'rotate'));
+  s.querySelector('.h-scl').addEventListener('pointerdown', e=> startDrag(e, it, 'scale'));
+  s.querySelector('.h-del').addEventListener('pointerdown', e=>{ e.preventDefault(); e.stopPropagation(); removeItem(it.id); });
+  if(it.id===selId) s.classList.add('sel');
+  return s;
+}
+function applyStyle(s, it){
+  const c = catById[it.catId];
+  const ratio = ICONS[c.icon] ? (ICONS[c.icon].h/ICONS[c.icon].w) : 0.6;
+  s.style.left = (it.cx*100)+'%';
+  s.style.top = (it.cy*100)+'%';
+  s.style.width = (it.wFrac*100)+'%';
+  s.style.zIndex = it.z;
+  s.style.transform = `translate(-50%,-50%) rotate(${it.rot}deg)`;
+  s.querySelector('.art').style.aspectRatio = `${ICONS[c.icon].w} / ${ICONS[c.icon].h}`;
+  void ratio;
+}
+function stickerEl(id){ return document.querySelector(`.sticker[data-id="${id}"]`); }
+
+let drag=null;
+function startDrag(e, it, mode){
+  e.preventDefault(); e.stopPropagation();
+  selectItem(it.id);
+  const stage = $('#stage'); const rect = stage.getBoundingClientRect();
+  const cxp = rect.left + it.cx*rect.width, cyp = rect.top + it.cy*rect.height;
+  drag = { mode, id:it.id, rect, cxp, cyp, sx:e.clientX, sy:e.clientY,
+    o:{cx:it.cx, cy:it.cy, wFrac:it.wFrac, rot:it.rot},
+    d0:Math.hypot(e.clientX-cxp, e.clientY-cyp),
+    a0:Math.atan2(e.clientY-cyp, e.clientX-cxp) };
+  window.addEventListener('pointermove', dragMove);
+  window.addEventListener('pointerup', dragUp, {once:true});
+}
+function dragMove(e){
+  if(!drag) return;
+  const it = curProj().items.find(x=>x.id===drag.id); if(!it) return;
+  if(drag.mode==='move'){
+    it.cx = clamp(drag.o.cx + (e.clientX-drag.sx)/drag.rect.width, 0, 1);
+    it.cy = clamp(drag.o.cy + (e.clientY-drag.sy)/drag.rect.height, 0, 1);
+  } else if(drag.mode==='scale'){
+    const d = Math.hypot(e.clientX-drag.cxp, e.clientY-drag.cyp);
+    it.wFrac = clamp(drag.o.wFrac * (d/(drag.d0||1)), 0.05, 1.6);
+  } else if(drag.mode==='rotate'){
+    const a = Math.atan2(e.clientY-drag.cyp, e.clientX-drag.cxp);
+    let deg = drag.o.rot + (a-drag.a0)*180/Math.PI;
+    const m = ((deg%90)+90)%90;
+    if(m<6 || m>84) deg = Math.round(deg/90)*90;
+    it.rot = deg;
+  }
+  const s = stickerEl(drag.id); if(s) applyStyle(s, it);
+}
+function dragUp(){
+  window.removeEventListener('pointermove', dragMove);
+  drag=null; saveState(); refreshBudget();
+}
+
+function selectItem(id){
+  selId = id;
+  document.querySelectorAll('.sticker').forEach(s=> s.classList.toggle('sel', s.dataset.id===id));
+  updateSelbar();
+}
+function updateSelbar(){
+  const bar = $('#selbar'); if(!bar) return;
+  const it = selId && curProj().items.find(x=>x.id===selId);
+  if(!it){ bar.classList.remove('on'); return; }
+  bar.classList.add('on');
+  $('#selName').textContent = catById[it.catId].name;
+}
+function removeItem(id){
+  const p = curProj(); p.items = p.items.filter(x=>x.id!==id);
+  if(selId===id) selId=null;
+  saveState(); render();
+}
+function zChange(dir){
+  const p = curProj(); const it = p.items.find(x=>x.id===selId); if(!it) return;
+  const zs = p.items.map(x=>x.z);
+  it.z = dir>0 ? Math.max(...zs)+1 : Math.min(...zs)-1;
+  const s = stickerEl(it.id); if(s) s.style.zIndex = it.z;
+  saveState();
+}
+function dupSel(){
+  const p = curProj(); const it = p.items.find(x=>x.id===selId); if(!it) return;
+  const n = {...it, id:uid(), cx:clamp(it.cx+0.06,0,1), cy:clamp(it.cy+0.06,0,1), z:Math.max(...p.items.map(x=>x.z))+1};
+  p.items.push(n); saveState(); render(); selectItem(n.id);
+}
+function refreshBudget(){
+  const bar = document.querySelector('.budget'); if(!bar) return;
+  const p = curProj(); const fresh = el(budgetBarHTML(p));
+  bar.replaceWith(fresh);
+}
+
+function addToScene(catId, silent){
+  const p = curProj(), c = catById[catId];
+  const wFrac = clamp(c.wcm/450, 0.16, 0.72);
+  const z = p.items.length ? Math.max(...p.items.map(i=>i.z))+1 : 1;
+  const it = { id:uid(), catId, cx:0.5+(Math.random()*0.16-0.08), cy:0.56+(Math.random()*0.12-0.06), wFrac, rot:0, z };
+  p.items.push(it); saveState();
+  if(!silent){ state.ui.tab="montar"; render(); selectItem(it.id); toast(`${c.name} adicionado`); }
+}
+
+/* ============================ Aba: Catálogo ============================ */
+function renderCatalogo(v){
+  v.appendChild(el(`<div class="note">💡 Preços são <b>faixas aproximadas</b> (referência) — confira o valor atual na loja pelo botão “Buscar”. Toque em <b>＋ Cena</b> para posicionar a peça na sua foto.</div>`));
+
+  // filtros
+  const f = state.ui;
+  const catList = ["", ...Object.keys(CAT_LABELS)];
+  const catChips = catList.map(k=>`<button class="chip ${f.cat===k?'on':''}" data-cat="${k}">${k===''?'Todos':esc(CAT_LABELS[k])}</button>`).join('');
+  const styleChips = ["", ...Object.keys(STYLE_LABELS)].map(k=>`<button class="chip ${f.estilo===k?'on':''}" data-est="${k}">${k===''?'Todos estilos':esc(STYLE_LABELS[k])}</button>`).join('');
+  const filters = el(`<div class="filters">
+    <div class="chips">${catChips}</div>
+    <div class="chips">${styleChips}</div>
+    <select id="fMax">
+      <option value="0">Qualquer preço por item</option>
+      <option value="300">Até R$ 300</option>
+      <option value="800">Até R$ 800</option>
+      <option value="1500">Até R$ 1.500</option>
+      <option value="3000">Até R$ 3.000</option>
+    </select>
+  </div>`);
+  v.appendChild(filters);
+  filters.querySelectorAll('[data-cat]').forEach(b=> b.onclick=()=>{ f.cat=b.dataset.cat; saveState(); render(); });
+  filters.querySelectorAll('[data-est]').forEach(b=> b.onclick=()=>{ f.estilo=b.dataset.est; saveState(); render(); });
+  const sel=$('#fMax'); sel.value=String(f.maxPreco||0); sel.onchange=()=>{ f.maxPreco=+sel.value; saveState(); render(); };
+
+  let items = CAT.filter(c=>
+    (!f.cat || c.cat===f.cat) &&
+    (!f.estilo || c.styles.includes(f.estilo)) &&
+    (!f.maxPreco || c.min<=f.maxPreco));
+
+  if(items.length===0){ v.appendChild(el(`<div class="empty">Nenhum item com esses filtros.<br>Tente afrouxar o preço ou o estilo.</div>`)); return; }
+
+  const grid = el('<div class="grid"></div>');
+  items.forEach(c=>{
+    const card = el(`<div class="pcard">
+      <div class="thumb">${iconSvg(c.icon)}</div>
+      <div class="pn">${esc(c.name)}</div>
+      <div class="pp">${brlRange(c)}</div>
+      <div class="pmeta">${esc(STORES[c.store].nome)} · ${c.wcm}×${c.hcm} cm</div>
+      <div class="pacts">
+        <button class="btn primary" data-add="${c.id}">＋ Cena</button>
+        <a class="btn" href="${STORES[c.store].url(c.q)}" target="_blank" rel="noopener">Buscar ↗</a>
+      </div>
+    </div>`);
+    card.querySelector('[data-add]').onclick = ()=> addToScene(c.id);
+    grid.appendChild(card);
+  });
+  v.appendChild(grid);
+}
+
+/* ============================ Aba: Orçamento ============================ */
+function renderOrcamento(v){
+  const p = curProj();
+  v.appendChild(el(budgetBarHTML(p)));
+
+  const set = el(`<div class="field">
+    <label>Quanto você quer gastar neste ambiente?</label>
+    <input type="number" id="bInput" inputmode="numeric" value="${p.budget||''}" placeholder="ex: 8000" />
+  </div>`);
+  v.appendChild(set);
+  const bi = $('#bInput');
+  bi.oninput = ()=>{ p.budget = Math.max(0, +bi.value||0); saveState(); refreshBudget(); };
+
+  // por categoria
+  const byCat = {};
+  p.items.forEach(i=>{ const c=catById[i.catId]; byCat[c.cat]=(byCat[c.cat]||0)+midOf(c); });
+  const cats = Object.keys(byCat).sort((a,b)=>byCat[b]-byCat[a]);
+  if(cats.length){
+    const spent = sceneSpent(p);
+    v.appendChild(el('<div class="sec-t">Por categoria</div>'));
+    const box = el('<div></div>');
+    cats.forEach(cat=>{
+      const val = byCat[cat], pct = spent>0? (val/spent*100):0;
+      box.appendChild(el(`<div class="catbar">
+        <div class="cb-top"><b>${esc(CAT_LABELS[cat]||cat)}</b><span>${brl(val)}</span></div>
+        <div class="track"><div class="fill" style="width:${pct}%"></div></div></div>`));
+    });
+    v.appendChild(box);
+  }
+
+  // lista de compras (agrupada)
+  v.appendChild(el('<div class="sec-t">Lista de compras</div>'));
+  const groups = {};
+  p.items.forEach(i=>{ groups[i.catId]=(groups[i.catId]||0)+1; });
+  const gkeys = Object.keys(groups);
+  if(gkeys.length===0){
+    v.appendChild(el(`<div class="empty">Nada na lista ainda.<br>Adicione móveis pelo <b>🛒 Catálogo</b>.</div>`));
+  } else {
+    const list = el('<div class="list"></div>');
+    gkeys.forEach(cid=>{
+      const c = catById[cid], qt = groups[cid];
+      const li = el(`<div class="litem">
+        <div class="ico">${iconSvg(c.icon)}</div>
+        <div class="li-b">
+          <div class="li-n">${esc(c.name)}</div>
+          <div class="li-s">${esc(STORES[c.store].nome)} · ${brlRange(c)} <a href="${STORES[c.store].url(c.q)}" target="_blank" rel="noopener">buscar ↗</a></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button class="qtybtn" data-dec="${cid}">–</button>
+          <b>${qt}</b>
+          <button class="qtybtn" data-inc="${cid}">+</button>
+        </div>
+      </div>`);
+      li.querySelector('[data-inc]').onclick = ()=> addToScene(cid, true) || render();
+      li.querySelector('[data-dec]').onclick = ()=> removeOne(cid);
+      list.appendChild(li);
+    });
+    v.appendChild(list);
+    const copy = el('<button class="btn block" style="margin-top:12px">📋 Copiar lista de compras</button>');
+    copy.onclick = ()=> copyList(p);
+    v.appendChild(copy);
+  }
+
+  // recomendações
+  renderRecs(v, p);
+}
+
+function removeOne(cid){
+  const p = curProj();
+  const idx = p.items.map(i=>i.catId).lastIndexOf(cid);
+  if(idx>=0){ const it=p.items[idx]; if(selId===it.id) selId=null; p.items.splice(idx,1); }
+  saveState(); render();
+}
+
+function renderRecs(v, p){
+  const present = new Set(p.items.map(i=>catById[i.catId].cat));
+  const ess = ROOMS[p.room].ess;
+  const missing = ess.filter(c=>!present.has(c));
+  const remaining = (p.budget||0) - sceneSpent(p);
+
+  // estilo dominante da cena (para priorizar sugestões coerentes)
+  const styleCount={};
+  p.items.forEach(i=> catById[i.catId].styles.forEach(s=> styleCount[s]=(styleCount[s]||0)+1));
+  const domStyle = Object.keys(styleCount).sort((a,b)=>styleCount[b]-styleCount[a])[0];
+
+  v.appendChild(el(`<div class="sec-t">Sugestões para a ${esc(ROOMS[p.room].label.toLowerCase())}</div>`));
+  if(missing.length===0){
+    v.appendChild(el(`<div class="note">✅ Você já tem uma peça de cada categoria essencial deste ambiente. Bom trabalho!</div>`));
+    return;
+  }
+  const faltamTxt = missing.map(c=>esc(CAT_LABELS[c]||c)).join(', ');
+  v.appendChild(el(`<div class="note">Ainda falta: <b>${faltamTxt}</b>.${p.budget>0? (remaining>=0? ` Você tem <b>${brl(remaining)}</b> para completar.` : ` Você já passou do orçamento em <b>${brl(-remaining)}</b>.`) : ''}</div>`));
+
+  const grid = el('<div class="grid"></div>');
+  missing.forEach(cat=>{
+    let opts = CAT.filter(c=>c.cat===cat);
+    // 1) cabe no restante  2) combina com estilo dominante  3) mais barato
+    const fits = opts.filter(c=> p.budget<=0 || c.min<=Math.max(remaining,0));
+    let pool = fits.length? fits : opts;
+    if(domStyle){
+      const styled = pool.filter(c=>c.styles.includes(domStyle));
+      if(styled.length) pool = styled;
+    }
+    const pick = pool.sort((a,b)=>a.min-b.min)[0];
+    if(!pick) return;
+    const fitsBudget = p.budget<=0 || pick.min<=Math.max(remaining,0);
+    const card = el(`<div class="pcard">
+      <div class="thumb">${iconSvg(pick.icon)}</div>
+      <div class="pn">${esc(pick.name)}</div>
+      <div class="pp">${brlRange(pick)}</div>
+      <div class="pmeta">${esc(CAT_LABELS[cat]||cat)}${fitsBudget?'':' · acima do que sobra'}</div>
+      <div class="pacts">
+        <button class="btn primary" data-add="${pick.id}">＋ Cena</button>
+        <a class="btn" href="${STORES[pick.store].url(pick.q)}" target="_blank" rel="noopener">Buscar ↗</a>
+      </div>
+    </div>`);
+    card.querySelector('[data-add]').onclick = ()=> addToScene(pick.id);
+    grid.appendChild(card);
+  });
+  v.appendChild(grid);
+}
+
+function copyList(p){
+  const groups = {};
+  p.items.forEach(i=>{ groups[i.catId]=(groups[i.catId]||0)+1; });
+  let total=0;
+  const lines = Object.keys(groups).map(cid=>{
+    const c=catById[cid], qt=groups[cid]; total += midOf(c)*qt;
+    return `• ${qt}× ${c.name} — ${brlRange(c)} (${STORES[c.store].nome})`;
+  });
+  const txt = `Decoração — ${p.name} (${ROOMS[p.room].label})\n` +
+    lines.join('\n') +
+    `\n\nTotal estimado: ${brl(total)}` + (p.budget>0?` / Orçamento: ${brl(p.budget)}`:'') +
+    `\n(Preços aproximados — confira nas lojas)`;
+  const done = ()=> toast('Lista copiada!');
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done, ()=>fallbackCopy(txt,done)); }
+  else fallbackCopy(txt, done);
+}
+function fallbackCopy(txt, done){
+  const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){ toast('Não foi possível copiar'); }
+  ta.remove();
+}
+
+/* ============================ Aba: Projetos ============================ */
+function renderProjetos(v){
+  v.appendChild(el(`<div class="note">Cada projeto é um ambiente com sua foto, seus móveis e seu orçamento. Crie um para cada cômodo.</div>`));
+  const add = el('<button class="btn primary block" style="margin-bottom:12px">＋ Novo ambiente</button>');
+  add.onclick = ()=> openProjectSheet(null);
+  v.appendChild(add);
+
+  const list = el('<div class="list"></div>');
+  state.projects.forEach(p=>{
+    const spent = sceneSpent(p);
+    const cur = p.id===state.currentId;
+    const li = el(`<div class="litem" style="${cur?'border-color:var(--accent)':''}">
+      <div class="ico">${cur?'📍':'🏠'}</div>
+      <div class="li-b">
+        <div class="li-n">${esc(p.name)} ${cur?'· <span style="color:var(--accent)">atual</span>':''}</div>
+        <div class="li-s">${ROOMS[p.room].label} · ${p.items.length} ${p.items.length===1?'peça':'peças'} · ${brl(spent)}${p.budget>0?' / '+brl(p.budget):''}</div>
+      </div>
+      <button class="qtybtn" data-edit="${p.id}" style="width:auto;padding:0 9px">⋯</button>
+    </div>`);
+    li.onclick = (e)=>{ if(e.target.dataset.edit) return; state.currentId=p.id; state.ui.tab="montar"; selId=null; saveState(); render(); };
+    li.querySelector('[data-edit]').onclick = (e)=>{ e.stopPropagation(); openProjectSheet(p); };
+    list.appendChild(li);
+  });
+  v.appendChild(list);
+}
+
+/* ============================ Modal / sheet ============================ */
+function openSheet(html){ $('#sheet').innerHTML=html; $('#modal').classList.add('on'); }
+function closeSheet(){ $('#modal').classList.remove('on'); }
+$('#modal').addEventListener('click', e=>{ if(e.target.id==='modal') closeSheet(); });
+
+function roomOptions(sel){ return Object.keys(ROOMS).map(k=>`<option value="${k}" ${k===sel?'selected':''}>${esc(ROOMS[k].label)}</option>`).join(''); }
+
+function openProjectSheet(p){
+  const isNew = !p;
+  openSheet(`<h3>${isNew?'Novo ambiente':'Editar ambiente'}</h3>
+    <div class="field"><label>Nome</label><input type="text" id="pName" value="${esc(p?p.name:'')}" placeholder="ex: Sala do apê novo" /></div>
+    <div class="field"><label>Tipo de ambiente</label><select id="pRoom">${roomOptions(p?p.room:'sala')}</select></div>
+    <div class="field"><label>Orçamento (R$)</label><input type="number" id="pBudget" inputmode="numeric" value="${p?p.budget:''}" placeholder="ex: 8000" /></div>
+    <div class="sheet-acts">
+      ${!isNew?'<button class="btn" id="pDel" style="background:var(--over);color:#fff">Excluir</button>':''}
+      <button class="btn primary" id="pSave">${isNew?'Criar':'Salvar'}</button>
+    </div>`);
+  $('#pSave').onclick = ()=>{
+    const name = ($('#pName').value||'').trim() || 'Ambiente';
+    const room = $('#pRoom').value, budget = Math.max(0,+$('#pBudget').value||0);
+    if(isNew){ const np={id:uid(), name, room, budget, bg:null, items:[]}; state.projects.push(np); state.currentId=np.id; state.ui.tab="montar"; }
+    else { p.name=name; p.room=room; p.budget=budget; }
+    saveState(); closeSheet(); selId=null; render();
+  };
+  if($('#pDel')) $('#pDel').onclick = ()=>{
+    if(state.projects.length<=1){ toast('Deixe ao menos um ambiente'); return; }
+    if(!confirm(`Excluir "${p.name}"? Não dá para desfazer.`)) return;
+    state.projects = state.projects.filter(x=>x.id!==p.id);
+    if(state.currentId===p.id) state.currentId=state.projects[0].id;
+    saveState(); closeSheet(); render();
+  };
+}
+
+function openProjPicker(){
+  const rows = state.projects.map(p=>`<button class="btn block" data-pid="${p.id}" style="justify-content:space-between;margin-bottom:8px;${p.id===state.currentId?'border:1px solid var(--accent)':''}">
+    <span>${esc(p.name)} · ${ROOMS[p.room].label}</span><span>${p.id===state.currentId?'📍':'›'}</span></button>`).join('');
+  openSheet(`<h3>Trocar ambiente</h3>${rows}
+    <button class="btn primary block" id="newFromPick" style="margin-top:6px">＋ Novo ambiente</button>`);
+  $('#sheet').querySelectorAll('[data-pid]').forEach(b=> b.onclick=()=>{ state.currentId=b.dataset.pid; state.ui.tab="montar"; selId=null; saveState(); closeSheet(); render(); });
+  $('#newFromPick').onclick = ()=>{ closeSheet(); openProjectSheet(null); };
+}
+$('#projPick').onclick = openProjPicker;
+
+/* ============================ Foto (upload + downscale) ============================ */
+function pickPhoto(){ $('#fileInput').value=''; $('#fileInput').click(); }
+$('#fileInput').addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const max = 1400; let {width:w, height:h} = img;
+      if(w>max || h>max){ const r=Math.min(max/w, max/h); w=Math.round(w*r); h=Math.round(h*r); }
+      const cv = document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      let data; try{ data = cv.toDataURL('image/jpeg', 0.82); }catch(err){ data = reader.result; }
+      curProj().bg = data; saveState(); render(); toast('Foto adicionada');
+    };
+    img.onerror = ()=> toast('Não consegui abrir a imagem');
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ============================ Boot ============================ */
+(async function boot(){
+  state = await loadKey("state", null);
+  if(!state || !state.projects || !state.projects.length) state = defaultState();
+  if(!state.ui) state.ui = {tab:"montar", cat:"", estilo:"", maxPreco:0};
+  if(!ROOMS[curProj().room]) curProj().room="sala";
+  render();
+})();
+</script>
+</body>
+</html>

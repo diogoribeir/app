@@ -8,7 +8,7 @@
 
 ---
 
-## 🗂️ Catálogo de apps (atualizado em 18/07/2026)
+## 🗂️ Catálogo de apps (atualizado em 20/07/2026)
 
 **Página inicial (lista todos):** https://diogoribeir.github.io/app/
 
@@ -18,6 +18,7 @@
 | 📊 Roteiro Paris (Diogo) | https://diogoribeir.github.io/app/roteiro-paris/ | `roteiro-paris/` | RTDB `planos/<código-da-viagem>` (código no app) |
 | ✈️ Paris Trip Planner (Tati) | https://diogoribeir.github.io/app/paris-planner/ | `paris-planner/` (build) + `paris-planner-src/` (fonte) | RTDB `planos/paris-planner-dt2026` |
 | 🎮 Perfil Gamer | https://diogoribeir.github.io/app/perfil-gamer/ | `perfil-gamer/` (app) + `perfil-gamer-src/` (dados) | RTDB `planos/perfil-gamer-dt2026` (nuvem = fonte da verdade; `dados.js` = seed) |
+| 🛋️ Decora (decoração + orçamento) | https://diogoribeir.github.io/app/decoracao/ | `decoracao/` | RTDB `planos/decoracao-dt2026` (sem login; catálogo curado no próprio arquivo) |
 | 🇫🇷 Lingo (francês) | https://lingo-liard-kappa.vercel.app | `lingo-src/` (fonte Next.js) | Sem nuvem de dados (progresso local) · **Hospedado no VERCEL** (tem servidor: tutor + senha) — NÃO deletar o projeto `lingo` no Vercel |
 
 ### Infraestrutura fixa
