@@ -140,8 +140,16 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Filosofia (respeitar):** **preços são faixas aproximadas** (referência), nunca valor exato
   fingindo precisão — o botão "Buscar" leva à busca na loja para conferir o preço atual. Nada de
   inventar produto/preço. O catálogo é curado em `CAT` (loja + faixa BRL + estilo + dimensões cm).
-- **Dados 3D-ready:** cada peça guarda dimensões (cm), posição (fração), escala e rotação — o modelo
-  de cena foi pensado para uma futura **vista de planta 2D / 3D** reaproveitar os mesmos dados.
+- **Planta 2D (vista de cima, à escala):** no Montar há o alternador **📷 Foto / 📐 Planta**. Na planta,
+  o cômodo é desenhado à escala real (`roomW`×`roomL` em metros, com grade de 1 m) e cada móvel vira uma
+  **pegada** largura×profundidade (`CAT_DEPTH` por categoria, ou `dcm` do produto). Arrasta para mover,
+  **⟳ 90°** para girar; peça que passa das paredes fica **vermelha** ("não cabe assim") e mostra o
+  **% de piso ocupado**. Reaproveita `p.items` (campos `px,py,prot`) — orçamento/lista não mudam.
+- **Remoção de fundo (beta):** ao cadastrar um produto com foto, o botão **✂️ Remover fundo** faz um
+  flood-fill por tolerância a partir das bordas (`removeBgFromDataURL`) — bom para foto de produto em
+  fundo branco/liso; gera PNG transparente para colar limpo na cena.
+- **Dados 3D-ready:** cada peça guarda dimensões (largura/altura/profundidade em cm), posição (fração),
+  escala e rotação — a planta 2D já usa esses dados e uma futura **vista 3D** reaproveita o mesmo modelo.
 - **Sincronização:** Realtime Database via REST, nó **`planos/decoracao-dt2026`** (receita 1) — a
   nuvem é a fonte; localStorage é a cópia offline; recarrega ao voltar se houver gravação mais nova.
   As fotos do ambiente entram no `state` como dataURL (reduzidas a ~1400px/JPEG antes de salvar).

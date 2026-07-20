@@ -11,7 +11,7 @@
     --accent:#C57B4E; --accent-ink:#fff; --hero:#2A2320; --hero-ink:#F4EEE4;
     --ok:#3E8E5A; --warn:#C99A2E; --over:#C4553D;
     --chip:#EFE7DB; --shadow:0 8px 24px rgba(42,35,32,.10);
-    --stage:#DED4C6;
+    --stage:#DED4C6; --gridline:rgba(0,0,0,.09);
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -19,7 +19,7 @@
       --accent:#E09A64; --accent-ink:#1a120c; --hero:#0F0C0A; --hero-ink:#F4EEE4;
       --ok:#5BB37C; --warn:#E0B95A; --over:#E0765C;
       --chip:#251E19; --shadow:0 8px 24px rgba(0,0,0,.45);
-      --stage:#2A231D;
+      --stage:#2A231D; --gridline:rgba(255,255,255,.09);
     }
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -88,6 +88,27 @@
   /* Section titles */
   .sec-t{font-weight:800;font-size:1rem;margin:18px 2px 10px}
   .note{font-size:.76rem;color:var(--muted);background:var(--chip);border-radius:10px;padding:8px 10px;line-height:1.4;margin-bottom:12px}
+
+  /* Segmented toggle (Foto / Planta) */
+  .seg{display:flex;gap:5px;background:var(--chip);border-radius:12px;padding:4px;margin-bottom:12px}
+  .seg button{flex:1;padding:9px;border-radius:9px;font-weight:800;font-size:.86rem;color:var(--muted)}
+  .seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+
+  /* Planta (vista de cima, à escala) */
+  .stage.planta{background:var(--stage);display:block}
+  .floor{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card);
+    border:2px solid var(--muted);border-radius:4px;touch-action:none;box-shadow:inset 0 0 0 1px var(--line)}
+  .footprint{position:absolute;transform:translate(-50%,-50%);background:rgba(197,123,78,.88);
+    border:1.5px solid rgba(255,255,255,.9);border-radius:4px;display:grid;place-items:center;overflow:hidden;
+    touch-action:none;color:#fff;box-shadow:0 2px 5px rgba(0,0,0,.25)}
+  .footprint.sel{outline:2px dashed var(--ink);outline-offset:2px;z-index:6}
+  .footprint.out{background:rgba(196,85,61,.92);border-color:#fff}
+  .footprint .fpn{font-size:.58rem;font-weight:700;padding:0 3px;text-align:center;line-height:1.05;
+    max-height:100%;overflow:hidden;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+  .dim{position:absolute;font-size:.64rem;font-weight:800;color:var(--muted);background:var(--card);
+    padding:0 4px;border-radius:5px;opacity:.9}
+  .dim-w{top:3px;left:50%;transform:translateX(-50%)}
+  .dim-l{left:3px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl}
 
   /* Filters */
   .filters{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
@@ -316,6 +337,10 @@ const CAT_LABELS = { sofa:"Sofá", poltrona:"Poltrona", "mesa-centro":"Mesa de c
 const CAT_ICON = { sofa:"sofa", poltrona:"poltrona", "mesa-centro":"mesaCentro", rack:"rack", estante:"estante",
   cama:"cama", "guarda-roupa":"armario", criado:"criado", "mesa-jantar":"mesaJantar", cadeira:"cadeira",
   luminaria:"lampFloor", tapete:"tapete", cortina:"cortina", decoracao:"quadro", escrivaninha:"escrivaninha" };
+/* profundidade típica (cm, vista de cima) por categoria — usada na PLANTA 2D e pronta p/ feed futuro */
+const CAT_DEPTH = { sofa:90, poltrona:85, "mesa-centro":60, rack:40, estante:35, cama:200, "guarda-roupa":60,
+  criado:40, "mesa-jantar":90, cadeira:45, luminaria:40, tapete:160, cortina:15, decoracao:30, escrivaninha:60 };
+function depthOf(c){ return (c && c.dcm) ? c.dcm : (CAT_DEPTH[c && c.cat] || 60); }
 
 /* Resolve um item por id — catálogo embutido OU produto adicionado pelo usuário (state.custom). */
 function def(id){ return catById[id] || ((state && state.custom) ? state.custom.find(c=>c.id===id) : null) || null; }
@@ -337,8 +362,8 @@ let state = null;
 function defaultState(){
   const pid = uid();
   return { v:1, currentId:pid, custom:[],
-    ui:{ tab:"montar", cat:"", estilo:"", maxPreco:0 },
-    projects:[ { id:pid, name:"Minha Sala", room:"sala", budget:8000, bg:null, items:[] } ] };
+    ui:{ tab:"montar", view:"foto", cat:"", estilo:"", maxPreco:0 },
+    projects:[ { id:pid, name:"Minha Sala", room:"sala", budget:8000, bg:null, roomW:4, roomL:3.5, items:[] } ] };
 }
 function curProj(){ return state.projects.find(p=>p.id===state.currentId) || state.projects[0]; }
 function sceneSpent(p){ return p.items.reduce((s,i)=> s + midOf(def(i.catId)||{min:0,max:0}), 0); }
@@ -390,6 +415,19 @@ function renderMontar(v){
   const p = curProj();
   v.appendChild(el(budgetBarHTML(p)));
 
+  // alternador de visão: Foto (colagem) x Planta (vista de cima, cabe/não cabe)
+  const seg = el(`<div class="seg">
+    <button data-view="foto" class="${state.ui.view==='foto'?'on':''}">📷 Foto</button>
+    <button data-view="planta" class="${state.ui.view==='planta'?'on':''}">📐 Planta</button>
+  </div>`);
+  v.appendChild(seg);
+  seg.querySelectorAll('[data-view]').forEach(b=> b.onclick=()=>{ state.ui.view=b.dataset.view; selId=null; saveState(); render(); });
+
+  if(state.ui.view==='planta') return renderPlanta(v, p);
+  renderFotoEditor(v, p);
+}
+
+function renderFotoEditor(v, p){
   const tools = el(`<div class="stage-tools">
     <button class="btn" id="btPhoto">📷 ${p.bg?'Trocar foto':'Foto do ambiente'}</button>
     ${p.bg?'<button class="btn" id="btNoPhoto">🗑️ Remover foto</button>':''}
@@ -423,6 +461,129 @@ function renderMontar(v){
   p.items.slice().sort((a,b)=>a.z-b.z).forEach(it=> stage.appendChild(makeSticker(it)));
   stage.addEventListener('pointerdown', (e)=>{ if(e.target===stage || e.target.classList.contains('bg') || e.target.classList.contains('room')){ selectItem(null); } });
   updateSelbar();
+}
+
+/* ---------- Planta 2D (vista de cima, à escala real) ---------- */
+const fmtM = n => (Math.round((n||0)*10)/10).toString().replace('.', ',');
+
+function renderPlanta(v, p){
+  const tools = el(`<div class="stage-tools">
+    <button class="btn" id="btRoom">📐 Cômodo: ${fmtM(p.roomW)} × ${fmtM(p.roomL)} m</button>
+    <button class="btn primary" id="btAddP">＋ Móveis</button>
+  </div>`);
+  v.appendChild(tools);
+  $('#btRoom').onclick = ()=> openRoomSheet(p);
+  $('#btAddP').onclick = ()=>{ state.ui.tab="catalogo"; render(); };
+
+  if(autoPlacePlan(p)) saveState();
+
+  const stage = el('<div class="stage planta" id="stage"></div>');
+  v.appendChild(stage);
+  const floor = el(`<div class="floor" id="floor"><span class="dim dim-w">${fmtM(p.roomW)} m</span><span class="dim dim-l">${fmtM(p.roomL)} m</span></div>`);
+  stage.appendChild(floor);
+  layoutFloor(stage, floor, p);
+  floor.style.backgroundImage = 'linear-gradient(to right, var(--gridline) 1px, transparent 1px),linear-gradient(to bottom, var(--gridline) 1px, transparent 1px)';
+  floor.style.backgroundSize = (100/p.roomW)+'% '+(100/p.roomL)+'%';
+
+  if(p.items.length===0){
+    floor.appendChild(el('<div class="hint" style="position:absolute;inset:0">Adicione móveis pelo <b>＋ Móveis</b> — eles aparecem aqui à escala real do cômodo.</div>'));
+  }
+  p.items.forEach(it=> floor.appendChild(makeFootprint(it, p)));
+  stage.addEventListener('pointerdown', (e)=>{ if(e.target===stage || e.target===floor || e.target.classList.contains('dim') || e.target.classList.contains('hint')) selectItem(null); });
+
+  const selbar = el(`<div class="selbar" id="selbar">
+    <span class="nm" id="selName"></span>
+    <button id="selRot90" title="Girar 90°">⟳ 90°</button>
+    <button id="selDel" title="Remover">🗑️</button>
+  </div>`);
+  v.appendChild(selbar);
+  $('#selRot90').onclick = ()=> rot90();
+  $('#selDel').onclick = ()=>{ if(selId) removeItem(selId); };
+
+  const u = planUsage(p);
+  v.appendChild(el(`<div class="note" style="margin-top:10px">
+    🧭 Vista de cima à escala — arraste as peças e use <b>⟳ 90°</b> para girar.
+    Piso ocupado: <b>${u.pct}%</b> (${fmtM(u.area)} de ${fmtM(p.roomW*p.roomL)} m²).
+    ${u.out>0 ? `<br><span style="color:var(--over)">⚠️ ${u.out} peça(s) passando das paredes — não cabe assim.</span>` : ''}
+  </div>`));
+  updateSelbar();
+}
+
+function layoutFloor(stage, floor, p){
+  const r = stage.getBoundingClientRect();
+  const sw=r.width, sh=r.height;
+  if(!sw || !sh){ floor.style.width='92%'; floor.style.height='92%'; return; }
+  const ra=p.roomW/p.roomL, sa=sw/sh;
+  let fw, fh;
+  if(ra>=sa){ fw=sw*0.94; fh=fw/ra; } else { fh=sh*0.94; fw=fh*ra; }
+  floor.style.width=(fw/sw*100)+'%';
+  floor.style.height=(fh/sh*100)+'%';
+}
+function footExtent(it, p){ // extensão (fração do cômodo) já considerando rotação 90°
+  const c=def(it.catId); if(!c) return {w:0,h:0};
+  const rot = (Math.round(((it.prot||0)%180)/90)%2)===1;
+  const wM=(rot?depthOf(c):c.wcm)/100, hM=(rot?c.wcm:depthOf(c))/100;
+  return { w: wM/p.roomW, h: hM/p.roomL };
+}
+function isOut(it, p){
+  const e=footExtent(it,p); const cx=(it.px==null?0.5:it.px), cy=(it.py==null?0.5:it.py);
+  return (cx-e.w/2 < -0.002) || (cx+e.w/2 > 1.002) || (cy-e.h/2 < -0.002) || (cy+e.h/2 > 1.002);
+}
+function makeFootprint(it, p){
+  const c=def(it.catId); if(!c) return el('<div></div>');
+  const e=footExtent(it,p);
+  const f=el(`<div class="footprint ${isOut(it,p)?'out':''} ${it.id===selId?'sel':''}" data-id="${it.id}"
+      style="left:${(it.px==null?0.5:it.px)*100}%;top:${(it.py==null?0.5:it.py)*100}%;width:${clamp(e.w*100,2,100)}%;height:${clamp(e.h*100,2,100)}%">
+      <span class="fpn">${esc(c.name)}</span></div>`);
+  f.addEventListener('pointerdown', ev=> startPlanDrag(ev, it, p));
+  return f;
+}
+let pdrag=null;
+function startPlanDrag(e, it, p){
+  e.preventDefault(); e.stopPropagation();
+  selectItem(it.id);
+  const floor=$('#floor'); const r=floor.getBoundingClientRect();
+  pdrag={ id:it.id, r, sx:e.clientX, sy:e.clientY, ox:(it.px==null?0.5:it.px), oy:(it.py==null?0.5:it.py) };
+  window.addEventListener('pointermove', planMove);
+  window.addEventListener('pointerup', planUp, {once:true});
+}
+function planMove(e){
+  if(!pdrag) return; const p=curProj(); const it=p.items.find(x=>x.id===pdrag.id); if(!it) return;
+  it.px=clamp(pdrag.ox+(e.clientX-pdrag.sx)/pdrag.r.width, 0, 1);
+  it.py=clamp(pdrag.oy+(e.clientY-pdrag.sy)/pdrag.r.height, 0, 1);
+  const f=document.querySelector(`.footprint[data-id="${pdrag.id}"]`);
+  if(f){ f.style.left=(it.px*100)+'%'; f.style.top=(it.py*100)+'%'; f.classList.toggle('out', isOut(it,p)); }
+}
+function planUp(){ window.removeEventListener('pointermove', planMove); pdrag=null; saveState(); render(); }
+function rot90(){ const it=curProj().items.find(x=>x.id===selId); if(!it) return; it.prot=(((it.prot||0)+90)%360); saveState(); render(); }
+function autoPlacePlan(p){
+  const need=p.items.filter(it=> it.px==null || it.py==null);
+  if(!need.length) return false;
+  const cols=Math.max(1, Math.ceil(Math.sqrt(p.items.length)));
+  let i=p.items.filter(it=> it.px!=null).length;
+  need.forEach(it=>{
+    const col=i%cols, row=Math.floor(i/cols);
+    it.px=clamp((col+0.5)/cols, 0.1, 0.9);
+    it.py=clamp((row+0.5)/cols, 0.1, 0.9);
+    if(it.prot==null) it.prot=0;
+    i++;
+  });
+  return true;
+}
+function planUsage(p){
+  let area=0, out=0;
+  p.items.forEach(it=>{ const c=def(it.catId); if(!c) return; area+=(c.wcm/100)*(depthOf(c)/100); if(isOut(it,p)) out++; });
+  return { area, pct:Math.round(area/Math.max(p.roomW*p.roomL,0.01)*100), out };
+}
+function openRoomSheet(p){
+  openSheet(`<h3>Dimensões do cômodo</h3>
+    <div class="two">
+      <div class="field"><label>Largura (m)</label><input type="number" step="0.1" id="rW" value="${p.roomW}" /></div>
+      <div class="field"><label>Comprimento (m)</label><input type="number" step="0.1" id="rL" value="${p.roomL}" /></div>
+    </div>
+    <div class="note">Meça as paredes do cômodo. Os móveis aparecem à escala real; se uma peça passar das paredes, ela fica vermelha (não cabe assim).</div>
+    <div class="sheet-acts"><button class="btn primary" id="rSave">Salvar</button></div>`);
+  $('#rSave').onclick = ()=>{ p.roomW=clamp(+$('#rW').value||4,1,40); p.roomL=clamp(+$('#rL').value||3.5,1,40); saveState(); closeSheet(); render(); };
 }
 
 function makeSticker(it){
@@ -490,7 +651,7 @@ function dragUp(){
 
 function selectItem(id){
   selId = id;
-  document.querySelectorAll('.sticker').forEach(s=> s.classList.toggle('sel', s.dataset.id===id));
+  document.querySelectorAll('.sticker,.footprint').forEach(s=> s.classList.toggle('sel', s.dataset.id===id));
   updateSelbar();
 }
 function updateSelbar(){
@@ -775,6 +936,10 @@ function openProjectSheet(p){
     <div class="field"><label>Nome</label><input type="text" id="pName" value="${esc(p?p.name:'')}" placeholder="ex: Sala do apê novo" /></div>
     <div class="field"><label>Tipo de ambiente</label><select id="pRoom">${roomOptions(p?p.room:'sala')}</select></div>
     <div class="field"><label>Orçamento (R$)</label><input type="number" id="pBudget" inputmode="numeric" value="${p?p.budget:''}" placeholder="ex: 8000" /></div>
+    <div class="two">
+      <div class="field"><label>Largura (m)</label><input type="number" step="0.1" id="pRW" value="${p?p.roomW:'4'}" placeholder="4" /></div>
+      <div class="field"><label>Comprimento (m)</label><input type="number" step="0.1" id="pRL" value="${p?p.roomL:'3.5'}" placeholder="3.5" /></div>
+    </div>
     <div class="sheet-acts">
       ${!isNew?'<button class="btn" id="pDel" style="background:var(--over);color:#fff">Excluir</button>':''}
       <button class="btn primary" id="pSave">${isNew?'Criar':'Salvar'}</button>
@@ -782,8 +947,9 @@ function openProjectSheet(p){
   $('#pSave').onclick = ()=>{
     const name = ($('#pName').value||'').trim() || 'Ambiente';
     const room = $('#pRoom').value, budget = Math.max(0,+$('#pBudget').value||0);
-    if(isNew){ const np={id:uid(), name, room, budget, bg:null, items:[]}; state.projects.push(np); state.currentId=np.id; state.ui.tab="montar"; }
-    else { p.name=name; p.room=room; p.budget=budget; }
+    const roomW = clamp(+$('#pRW').value||4,1,40), roomL = clamp(+$('#pRL').value||3.5,1,40);
+    if(isNew){ const np={id:uid(), name, room, budget, bg:null, roomW, roomL, items:[]}; state.projects.push(np); state.currentId=np.id; state.ui.tab="montar"; }
+    else { p.name=name; p.room=room; p.budget=budget; p.roomW=roomW; p.roomL=roomL; }
     saveState(); closeSheet(); selId=null; render();
   };
   if($('#pDel')) $('#pDel').onclick = ()=>{
@@ -847,12 +1013,15 @@ function openProdSheet(prod){
     <div class="field"><label>Categoria</label><select id="qCat">${catOpts}</select></div>
     <div class="field"><label>Estilo (opcional)</label><div class="chips" id="qStyles">${styleChipsHTML(prodDraft.styles)}</div></div>
     <div class="two">
-      <div class="field"><label>Largura (cm, opcional)</label><input type="number" id="qW" inputmode="numeric" value="${prod&&prod.wcm?prod.wcm:''}" placeholder="200" /></div>
-      <div class="field"><label>Altura (cm, opcional)</label><input type="number" id="qH" inputmode="numeric" value="${prod&&prod.hcm?prod.hcm:''}" placeholder="90" /></div>
+      <div class="field"><label>Largura (cm)</label><input type="number" id="qW" inputmode="numeric" value="${prod&&prod.wcm?prod.wcm:''}" placeholder="200" /></div>
+      <div class="field"><label>Profund. (cm)</label><input type="number" id="qD" inputmode="numeric" value="${prod&&prod.dcm?prod.dcm:''}" placeholder="90" /></div>
+      <div class="field"><label>Altura (cm)</label><input type="number" id="qH" inputmode="numeric" value="${prod&&prod.hcm?prod.hcm:''}" placeholder="85" /></div>
     </div>
-    <div class="field"><label>Foto do produto (recomendado — PNG com fundo transparente fica melhor)</label>
+    <div class="field"><label>Foto do produto (recomendado)</label>
       <button type="button" class="btn block" id="qPickImg">🖼️ Escolher foto</button>
       <div class="imgprev" id="qPrev">${prodDraft.img?`<img src="${prodDraft.img}">`:'<span class="ph">sem foto — vai usar uma silhueta</span>'}</div>
+      <button type="button" class="btn block" id="qRemoveBg" style="margin-top:6px;${prodDraft.img?'':'display:none'}">✂️ Remover fundo (beta)</button>
+      <div class="ph" style="font-size:.72rem;margin-top:4px">Dica: “Remover fundo” funciona melhor em foto de produto com fundo branco/liso.</div>
     </div>
     <div class="sheet-acts">
       ${!isNew?'<button class="btn" id="qDel" style="background:var(--over);color:#fff">Excluir</button>':''}
@@ -864,17 +1033,28 @@ function openProdSheet(prod){
     b.classList.toggle('on');
   });
   $('#qPickImg').onclick = ()=> pickProdImg();
+  $('#qRemoveBg').onclick = ()=>{
+    if(!prodDraft.img){ toast('Escolha uma foto primeiro'); return; }
+    const btn=$('#qRemoveBg'); btn.textContent='… processando'; btn.disabled=true;
+    removeBgFromDataURL(prodDraft.img, (out,w,h)=>{
+      btn.disabled=false; btn.textContent='✂️ Remover fundo (beta)';
+      if(!out){ toast('Não consegui processar'); return; }
+      prodDraft.img=out; if(w) prodDraft.imgW=w; if(h) prodDraft.imgH=h;
+      const prev=$('#qPrev'); if(prev) prev.innerHTML=`<img src="${out}">`;
+      toast('Fundo removido');
+    });
+  };
   $('#qSave').onclick = ()=>{
     const name=($('#qName').value||'').trim();
     if(!name){ toast('Dê um nome ao produto'); return; }
     let mn=Math.max(0,+$('#qMin').value||0), mx=Math.max(0,+$('#qMax').value||0);
     if(!mx) mx=mn; if(mx<mn){ const t=mn; mn=mx; mx=t; }
     const cat=$('#qCat').value;
-    const wcm=Math.max(0,+$('#qW').value||0), hcm=Math.max(0,+$('#qH').value||0);
+    const wcm=Math.max(0,+$('#qW').value||0), hcm=Math.max(0,+$('#qH').value||0), dcm=Math.max(0,+$('#qD').value||0);
     const rec = { custom:true, name, min:mn, max:mx,
       storeName:($('#qStore').value||'').trim(), url:($('#qUrl').value||'').trim(),
       cat, icon:CAT_ICON[cat]||'mesaCentro', styles:[...prodDraft.styles],
-      wcm:wcm||100, hcm:hcm||100, img:prodDraft.img||null, imgW:prodDraft.imgW||0, imgH:prodDraft.imgH||0 };
+      wcm:wcm||100, hcm:hcm||100, dcm:dcm||0, img:prodDraft.img||null, imgW:prodDraft.imgW||0, imgH:prodDraft.imgH||0 };
     if(isNew){ rec.id=uid(); state.custom.push(rec); }
     else { Object.assign(prod, rec); }
     saveState(); closeSheet(); render();
@@ -902,6 +1082,7 @@ $('#prodImgInput').addEventListener('change',(e)=>{
       let data; try{ data=cv.toDataURL('image/png'); }catch(err){ data=reader.result; }
       prodDraft.img=data; prodDraft.imgW=w; prodDraft.imgH=h;
       const prev=$('#qPrev'); if(prev) prev.innerHTML=`<img src="${data}">`;
+      const rb=$('#qRemoveBg'); if(rb) rb.style.display='flex';
       toast('Foto carregada');
     };
     img.onerror=()=> toast('Não consegui abrir a imagem');
@@ -910,12 +1091,52 @@ $('#prodImgInput').addEventListener('change',(e)=>{
   reader.readAsDataURL(file);
 });
 
+/* Remove o fundo conectado às bordas (flood fill por tolerância). Bom p/ foto de produto em fundo liso. */
+function removeBgFromDataURL(dataURL, cb){
+  const img=new Image();
+  img.onload=()=>{
+    let w=img.naturalWidth, h=img.naturalHeight;
+    const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+    const ctx=cv.getContext('2d'); ctx.drawImage(img,0,0);
+    let id; try{ id=ctx.getImageData(0,0,w,h); }catch(e){ cb(null); return; }
+    const d=id.data;
+    const corners=[[0,0],[w-1,0],[0,h-1],[w-1,h-1]];
+    let br=0,bg=0,bb=0; corners.forEach(([x,y])=>{ const o=(y*w+x)*4; br+=d[o]; bg+=d[o+1]; bb+=d[o+2]; });
+    br/=4; bg/=4; bb/=4;
+    const TH=6000; // ~45 por canal
+    const visited=new Uint8Array(w*h);
+    const stack=[];
+    for(let x=0;x<w;x++){ stack.push(x, (h-1)*w+x); }
+    for(let y=0;y<h;y++){ stack.push(y*w, y*w+w-1); }
+    while(stack.length){
+      const idx=stack.pop();
+      if(visited[idx]) continue; visited[idx]=1;
+      const o=idx*4;
+      const dr=d[o]-br, dg=d[o+1]-bg, db=d[o+2]-bb;
+      if(dr*dr+dg*dg+db*db > TH) continue; // não é fundo → não propaga
+      d[o+3]=0;
+      const x=idx%w, y=(idx/w)|0;
+      if(x>0 && !visited[idx-1]) stack.push(idx-1);
+      if(x<w-1 && !visited[idx+1]) stack.push(idx+1);
+      if(y>0 && !visited[idx-w]) stack.push(idx-w);
+      if(y<h-1 && !visited[idx+w]) stack.push(idx+w);
+    }
+    ctx.putImageData(id,0,0);
+    let out; try{ out=cv.toDataURL('image/png'); }catch(e){ out=dataURL; }
+    cb(out, w, h);
+  };
+  img.onerror=()=> cb(null);
+  img.src=dataURL;
+}
+
 /* ============================ Boot ============================ */
 (async function boot(){
   state = await loadKey("state", null);
   if(!state || !state.projects || !state.projects.length) state = defaultState();
-  if(!state.ui) state.ui = {tab:"montar", cat:"", estilo:"", maxPreco:0};
+  if(!state.ui) state.ui = {tab:"montar", view:"foto", cat:"", estilo:"", maxPreco:0};
+  if(!state.ui.view) state.ui.view = "foto";
   if(!Array.isArray(state.custom)) state.custom = [];
+  state.projects.forEach(p=>{ if(!p.roomW) p.roomW=4; if(!p.roomL) p.roomL=3.5; });
   if(!ROOMS[curProj().room]) curProj().room="sala";
   render();
 })();
