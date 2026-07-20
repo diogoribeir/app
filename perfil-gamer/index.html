@@ -321,6 +321,7 @@ function vpill(v){
            : `<span class="vpill">sem veredicto</span>`;
 }
 function custoHora(g){ return g.horas>0 ? (CUSTO/g.horas) : null; }
+function horasOcultas(g){ return /FINAL FANTASY XIV/i.test(g.nome||""); }
 function fmtCH(c){ return c==null?"—":("R$ "+c.toFixed(2).replace(".",",")+"/h"); }
 
 /* ---------- aba Jogos ---------- */
@@ -333,7 +334,7 @@ function gameCard(g){
     <summary>
       <div class="grow"><div class="gname">${esc(g.nome)}</div>${vpill(g.v)}</div>
       <div class="gmeta">
-        <span class="hrs num">⏱ ${g.horas}h</span>
+        ${horasOcultas(g)?"":`<span class="hrs num">⏱ ${g.horas}h</span>`}
         <span>${statusTxt(g.enc)}</span>
         <span>${esc((g.genres||"").split(",")[0].trim())}</span>
         ${g.w>=2?`<span>♥ ${g.w}×</span>`:""}
@@ -341,8 +342,8 @@ function gameCard(g){
     </summary>
     <div class="gbody">
       <div class="row">
-        <span class="stat"><b class="num">${fmtCH(ch)}</b>custo/hora</span>
-        <span class="stat"><b class="num">${g.horas}h</b>tempo total</span>
+        ${horasOcultas(g)?"":`<span class="stat"><b class="num">${fmtCH(ch)}</b>custo/hora</span>
+        <span class="stat"><b class="num">${g.horas}h</b>tempo total</span>`}
         <span class="stat"><b>${esc(g.genres||"—")}</b>gêneros</span>
       </div>
       ${g.motivo?`<div class="gnote"><b>Motivo do drop:</b> ${esc(g.motivo)}</div>`:""}
@@ -367,7 +368,7 @@ function viewJogos(){
   };
   lst.sort(ords[ordem]||ords.horas);
 
-  const tot=J.length, hrs=J.reduce((s,g)=>s+g.horas,0);
+  const tot=J.length;
   const comp=J.filter(g=>g.enc==="S").length, drop=J.filter(g=>g.enc==="N").length;
   const agora = J.filter(g=>g.enc==="#");
   const hero = agora.length ? `
@@ -377,7 +378,7 @@ function viewJogos(){
         <div class="hbody">
           <div class="tagline">Jogando agora</div>
           <div class="hname">${esc(agora[0].nome)}</div>
-          <div class="hmeta num">⏱ ${agora[0].horas}h${agora[0].obs?` · ${esc(agora[0].obs.split("·")[0].trim())}`:""}${agora.length>1?` · +${agora.length-1} em progresso`:""}</div>
+          <div class="hmeta num">${horasOcultas(agora[0])?"":`⏱ ${agora[0].horas}h · `}${agora[0].obs?`${esc(agora[0].obs.split("·")[0].trim())}`:""}${agora.length>1?` · +${agora.length-1} em progresso`:""}</div>
         </div>
         <span class="hgo">›</span>
       </div>
@@ -386,7 +387,6 @@ function viewJogos(){
   return `${hero}
   <div class="strip">
     <div class="cell"><div class="v num">${tot}</div><div class="k">jogos</div></div>
-    <div class="cell"><div class="v num">${Math.round(hrs).toLocaleString("pt-BR")}h</div><div class="k">horas</div></div>
     <div class="cell"><div class="v num">${Math.round(comp/tot*100)}%</div><div class="k">zerados</div></div>
     <div class="cell"><div class="v num">${Math.round(drop/tot*100)}%</div><div class="k">drop</div></div>
   </div>
@@ -419,7 +419,7 @@ function viewStats(){
     <div class="bar"><div class="lbl" style="color:${VC[v][0]}">${VC[v][2]} ${v}</div>
       <div class="track"><div class="fill" style="width:${Math.max(dist[v]/maxD*100,6)}%;background:${VC[v][0]}">${dist[v]||""}</div></div>
       <div class="val num">${Math.round(dist[v]/(rated.length||1)*100)}%</div></div>`).join("");
-  const top = J.slice().sort((a,b)=>b.horas-a.horas).slice(0,10).map((g,i)=>
+  const top = J.slice().filter(g=>!horasOcultas(g)).sort((a,b)=>b.horas-a.horas).slice(0,10).map((g,i)=>
     `<div class="rowline"><span class="pos num">${i+1}</span>
       <span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
       <span class="nm">${esc(g.nome)}</span><span class="hv num">${g.horas}h</span></div>`).join("");
@@ -427,7 +427,7 @@ function viewStats(){
   J.forEach(g=>{ const k=(g.genres||"?").split(",")[0].trim(); (gen[k]=gen[k]||[]).push(g); });
   const genRows = Object.entries(gen).sort((a,b)=>b[1].length-a[1].length).slice(0,10).map(([k,v])=>{
     const c=v.filter(x=>x.enc==="S").length, d=v.filter(x=>x.enc==="N").length, fin=Math.max(c+d,1);
-    const hrs=v.reduce((s,x)=>s+x.horas,0);
+    const hrs=v.reduce((s,x)=>s+(horasOcultas(x)?0:x.horas),0);
     return `<div class="gcell"><div class="t">${esc(k)}</div>
       <div class="n num">${v.length} jogos · ${Math.round(hrs).toLocaleString("pt-BR")}h<br>zera ${Math.round(c/fin*100)}% · dropa ${Math.round(d/fin*100)}%</div></div>`;
   }).join("");
