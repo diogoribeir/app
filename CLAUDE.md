@@ -131,6 +131,12 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   preço aproximada, loja e link de busca; filtros por categoria/estilo/preço) · 💰 **Orçamento**
   (teto por ambiente, gasto x meta, gasto por categoria, lista de compras, **recomendações
   determinísticas** do que falta e cabe no orçamento) · 🗂️ **Projetos** (um ambiente por cômodo).
+- **Produtos do usuário (`state.custom`):** botão "➕ Adicionar produto de uma loja" no Catálogo — a
+  pessoa cadastra um produto real (nome, faixa/preço, loja, link, categoria, estilo, dimensões e
+  **foto**). Ele entra no catálogo com selo "meu" e pode ser **colado na foto com a imagem real**
+  (não só a silhueta). Fotos de produto são reduzidas a ~700px/PNG (preserva recorte transparente).
+  Tudo passa pelo resolvedor `def(id)` (catálogo embutido + custom) — orçamento, lista e recomendações
+  já contam os produtos do usuário. É a ponte para um futuro **feed de afiliados** (quando houver contas).
 - **Filosofia (respeitar):** **preços são faixas aproximadas** (referência), nunca valor exato
   fingindo precisão — o botão "Buscar" leva à busca na loja para conferir o preço atual. Nada de
   inventar produto/preço. O catálogo é curado em `CAT` (loja + faixa BRL + estilo + dimensões cm).

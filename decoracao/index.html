@@ -102,8 +102,15 @@
   /* Catalog grid */
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .pcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:var(--shadow);display:flex;flex-direction:column}
-  .pcard .thumb{background:var(--chip);border-radius:11px;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;margin-bottom:8px}
+  .pcard .thumb{position:relative;background:var(--chip);border-radius:11px;aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;margin-bottom:8px}
   .pcard .thumb svg{width:74%;height:74%}
+  .pcard .thumb img{width:100%;height:100%;object-fit:contain}
+  .pcard .thumb .badge{position:absolute;top:5px;left:5px;background:var(--accent);color:var(--accent-ink);font-size:.62rem;font-weight:800;padding:2px 6px;border-radius:999px}
+  .pcard .pmeta .edit{color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline}
+  .imgprev{width:100%;aspect-ratio:4/3;background:var(--chip);border-radius:12px;display:grid;place-items:center;overflow:hidden;margin-top:6px}
+  .imgprev img{width:100%;height:100%;object-fit:contain}
+  .imgprev .ph{color:var(--muted);font-size:.8rem}
+  .two{display:flex;gap:10px}.two .field{flex:1}
   .pcard .pn{font-weight:700;font-size:.82rem;line-height:1.2}
   .pcard .pp{font-weight:800;font-size:.86rem;margin-top:3px}
   .pcard .pmeta{color:var(--muted);font-size:.72rem;margin-top:2px}
@@ -143,7 +150,7 @@
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-end;justify-content:center;z-index:80;padding:0}
   .modal.on{display:flex}
-  .sheet{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:var(--shadow)}
+  .sheet{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:var(--shadow);max-height:90vh;overflow-y:auto}
   .sheet h3{font-size:1.05rem;margin-bottom:12px}
   .field{margin-bottom:12px}
   .field label{display:block;font-size:.78rem;color:var(--muted);font-weight:700;margin-bottom:5px}
@@ -171,6 +178,7 @@
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 
 <input type="file" id="fileInput" accept="image/*" class="hidden" />
+<input type="file" id="prodImgInput" accept="image/*" class="hidden" />
 
 <script>
 "use strict";
@@ -304,6 +312,18 @@ const catById = Object.fromEntries(CAT.map(c=>[c.id,c]));
 const CAT_LABELS = { sofa:"Sofá", poltrona:"Poltrona", "mesa-centro":"Mesa de centro", rack:"Rack / Aparador",
   estante:"Estante", cama:"Cama", "guarda-roupa":"Guarda-roupa", criado:"Criado / Cômoda", "mesa-jantar":"Mesa de jantar",
   cadeira:"Cadeira", luminaria:"Iluminação", tapete:"Tapete", cortina:"Cortina", decoracao:"Decoração", escrivaninha:"Escrivaninha" };
+/* silhueta padrão por categoria (fallback para produtos do usuário sem foto) */
+const CAT_ICON = { sofa:"sofa", poltrona:"poltrona", "mesa-centro":"mesaCentro", rack:"rack", estante:"estante",
+  cama:"cama", "guarda-roupa":"armario", criado:"criado", "mesa-jantar":"mesaJantar", cadeira:"cadeira",
+  luminaria:"lampFloor", tapete:"tapete", cortina:"cortina", decoracao:"quadro", escrivaninha:"escrivaninha" };
+
+/* Resolve um item por id — catálogo embutido OU produto adicionado pelo usuário (state.custom). */
+function def(id){ return catById[id] || ((state && state.custom) ? state.custom.find(c=>c.id===id) : null) || null; }
+function storeName(c){ return c.custom ? (c.storeName || "Loja") : (STORES[c.store] ? STORES[c.store].nome : "Loja"); }
+function buyUrl(c){ return c.custom ? (c.url || "") : (STORES[c.store] ? STORES[c.store].url(c.q) : ""); }
+function artHTML(c){ return c.img ? `<img src="${c.img}" alt="" draggable="false" style="width:100%;height:100%;object-fit:contain;display:block">` : iconSvg(c.icon||"mesaCentro"); }
+function aspectOf(c){ if(c.img && c.imgW && c.imgH) return c.imgW+" / "+c.imgH; const ic = ICONS[c.icon] || ICONS.mesaCentro; return ic.w+" / "+ic.h; }
+function buyLink(c){ const u = buyUrl(c); return u ? `<a href="${esc(u)}" target="_blank" rel="noopener">buscar ↗</a>` : ""; }
 const STYLE_LABELS = { escandinavo:"Escandinavo", moderno:"Moderno", industrial:"Industrial", minimalista:"Minimalista", classico:"Clássico", rustico:"Rústico" };
 const ROOMS = {
   sala:      { label:"Sala de estar",  ess:["sofa","mesa-centro","rack","tapete","luminaria","cortina","decoracao"] },
@@ -316,12 +336,13 @@ const ROOMS = {
 let state = null;
 function defaultState(){
   const pid = uid();
-  return { v:1, currentId:pid,
+  return { v:1, currentId:pid, custom:[],
     ui:{ tab:"montar", cat:"", estilo:"", maxPreco:0 },
     projects:[ { id:pid, name:"Minha Sala", room:"sala", budget:8000, bg:null, items:[] } ] };
 }
 function curProj(){ return state.projects.find(p=>p.id===state.currentId) || state.projects[0]; }
-function sceneSpent(p){ return p.items.reduce((s,i)=> s + midOf(catById[i.catId]||{min:0,max:0}), 0); }
+function sceneSpent(p){ return p.items.reduce((s,i)=> s + midOf(def(i.catId)||{min:0,max:0}), 0); }
+function allCatalog(){ return [...CAT, ...((state && state.custom) || [])]; }
 
 let saveT;
 function saveState(){ clearTimeout(saveT); saveT=setTimeout(()=>saveKey("state", state), 500); }
@@ -405,9 +426,9 @@ function renderMontar(v){
 }
 
 function makeSticker(it){
-  const c = catById[it.catId]; if(!c) return el('<div></div>');
+  const c = def(it.catId); if(!c) return el('<div></div>');
   const s = el(`<div class="sticker" data-id="${it.id}">
-      <div class="art">${iconSvg(c.icon)}</div>
+      <div class="art">${artHTML(c)}</div>
       <button class="handle h-rot" title="Girar">⟳</button>
       <button class="handle h-del" title="Remover">✕</button>
       <button class="handle h-scl" title="Redimensionar">⇲</button>
@@ -421,15 +442,13 @@ function makeSticker(it){
   return s;
 }
 function applyStyle(s, it){
-  const c = catById[it.catId];
-  const ratio = ICONS[c.icon] ? (ICONS[c.icon].h/ICONS[c.icon].w) : 0.6;
+  const c = def(it.catId); if(!c) return;
   s.style.left = (it.cx*100)+'%';
   s.style.top = (it.cy*100)+'%';
   s.style.width = (it.wFrac*100)+'%';
   s.style.zIndex = it.z;
   s.style.transform = `translate(-50%,-50%) rotate(${it.rot}deg)`;
-  s.querySelector('.art').style.aspectRatio = `${ICONS[c.icon].w} / ${ICONS[c.icon].h}`;
-  void ratio;
+  s.querySelector('.art').style.aspectRatio = aspectOf(c);
 }
 function stickerEl(id){ return document.querySelector(`.sticker[data-id="${id}"]`); }
 
@@ -479,7 +498,7 @@ function updateSelbar(){
   const it = selId && curProj().items.find(x=>x.id===selId);
   if(!it){ bar.classList.remove('on'); return; }
   bar.classList.add('on');
-  $('#selName').textContent = catById[it.catId].name;
+  $('#selName').textContent = (def(it.catId)||{name:'Item'}).name;
 }
 function removeItem(id){
   const p = curProj(); p.items = p.items.filter(x=>x.id!==id);
@@ -505,7 +524,7 @@ function refreshBudget(){
 }
 
 function addToScene(catId, silent){
-  const p = curProj(), c = catById[catId];
+  const p = curProj(), c = def(catId); if(!c) return;
   const wFrac = clamp(c.wcm/450, 0.16, 0.72);
   const z = p.items.length ? Math.max(...p.items.map(i=>i.z))+1 : 1;
   const it = { id:uid(), catId, cx:0.5+(Math.random()*0.16-0.08), cy:0.56+(Math.random()*0.12-0.06), wFrac, rot:0, z };
@@ -516,6 +535,10 @@ function addToScene(catId, silent){
 /* ============================ Aba: Catálogo ============================ */
 function renderCatalogo(v){
   v.appendChild(el(`<div class="note">💡 Preços são <b>faixas aproximadas</b> (referência) — confira o valor atual na loja pelo botão “Buscar”. Toque em <b>＋ Cena</b> para posicionar a peça na sua foto.</div>`));
+
+  const addProd = el('<button class="btn primary block" style="margin-bottom:12px">➕ Adicionar produto de uma loja</button>');
+  addProd.onclick = ()=> openProdSheet(null);
+  v.appendChild(addProd);
 
   // filtros
   const f = state.ui;
@@ -538,26 +561,31 @@ function renderCatalogo(v){
   filters.querySelectorAll('[data-est]').forEach(b=> b.onclick=()=>{ f.estilo=b.dataset.est; saveState(); render(); });
   const sel=$('#fMax'); sel.value=String(f.maxPreco||0); sel.onchange=()=>{ f.maxPreco=+sel.value; saveState(); render(); };
 
-  let items = CAT.filter(c=>
+  // produtos do usuário primeiro, depois o catálogo embutido
+  let items = [...((state.custom)||[]), ...CAT].filter(c=>
     (!f.cat || c.cat===f.cat) &&
-    (!f.estilo || c.styles.includes(f.estilo)) &&
+    (!f.estilo || (c.styles||[]).includes(f.estilo)) &&
     (!f.maxPreco || c.min<=f.maxPreco));
 
   if(items.length===0){ v.appendChild(el(`<div class="empty">Nenhum item com esses filtros.<br>Tente afrouxar o preço ou o estilo.</div>`)); return; }
 
   const grid = el('<div class="grid"></div>');
   items.forEach(c=>{
+    const dims = (c.wcm && c.hcm) ? ` · ${c.wcm}×${c.hcm} cm` : '';
+    const buscar = buyUrl(c) ? `<a class="btn" href="${esc(buyUrl(c))}" target="_blank" rel="noopener">Buscar ↗</a>` : '';
     const card = el(`<div class="pcard">
-      <div class="thumb">${iconSvg(c.icon)}</div>
+      <div class="thumb">${artHTML(c)}${c.custom?'<span class="badge">meu</span>':''}</div>
       <div class="pn">${esc(c.name)}</div>
       <div class="pp">${brlRange(c)}</div>
-      <div class="pmeta">${esc(STORES[c.store].nome)} · ${c.wcm}×${c.hcm} cm</div>
+      <div class="pmeta">${esc(storeName(c))}${dims}${c.custom?' · <span class="edit" data-edit="'+c.id+'">editar</span>':''}</div>
       <div class="pacts">
         <button class="btn primary" data-add="${c.id}">＋ Cena</button>
-        <a class="btn" href="${STORES[c.store].url(c.q)}" target="_blank" rel="noopener">Buscar ↗</a>
+        ${buscar}
       </div>
     </div>`);
     card.querySelector('[data-add]').onclick = ()=> addToScene(c.id);
+    const ed = card.querySelector('[data-edit]');
+    if(ed) ed.onclick = ()=> openProdSheet(def(ed.dataset.edit));
     grid.appendChild(card);
   });
   v.appendChild(grid);
@@ -578,7 +606,7 @@ function renderOrcamento(v){
 
   // por categoria
   const byCat = {};
-  p.items.forEach(i=>{ const c=catById[i.catId]; byCat[c.cat]=(byCat[c.cat]||0)+midOf(c); });
+  p.items.forEach(i=>{ const c=def(i.catId); if(!c) return; byCat[c.cat]=(byCat[c.cat]||0)+midOf(c); });
   const cats = Object.keys(byCat).sort((a,b)=>byCat[b]-byCat[a]);
   if(cats.length){
     const spent = sceneSpent(p);
@@ -603,12 +631,12 @@ function renderOrcamento(v){
   } else {
     const list = el('<div class="list"></div>');
     gkeys.forEach(cid=>{
-      const c = catById[cid], qt = groups[cid];
+      const c = def(cid), qt = groups[cid]; if(!c) return;
       const li = el(`<div class="litem">
-        <div class="ico">${iconSvg(c.icon)}</div>
+        <div class="ico">${artHTML(c)}</div>
         <div class="li-b">
           <div class="li-n">${esc(c.name)}</div>
-          <div class="li-s">${esc(STORES[c.store].nome)} · ${brlRange(c)} <a href="${STORES[c.store].url(c.q)}" target="_blank" rel="noopener">buscar ↗</a></div>
+          <div class="li-s">${esc(storeName(c))} · ${brlRange(c)} ${buyLink(c)}</div>
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           <button class="qtybtn" data-dec="${cid}">–</button>
@@ -638,14 +666,14 @@ function removeOne(cid){
 }
 
 function renderRecs(v, p){
-  const present = new Set(p.items.map(i=>catById[i.catId].cat));
+  const present = new Set(p.items.map(i=>(def(i.catId)||{}).cat).filter(Boolean));
   const ess = ROOMS[p.room].ess;
   const missing = ess.filter(c=>!present.has(c));
   const remaining = (p.budget||0) - sceneSpent(p);
 
   // estilo dominante da cena (para priorizar sugestões coerentes)
   const styleCount={};
-  p.items.forEach(i=> catById[i.catId].styles.forEach(s=> styleCount[s]=(styleCount[s]||0)+1));
+  p.items.forEach(i=> ((def(i.catId)||{}).styles||[]).forEach(s=> styleCount[s]=(styleCount[s]||0)+1));
   const domStyle = Object.keys(styleCount).sort((a,b)=>styleCount[b]-styleCount[a])[0];
 
   v.appendChild(el(`<div class="sec-t">Sugestões para a ${esc(ROOMS[p.room].label.toLowerCase())}</div>`));
@@ -658,25 +686,26 @@ function renderRecs(v, p){
 
   const grid = el('<div class="grid"></div>');
   missing.forEach(cat=>{
-    let opts = CAT.filter(c=>c.cat===cat);
+    let opts = allCatalog().filter(c=>c.cat===cat);
     // 1) cabe no restante  2) combina com estilo dominante  3) mais barato
     const fits = opts.filter(c=> p.budget<=0 || c.min<=Math.max(remaining,0));
     let pool = fits.length? fits : opts;
     if(domStyle){
-      const styled = pool.filter(c=>c.styles.includes(domStyle));
+      const styled = pool.filter(c=>(c.styles||[]).includes(domStyle));
       if(styled.length) pool = styled;
     }
     const pick = pool.sort((a,b)=>a.min-b.min)[0];
     if(!pick) return;
     const fitsBudget = p.budget<=0 || pick.min<=Math.max(remaining,0);
+    const buscar = buyUrl(pick) ? `<a class="btn" href="${esc(buyUrl(pick))}" target="_blank" rel="noopener">Buscar ↗</a>` : '';
     const card = el(`<div class="pcard">
-      <div class="thumb">${iconSvg(pick.icon)}</div>
+      <div class="thumb">${artHTML(pick)}</div>
       <div class="pn">${esc(pick.name)}</div>
       <div class="pp">${brlRange(pick)}</div>
       <div class="pmeta">${esc(CAT_LABELS[cat]||cat)}${fitsBudget?'':' · acima do que sobra'}</div>
       <div class="pacts">
         <button class="btn primary" data-add="${pick.id}">＋ Cena</button>
-        <a class="btn" href="${STORES[pick.store].url(pick.q)}" target="_blank" rel="noopener">Buscar ↗</a>
+        ${buscar}
       </div>
     </div>`);
     card.querySelector('[data-add]').onclick = ()=> addToScene(pick.id);
@@ -690,11 +719,11 @@ function copyList(p){
   p.items.forEach(i=>{ groups[i.catId]=(groups[i.catId]||0)+1; });
   let total=0;
   const lines = Object.keys(groups).map(cid=>{
-    const c=catById[cid], qt=groups[cid]; total += midOf(c)*qt;
-    return `• ${qt}× ${c.name} — ${brlRange(c)} (${STORES[c.store].nome})`;
+    const c=def(cid), qt=groups[cid]; if(!c) return ''; total += midOf(c)*qt;
+    return `• ${qt}× ${c.name} — ${brlRange(c)} (${storeName(c)})`;
   });
   const txt = `Decoração — ${p.name} (${ROOMS[p.room].label})\n` +
-    lines.join('\n') +
+    lines.filter(Boolean).join('\n') +
     `\n\nTotal estimado: ${brl(total)}` + (p.budget>0?` / Orçamento: ${brl(p.budget)}`:'') +
     `\n(Preços aproximados — confira nas lojas)`;
   const done = ()=> toast('Lista copiada!');
@@ -797,11 +826,96 @@ $('#fileInput').addEventListener('change', (e)=>{
   reader.readAsDataURL(file);
 });
 
+/* ============================ Produto do usuário (loja real) ============================ */
+let prodDraft = null; // imagem/estilos pendentes enquanto a sheet está aberta
+
+function styleChipsHTML(sel){
+  return Object.keys(STYLE_LABELS).map(k=>`<button type="button" class="chip ${sel.includes(k)?'on':''}" data-pstyle="${k}">${esc(STYLE_LABELS[k])}</button>`).join('');
+}
+function openProdSheet(prod){
+  const isNew = !prod;
+  prodDraft = { img: prod?(prod.img||null):null, imgW: prod?(prod.imgW||0):0, imgH: prod?(prod.imgH||0):0, styles: prod?[...(prod.styles||[])]:[] };
+  const catOpts = Object.keys(CAT_LABELS).map(k=>`<option value="${k}" ${prod&&prod.cat===k?'selected':''}>${esc(CAT_LABELS[k])}</option>`).join('');
+  openSheet(`<h3>${isNew?'Adicionar produto de uma loja':'Editar produto'}</h3>
+    <div class="field"><label>Nome do produto</label><input type="text" id="qName" value="${esc(prod?prod.name:'')}" placeholder="ex: Sofá cinza 3 lugares" /></div>
+    <div class="two">
+      <div class="field"><label>Preço mín (R$)</label><input type="number" id="qMin" inputmode="numeric" value="${prod?prod.min:''}" placeholder="1200" /></div>
+      <div class="field"><label>Preço máx (R$)</label><input type="number" id="qMax" inputmode="numeric" value="${prod&&prod.max!==prod.min?prod.max:''}" placeholder="opcional" /></div>
+    </div>
+    <div class="field"><label>Loja</label><input type="text" id="qStore" value="${esc(prod?(prod.storeName||''):'')}" placeholder="ex: Mobly, Amazon..." /></div>
+    <div class="field"><label>Link do produto (opcional)</label><input type="text" id="qUrl" value="${esc(prod?(prod.url||''):'')}" placeholder="https://..." /></div>
+    <div class="field"><label>Categoria</label><select id="qCat">${catOpts}</select></div>
+    <div class="field"><label>Estilo (opcional)</label><div class="chips" id="qStyles">${styleChipsHTML(prodDraft.styles)}</div></div>
+    <div class="two">
+      <div class="field"><label>Largura (cm, opcional)</label><input type="number" id="qW" inputmode="numeric" value="${prod&&prod.wcm?prod.wcm:''}" placeholder="200" /></div>
+      <div class="field"><label>Altura (cm, opcional)</label><input type="number" id="qH" inputmode="numeric" value="${prod&&prod.hcm?prod.hcm:''}" placeholder="90" /></div>
+    </div>
+    <div class="field"><label>Foto do produto (recomendado — PNG com fundo transparente fica melhor)</label>
+      <button type="button" class="btn block" id="qPickImg">🖼️ Escolher foto</button>
+      <div class="imgprev" id="qPrev">${prodDraft.img?`<img src="${prodDraft.img}">`:'<span class="ph">sem foto — vai usar uma silhueta</span>'}</div>
+    </div>
+    <div class="sheet-acts">
+      ${!isNew?'<button class="btn" id="qDel" style="background:var(--over);color:#fff">Excluir</button>':''}
+      <button class="btn primary" id="qSave">${isNew?'Adicionar':'Salvar'}</button>
+    </div>`);
+  $('#qStyles').querySelectorAll('[data-pstyle]').forEach(b=> b.onclick=()=>{
+    const k=b.dataset.pstyle, i=prodDraft.styles.indexOf(k);
+    if(i>=0) prodDraft.styles.splice(i,1); else prodDraft.styles.push(k);
+    b.classList.toggle('on');
+  });
+  $('#qPickImg').onclick = ()=> pickProdImg();
+  $('#qSave').onclick = ()=>{
+    const name=($('#qName').value||'').trim();
+    if(!name){ toast('Dê um nome ao produto'); return; }
+    let mn=Math.max(0,+$('#qMin').value||0), mx=Math.max(0,+$('#qMax').value||0);
+    if(!mx) mx=mn; if(mx<mn){ const t=mn; mn=mx; mx=t; }
+    const cat=$('#qCat').value;
+    const wcm=Math.max(0,+$('#qW').value||0), hcm=Math.max(0,+$('#qH').value||0);
+    const rec = { custom:true, name, min:mn, max:mx,
+      storeName:($('#qStore').value||'').trim(), url:($('#qUrl').value||'').trim(),
+      cat, icon:CAT_ICON[cat]||'mesaCentro', styles:[...prodDraft.styles],
+      wcm:wcm||100, hcm:hcm||100, img:prodDraft.img||null, imgW:prodDraft.imgW||0, imgH:prodDraft.imgH||0 };
+    if(isNew){ rec.id=uid(); state.custom.push(rec); }
+    else { Object.assign(prod, rec); }
+    saveState(); closeSheet(); render();
+    toast(isNew?'Produto adicionado ao catálogo':'Produto atualizado');
+  };
+  if($('#qDel')) $('#qDel').onclick = ()=>{
+    if(!confirm(`Excluir "${prod.name}" do seu catálogo? As peças dele saem das cenas.`)) return;
+    state.custom = state.custom.filter(x=>x.id!==prod.id);
+    state.projects.forEach(pr=> pr.items = pr.items.filter(it=> it.catId!==prod.id));
+    if(selId && !curProj().items.some(it=>it.id===selId)) selId=null;
+    saveState(); closeSheet(); render();
+  };
+}
+function pickProdImg(){ $('#prodImgInput').value=''; $('#prodImgInput').click(); }
+$('#prodImgInput').addEventListener('change',(e)=>{
+  const file=e.target.files && e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=700; let {width:w,height:h}=img;
+      if(w>max||h>max){ const r=Math.min(max/w,max/h); w=Math.round(w*r); h=Math.round(h*r); }
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      let data; try{ data=cv.toDataURL('image/png'); }catch(err){ data=reader.result; }
+      prodDraft.img=data; prodDraft.imgW=w; prodDraft.imgH=h;
+      const prev=$('#qPrev'); if(prev) prev.innerHTML=`<img src="${data}">`;
+      toast('Foto carregada');
+    };
+    img.onerror=()=> toast('Não consegui abrir a imagem');
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+
 /* ============================ Boot ============================ */
 (async function boot(){
   state = await loadKey("state", null);
   if(!state || !state.projects || !state.projects.length) state = defaultState();
   if(!state.ui) state.ui = {tab:"montar", cat:"", estilo:"", maxPreco:0};
+  if(!Array.isArray(state.custom)) state.custom = [];
   if(!ROOMS[curProj().room]) curProj().room="sala";
   render();
 })();
