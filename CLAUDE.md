@@ -148,8 +148,15 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Remoção de fundo (beta):** ao cadastrar um produto com foto, o botão **✂️ Remover fundo** faz um
   flood-fill por tolerância a partir das bordas (`removeBgFromDataURL`) — bom para foto de produto em
   fundo branco/liso; gera PNG transparente para colar limpo na cena.
+- **Vista 3D (🧊, Three.js):** terceira opção do alternador. Renderiza o cômodo à escala real (piso +
+  2 paredes, luz e sombra) e cada móvel como uma **representação 3D paramétrica** (por categoria).
+  Órbita arrastando o vazio, **arrasta o móvel para mover** pelo chão (raycast), pinça/rolar para zoom,
+  **⟳ 90°** para girar. Reaproveita `px,py,prot` da planta. Three.js r128 **embutido** em
+  `decoracao/vendor/three.min.js` (carregado sob demanda só ao abrir o 3D); nenhuma dependência de CDN.
+  Controles e materiais são próprios (sem OrbitControls externo). É uma prévia estilizada — não é
+  render fotorrealista do produto real (isso exigiria modelos 3D que as lojas não fornecem).
 - **Dados 3D-ready:** cada peça guarda dimensões (largura/altura/profundidade em cm), posição (fração),
-  escala e rotação — a planta 2D já usa esses dados e uma futura **vista 3D** reaproveita o mesmo modelo.
+  escala e rotação — planta 2D e 3D usam o mesmo modelo.
 - **Sincronização:** Realtime Database via REST, nó **`planos/decoracao-dt2026`** (receita 1) — a
   nuvem é a fonte; localStorage é a cópia offline; recarrega ao voltar se houver gravação mais nova.
   As fotos do ambiente entram no `state` como dataURL (reduzidas a ~1400px/JPEG antes de salvar).
