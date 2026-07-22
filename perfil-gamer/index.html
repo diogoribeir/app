@@ -9,9 +9,9 @@
 :root{
   --bg:#EEF1F6; --surface:#FFFFFF; --surface2:#E4E9F2; --ink:#141A26; --muted:#61697A; --line:#D8DEE9;
   --accent:#2E6FF2; --accent2:#7B4DF2; --accent-soft:rgba(46,111,242,.10);
-  --mp:#A8781E; --mb:#1F9960; --bo:#2E6FF2; --me:#A38A17; --ru:#C46A1F; --mr:#CC4444;
-  --mp-s:rgba(168,120,30,.13); --mb-s:rgba(31,153,96,.12); --bo-s:rgba(46,111,242,.10);
-  --me-s:rgba(163,138,23,.13); --ru-s:rgba(196,106,31,.12); --mr-s:rgba(204,68,68,.11);
+  --mp:#B8860B; --mb:#1F9960; --bo:#2E6FF2; --me:#5B677A; --ru:#C46A1F; --mr:#CC4444;
+  --mp-s:rgba(184,134,11,.14); --mb-s:rgba(31,153,96,.12); --bo-s:rgba(46,111,242,.10);
+  --me-s:rgba(91,103,122,.14); --ru-s:rgba(196,106,31,.12); --mr-s:rgba(204,68,68,.11);
   --shadow:0 4px 16px rgba(20,26,38,.07);
   --hero:linear-gradient(135deg,#182036 0%,#101624 60%,#131C30 100%);
 }
@@ -19,9 +19,9 @@
   :root{
     --bg:#0B0E14; --surface:#131824; --surface2:#1B2232; --ink:#EAEEF6; --muted:#8A94A8; --line:#232C40;
     --accent:#4D8DFF; --accent2:#9D7BFF; --accent-soft:rgba(77,141,255,.13);
-    --mp:#E7B54E; --mb:#4EC98B; --bo:#4D8DFF; --me:#D9C24E; --ru:#E8985A; --mr:#E86A6A;
-    --mp-s:rgba(231,181,78,.14); --mb-s:rgba(78,201,139,.13); --bo-s:rgba(77,141,255,.13);
-    --me-s:rgba(217,194,78,.13); --ru-s:rgba(232,152,90,.13); --mr-s:rgba(232,106,106,.12);
+    --mp:#F0C24E; --mb:#4EC98B; --bo:#4D8DFF; --me:#94A1B8; --ru:#E8985A; --mr:#E86A6A;
+    --mp-s:rgba(240,194,78,.15); --mb-s:rgba(78,201,139,.13); --bo-s:rgba(77,141,255,.13);
+    --me-s:rgba(148,161,184,.15); --ru-s:rgba(232,152,90,.13); --mr-s:rgba(232,106,106,.12);
     --shadow:0 4px 18px rgba(0,0,0,.4);
     --hero:linear-gradient(135deg,#1A2340 0%,#12182B 55%,#1B1530 100%);
   }
@@ -325,6 +325,10 @@ async function boot(){
       else { cloudOK = true; saveJogos(); }
     }
   } catch(e){ cloudOK = false; }
+  // migração: veredicto antigo "Medíocre" → "Mediano"
+  let migrou = false;
+  J.forEach(g=>{ if (g.v === "Medíocre"){ g.v = "Mediano"; migrou = true; } });
+  if (migrou){ try{localStorage.setItem(LS_KEY, JSON.stringify(J));}catch(e){} if (cloudOK) saveJogos(); }
   try {
     const r = await fetch(`${SYNC_URL}/plano2026.json`, { cache:"no-store" });
     if (r.ok) {
@@ -508,7 +512,6 @@ function viewPlano(){
         <button type="button" class="cbtn del" style="padding:6px 10px" data-pexcluir="${i}">🗑</button>
       </div>
     </div>`).join("") : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
-  const notas = (window.NOTAS_PLANO||[]).map(n=>`<div class="pitem"><div class="pbody"><div class="s">${esc(n)}</div></div></div>`).join("");
   return `<p class="lead">Planeje a fila de 2026 e veja se as horas dos jogos cabem no seu tempo disponível.</p>
     <h2>⏳ Horas disponíveis</h2>
     <div class="card">
@@ -524,8 +527,7 @@ function viewPlano(){
       <div class="lead" style="margin:8px 2px 0;color:${cor}">${cabe?`✓ Cabe no tempo — sobram ${Math.round(rest)}h.`:`⚠ Passou ${Math.abs(Math.round(rest))}h do disponível. Tire um jogo ou aumente as horas.`}</div>
     </div>
     <button type="button" class="addbtn" id="btnAddPlano">➕ Adicionar jogo planejado</button>
-    <h2>🗓 Fila de jogos</h2><div class="card">${rows}</div>
-    <h2>📝 Notas</h2><div class="card">${notas}</div>`;
+    <h2>🗓 Fila de jogos</h2><div class="card">${rows}</div>`;
 }
 
 /* ---------- render ---------- */
@@ -645,9 +647,7 @@ document.addEventListener("click", e=>{
   const pe = e.target.closest("[data-peditar]");
   if (pe){ openPlano(Number(pe.dataset.peditar)); return; }
   const px = e.target.closest("[data-pexcluir]");
-  if (px){ const i=Number(px.dataset.pexcluir); const p=P[i];
-    if (p && confirm(`Remover "${p.jogo}" do plano?`)){ P.splice(i,1); savePlano(); render(); }
-    return; }
+  if (px){ const i=Number(px.dataset.pexcluir); if (P[i]){ P.splice(i,1); savePlano(); render(); } return; }
   const hh = e.target.closest("[data-editar-hero]");
   if (hh){ const g = J.find(x=>String(x.id)===hh.dataset.editarHero); if (g) openModal(g); return; }
   const ed = e.target.closest("[data-editar]");
