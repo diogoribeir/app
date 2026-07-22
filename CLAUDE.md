@@ -136,6 +136,16 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   preço aproximada, loja e link de busca; filtros por categoria/estilo/preço) · 💰 **Orçamento**
   (teto por ambiente, gasto x meta, gasto por categoria, lista de compras, **recomendações
   determinísticas** do que falta e cabe no orçamento) · 🗂️ **Projetos** (um ambiente por cômodo).
+- **Biblioteca real (`LIBRARY`):** ~46 produtos reais lidos da **Mobly** (nome, preço de referência,
+  link do produto, medidas), com **fotos recortadas** (fundo removido → PNG transparente em
+  `decoracao/lib/lib*.png`). Assim os móveis entram na cena como **objeto recortado**, não foto com
+  fundo branco. Gerado por script (jimp) — reprocessar baixando as imagens e removendo o fundo branco
+  por flood-fill das bordas. Preços vão como referência (`min===max` mostra valor único) — confira na loja.
+- **Layout desktop (notebook, não mobile):** em `min-width:900px` o Montar vira **2 colunas** —
+  canvas grande (16/10) à esquerda + **painel lateral "Adicionar móveis"** (rail de miniaturas que
+  adicionam à cena) à direita; nav no topo; `.wrap` até 1240px; catálogo em grade multi-coluna.
+  No mobile continua em coluna única com nav embaixo. Fundo padrão da cena = **ambiente vazio
+  desenhado em perspectiva** (`roomBackdrop()`, SVG com cores em `--rm-*`), pra compor os objetos.
 - **Produtos do usuário (`state.custom`):** botão "➕ Adicionar produto de uma loja" no Catálogo — a
   pessoa cadastra um produto real (nome, faixa/preço, loja, link, categoria, estilo, dimensões e
   **foto**). Ele entra no catálogo com selo "meu" e pode ser **colado na foto com a imagem real**

@@ -12,6 +12,7 @@
     --ok:#3E8E5A; --warn:#C99A2E; --over:#C4553D;
     --chip:#EFE7DB; --shadow:0 8px 24px rgba(42,35,32,.10);
     --stage:#DED4C6; --gridline:rgba(0,0,0,.09);
+    --rm-floor:#C9A876; --rm-floor2:#BE9A64; --rm-wall:#EDE6DA; --rm-wall2:#DFD6C6; --rm-ceil:#F5F1E9; --rm-line:rgba(0,0,0,.07);
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -20,6 +21,7 @@
       --ok:#5BB37C; --warn:#E0B95A; --over:#E0765C;
       --chip:#251E19; --shadow:0 8px 24px rgba(0,0,0,.45);
       --stage:#2A231D; --gridline:rgba(255,255,255,.09);
+      --rm-floor:#6B5236; --rm-floor2:#5C462E; --rm-wall:#3A322A; --rm-wall2:#312A23; --rm-ceil:#403830; --rm-line:rgba(255,255,255,.05);
     }
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -58,8 +60,8 @@
   .stage{position:relative;width:100%;aspect-ratio:4/3;background:var(--stage);border-radius:18px;overflow:hidden;
     border:1px solid var(--line);box-shadow:var(--shadow);touch-action:none;user-select:none}
   .stage .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  .stage .room{position:absolute;inset:0;background:
-    linear-gradient(180deg,#00000000 58%, rgba(0,0,0,.06) 58%, rgba(0,0,0,.10) 100%)}
+  .stage .room{position:absolute;inset:0}
+  .stage .room svg{position:absolute;inset:0;width:100%;height:100%}
   .stage .hint{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:22px;
     color:var(--muted);font-size:.86rem;line-height:1.5;pointer-events:none}
   .sticker{position:absolute;touch-action:none;will-change:left,top,transform,width}
@@ -186,6 +188,53 @@
   .sheet-acts{display:flex;gap:8px;margin-top:6px}
   .sheet-acts .btn{flex:1;justify-content:center}
   .hidden{display:none!important}
+
+  /* Workspace (Montar) — pilha no mobile, 2 colunas no desktop */
+  .workspace{display:flex;flex-direction:column;gap:12px}
+  .ws-side{display:none}
+  .addrail{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:12px;display:flex;flex-direction:column;min-height:0}
+  .addrail h4{margin:0 0 8px;font-size:.9rem;font-weight:800}
+  .addrail .railgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;overflow-y:auto;padding-right:2px}
+  .railcard{background:var(--chip);border:1px solid var(--line);border-radius:12px;padding:7px;cursor:pointer;transition:transform .1s}
+  .railcard:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .railcard .rthumb{aspect-ratio:1/1;display:grid;place-items:center;overflow:hidden;margin-bottom:5px}
+  .railcard .rthumb img{width:100%;height:100%;object-fit:contain}
+  .railcard .rthumb svg{width:72%;height:72%}
+  .railcard .rn{font-size:.68rem;font-weight:700;line-height:1.15;max-height:2.4em;overflow:hidden}
+  .railcard .rp{font-size:.7rem;font-weight:800;color:var(--accent);margin-top:2px}
+
+  @media (min-width:900px){
+    body{}
+    .wrap{max-width:1240px;padding:calc(env(safe-area-inset-top) + 14px) 26px 26px}
+    header{margin-bottom:16px}
+    header .logo{width:44px;height:44px}
+    header .htxt .t{font-size:1.35rem}
+    /* nav vira barra no topo, centralizada e larga */
+    nav.tab{position:sticky;top:0;left:auto;transform:none;width:100%;max-width:1240px;margin:0 auto 14px;
+      border-top:0;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+      padding:6px;gap:6px;z-index:40;background:var(--card)}
+    nav.tab button{flex:0 1 auto;flex-direction:row;gap:8px;font-size:.9rem;padding:9px 16px;border-radius:11px}
+    nav.tab button .ic{font-size:1.15rem}
+    nav.tab button.on{background:var(--chip)}
+    .wrap{padding-bottom:26px}
+
+    /* Montar em 2 colunas: canvas grande + painel */
+    .workspace{display:grid;grid-template-columns:1fr 300px;grid-template-areas:"budget budget" "main side";gap:16px;align-items:start}
+    .ws-budget{grid-area:budget}
+    .ws-main{grid-area:main;min-width:0}
+    .ws-side{grid-area:side;display:flex;flex-direction:column;gap:14px;position:sticky;top:74px}
+    .ws-budget .budget{margin-bottom:0}
+    .stage,.d3wrap{aspect-ratio:16/10}
+    .addrail{max-height:calc(100vh - 220px)}
+
+    /* catálogo/orçamento em coluna também aproveitam a largura */
+    .grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+    .sec-t{font-size:1.1rem}
+  }
+  @media (min-width:1180px){
+    .workspace{grid-template-columns:1fr 340px}
+    .addrail .railgrid{grid-template-columns:1fr 1fr 1fr}
+  }
 </style>
 </head>
 <body>
@@ -251,7 +300,7 @@ const uid = ()=> Date.now().toString(36) + Math.random().toString(36).slice(2,7)
 const clamp = (v,a,b)=> Math.max(a, Math.min(b, v));
 const nf = new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
 const brl = n => 'R$ ' + nf.format(Math.round(n||0));
-const brlRange = it => 'R$ ' + nf.format(it.min) + '–' + nf.format(it.max);
+const brlRange = it => (it.min===it.max) ? ('R$ ' + nf.format(it.min)) : ('R$ ' + nf.format(it.min) + '–' + nf.format(it.max));
 const midOf = it => (it.min + it.max)/2;
 
 let toastT;
@@ -338,6 +387,57 @@ const CAT = [
 ];
 const catById = Object.fromEntries(CAT.map(c=>[c.id,c]));
 
+/* ===== Biblioteca de produtos REAIS (lidos da Mobly, jul/2026) — preço de referência, confira na loja pelo botão "Buscar" ===== */
+const LIBRARY = [
+  {id:"lib1", name:"Sofá 3 Lugares Retrátil e Reclinável Biarritz Suede Grafite", cat:"sofa", icon:"sofa", styles:["moderno"], min:1446, max:1446, storeName:"Mobly", url:"https://www.mobly.com.br/sofa-3-lugares-retratil-e-reclinavel-biarritz-suede-grafite-664194.html", img:"lib/lib1.png", wcm:210, hcm:90, dcm:90},
+  {id:"lib2", name:"Módulo Central Sofá Guldi Popup Linho Cinza", cat:"sofa", icon:"sofa", styles:["moderno"], min:1300, max:1300, storeName:"Mobly", url:"https://www.mobly.com.br/modulo-central-sofa-guldi-popup-linho-cinza-1244655.html", img:"lib/lib2.png", wcm:210, hcm:90, dcm:90},
+  {id:"lib3", name:"Poltrona Pétalas Aveludadas Eva Rosa", cat:"poltrona", icon:"poltrona", styles:["classico"], min:530, max:530, storeName:"Mobly", url:"https://www.mobly.com.br/poltrona-petalas-aveludadas-eva-rosa-880929.html", img:"lib/lib3.png", wcm:75, hcm:95, dcm:85},
+  {id:"lib4", name:"Poltrona Beegees Velosuede Azul Marinho", cat:"poltrona", icon:"poltrona", styles:["classico"], min:1138, max:1138, storeName:"Mobly", url:"https://www.mobly.com.br/poltrona-beegees-velosuede-azul-marinho-808551.html", img:"lib/lib4.png", wcm:75, hcm:95, dcm:85},
+  {id:"lib5", name:"Poltrona Pétalas Aveludadas Eva Azul Claro", cat:"poltrona", icon:"poltrona", styles:["classico"], min:319, max:319, storeName:"Mobly", url:"https://www.mobly.com.br/poltrona-petalas-aveludadas-eva-azul-claro-1014951.html", img:"lib/lib5.png", wcm:75, hcm:95, dcm:85},
+  {id:"lib6", name:"Poltrona Pétalas Aveludadas Eva Creme", cat:"poltrona", icon:"poltrona", styles:["classico"], min:760, max:760, storeName:"Mobly", url:"https://www.mobly.com.br/poltrona-petalas-aveludadas-eva-creme-1014952.html", img:"lib/lib6.png", wcm:75, hcm:95, dcm:85},
+  {id:"lib7", name:"Poltrona Tosar II Amêndoa e Grafite", cat:"poltrona", icon:"poltrona", styles:["classico"], min:1264, max:1264, storeName:"Mobly", url:"https://www.mobly.com.br/poltrona-tosar-ii-amendoa-e-grafite-551951.html", img:"lib/lib7.png", wcm:75, hcm:95, dcm:85},
+  {id:"lib8", name:"Poltrona Ariel Linho Creme e Dourada", cat:"poltrona", icon:"poltrona", styles:["classico"], min:1155, max:1155, storeName:"Mobly", url:"https://www.mobly.com.br/poltrona-ariel-linho-creme-e-dourada-905044.html", img:"lib/lib8.png", wcm:75, hcm:95, dcm:85},
+  {id:"lib9", name:"Estante Trento Madeira e Preta 180 cm", cat:"estante", icon:"estante", styles:["industrial"], min:503, max:503, storeName:"Mobly", url:"https://www.mobly.com.br/estante-trento-madeira-e-preta-180-cm-894260.html", img:"lib/lib9.png", wcm:90, hcm:180, dcm:35},
+  {id:"lib10", name:"Estante Paricel Preta 40 cm", cat:"estante", icon:"estante", styles:["industrial"], min:553, max:553, storeName:"Mobly", url:"https://www.mobly.com.br/estante-paricel-preta-40-cm-1181864.html", img:"lib/lib10.png", wcm:90, hcm:180, dcm:35},
+  {id:"lib11", name:"Estante Match 1 PT Branca", cat:"estante", icon:"estante", styles:["industrial"], min:395, max:395, storeName:"Mobly", url:"https://www.mobly.com.br/estante-match-1-pt-branca-1177409.html", img:"lib/lib11.png", wcm:90, hcm:180, dcm:35},
+  {id:"lib12", name:"Estante Match Pinho e Preto", cat:"estante", icon:"estante", styles:["industrial"], min:382, max:382, storeName:"Mobly", url:"https://www.mobly.com.br/estante-match-pinho-e-preto-798133.html", img:"lib/lib12.png", wcm:90, hcm:180, dcm:35},
+  {id:"lib13", name:"Estante Paricel Preta 77 cm", cat:"estante", icon:"estante", styles:["industrial"], min:431, max:431, storeName:"Mobly", url:"https://www.mobly.com.br/estante-paricel-preta-77-cm-1181866.html", img:"lib/lib13.png", wcm:90, hcm:180, dcm:35},
+  {id:"lib14", name:"Estante Trento Madeira e Preta 150 cm", cat:"estante", icon:"estante", styles:["industrial"], min:409, max:409, storeName:"Mobly", url:"https://www.mobly.com.br/estante-trento-madeira-e-preta-150-cm-894259.html", img:"lib/lib14.png", wcm:90, hcm:180, dcm:35},
+  {id:"lib15", name:"Bicama Terê Branca", cat:"cama", icon:"cama", styles:["moderno"], min:679, max:679, storeName:"Mobly", url:"https://www.mobly.com.br/bicama-tere-branca-1269857.html", img:"lib/lib15.png", wcm:160, hcm:60, dcm:200},
+  {id:"lib16", name:"Cama Solteiro Barcelona Flex Branca e Preta", cat:"cama", icon:"cama", styles:["moderno"], min:409, max:409, storeName:"Mobly", url:"https://www.mobly.com.br/cama-solteiro-barcelona-flex-branca-e-preta-659624.html", img:"lib/lib16.png", wcm:160, hcm:60, dcm:200},
+  {id:"lib17", name:"Cama Solteiro Barcelona Nature", cat:"cama", icon:"cama", styles:["moderno"], min:409, max:409, storeName:"Mobly", url:"https://www.mobly.com.br/cama-solteiro-barcelona-nature-1317824.html", img:"lib/lib17.png", wcm:160, hcm:60, dcm:200},
+  {id:"lib18", name:"Beliche Olga Amêndoa", cat:"cama", icon:"cama", styles:["moderno"], min:1619, max:1619, storeName:"Mobly", url:"https://www.mobly.com.br/beliche-olga-amendoa-1360672.html", img:"lib/lib18.png", wcm:160, hcm:60, dcm:200},
+  {id:"lib19", name:"Mesa de Jantar Retangular Tampo MDF Ficus Cinamomo 160 cm", cat:"mesa-jantar", icon:"mesaJantar", styles:["moderno"], min:2002, max:2002, storeName:"Mobly", url:"https://www.mobly.com.br/mesa-de-jantar-retangular-com-tampo-de-mdf-ficus-cinamomo-160-cm-1711582.html", img:"lib/lib19.png", wcm:140, hcm:75, dcm:90},
+  {id:"lib20", name:"Mesa de Jantar Tampo Vidro Ágata Cinamomo e Off White 130 cm", cat:"mesa-jantar", icon:"mesaJantar", styles:["moderno"], min:1205, max:1205, storeName:"Mobly", url:"https://www.mobly.com.br/mesa-de-jantar-retangular-com-tampo-de-vidro-agata-cinamomo-e-off-white-130-cm-1250039.html", img:"lib/lib20.png", wcm:140, hcm:75, dcm:90},
+  {id:"lib21", name:"Mesa de Jantar Tampo Vidro Helena Off White Cinamomo 210 cm", cat:"mesa-jantar", icon:"mesaJantar", styles:["moderno"], min:1795, max:1795, storeName:"Mobly", url:"https://www.mobly.com.br/mesa-de-jantar-retangular-com-tampo-de-vidro-helena-off-white-cinamomo-210-cm-1372193.html", img:"lib/lib21.png", wcm:140, hcm:75, dcm:90},
+  {id:"lib22", name:"Mesa de Jantar Tampo MDF Aurea Ypê 120 cm", cat:"mesa-jantar", icon:"mesaJantar", styles:["moderno"], min:674, max:674, storeName:"Mobly", url:"https://www.mobly.com.br/mesa-de-jantar-retangular-com-tampo-mdf-aurea-ype-120-cm-1686728.html", img:"lib/lib22.png", wcm:140, hcm:75, dcm:90},
+  {id:"lib23", name:"Mesa de Jantar Redonda Tampo MDF Isabela Ypê 100 cm", cat:"mesa-jantar", icon:"mesaJantar", styles:["moderno"], min:449, max:449, storeName:"Mobly", url:"https://www.mobly.com.br/mesa-de-jantar-redonda-com-tampo-de-mdf-isabela-ype-100-cm-1517022.html", img:"lib/lib23.png", wcm:140, hcm:75, dcm:90},
+  {id:"lib24", name:"Mesa de Centro Module Ameixa", cat:"mesa-centro", icon:"mesaCentro", styles:["moderno"], min:481, max:481, storeName:"Mobly", url:"https://www.mobly.com.br/mesa-de-centro-module-ameixa-1147317.html", img:"lib/lib24.png", wcm:90, hcm:45, dcm:60},
+  {id:"lib25", name:"Mesa de Centro Oval Elegance Off White e Nature", cat:"mesa-centro", icon:"mesaCentro", styles:["moderno"], min:373, max:373, storeName:"Mobly", url:"https://www.mobly.com.br/mesa-de-centro-oval-elegance-off-white-e-nature-1269863.html", img:"lib/lib25.png", wcm:90, hcm:45, dcm:60},
+  {id:"lib26", name:"Mesa de Centro Classic Nature", cat:"mesa-centro", icon:"mesaCentro", styles:["moderno"], min:238, max:238, storeName:"Mobly", url:"https://www.mobly.com.br/mesa-de-centro-classic-nature-1070630.html", img:"lib/lib26.png", wcm:90, hcm:45, dcm:60},
+  {id:"lib27", name:"Mesa de Centro Orgânica Off White e Carvalho", cat:"mesa-centro", icon:"mesaCentro", styles:["moderno"], min:274, max:274, storeName:"Mobly", url:"https://www.mobly.com.br/mesa-de-centro-organica-off-white-e-carvalho-1219719.html", img:"lib/lib27.png", wcm:90, hcm:45, dcm:60},
+  {id:"lib28", name:"Mesa de Centro Oval Gemma Amêndoa e Preta", cat:"mesa-centro", icon:"mesaCentro", styles:["moderno"], min:652, max:652, storeName:"Mobly", url:"https://www.mobly.com.br/mesa-de-centro-oval-gemma-amendoa-e-preta-676657.html", img:"lib/lib28.png", wcm:90, hcm:45, dcm:60},
+  {id:"lib29", name:"Rack Fortaleza Freijó 218 cm", cat:"rack", icon:"rack", styles:["moderno"], min:944, max:944, storeName:"Mobly", url:"https://www.mobly.com.br/rack-fortaleza-freijo-218-cm-1190303.html", img:"lib/lib29.png", wcm:180, hcm:50, dcm:40},
+  {id:"lib30", name:"Rack para TV até 85 Polegadas Mazza 3 Gavetas Branco e Cedro", cat:"rack", icon:"rack", styles:["moderno"], min:656, max:656, storeName:"Mobly", url:"https://www.mobly.com.br/rack-para-tv-ate-85-polegadas-mazza-3-gavetas-branco-e-cedro-760337.html", img:"lib/lib30.png", wcm:180, hcm:50, dcm:40},
+  {id:"lib31", name:"Rack Panamá 1 PT Preto 162 cm", cat:"rack", icon:"rack", styles:["moderno"], min:602, max:602, storeName:"Mobly", url:"https://www.mobly.com.br/rack-panama-1-pt-preto-162-cm-1098351.html", img:"lib/lib31.png", wcm:180, hcm:50, dcm:40},
+  {id:"lib32", name:"Rack Noronha Off White e Freijó 180 cm", cat:"rack", icon:"rack", styles:["moderno"], min:859, max:859, storeName:"Mobly", url:"https://www.mobly.com.br/rack-noronha-off-white-e-freijo-180-cm-1114749.html", img:"lib/lib32.png", wcm:180, hcm:50, dcm:40},
+  {id:"lib33", name:"Rack Verona 2 GV Cedro e Off White 180 cm", cat:"rack", icon:"rack", styles:["moderno"], min:611, max:611, storeName:"Mobly", url:"https://www.mobly.com.br/rack-verona-2-gv-cedro-e-off-white-180-cm-1177400.html", img:"lib/lib33.png", wcm:180, hcm:50, dcm:40},
+  {id:"lib34", name:"Guarda-Roupa Casal 1 Espelho Belluno 2 Portas 3 Gavetas Branco", cat:"guarda-roupa", icon:"armario", styles:["moderno"], min:2142, max:2142, storeName:"Mobly", url:"https://www.mobly.com.br/guardaroupa-casal-com-1-espelho-belluno-2-portas-3-gavetas-branco-967823.html", img:"lib/lib34.png", wcm:220, hcm:210, dcm:60},
+  {id:"lib35", name:"Guarda-Roupa Closet Industrial Mital 2 Gavetas Off White e Dourado 54 cm", cat:"guarda-roupa", icon:"armario", styles:["moderno"], min:616, max:616, storeName:"Mobly", url:"https://www.mobly.com.br/guardaroupa-closet-industrial-mital-2-gavetas-off-white-e-dourado-54-cm-1112417.html", img:"lib/lib35.png", wcm:220, hcm:210, dcm:60},
+  {id:"lib36", name:"Guarda-Roupa Solteiro Zermatt 2 Portas 3 Gavetas Cinza", cat:"guarda-roupa", icon:"armario", styles:["moderno"], min:2578, max:2578, storeName:"Mobly", url:"https://www.mobly.com.br/guardaroupa-solteiro-zermatt-100-mdf-2-portas-3-gavetas-cinza-1349843.html", img:"lib/lib36.png", wcm:220, hcm:210, dcm:60},
+  {id:"lib37", name:"Cadeira Dulce Branca e Cinza", cat:"cadeira", icon:"cadeira", styles:["escandinavo"], min:339, max:339, storeName:"Mobly", url:"https://www.mobly.com.br/cadeira-dulce-branca-e-cinza-856528.html", img:"lib/lib37.png", wcm:45, hcm:90, dcm:50},
+  {id:"lib38", name:"Luminária de Piso Classic Bege e Amêndoa", cat:"luminaria", icon:"lampFloor", styles:["escandinavo"], min:391, max:391, storeName:"Mobly", url:"https://www.mobly.com.br/luminaria-de-piso-classic-bege-e-amendoa-726875.html", img:"lib/lib38.png", wcm:40, hcm:150, dcm:40},
+  {id:"lib39", name:"Luminária Natural Raiz Papel de Fibras Branca e Marrom 34 cm", cat:"luminaria", icon:"lampFloor", styles:["escandinavo"], min:258, max:258, storeName:"Mobly", url:"https://www.mobly.com.br/luminaria-natural-raiz-papel-de-fibras-branca-e-marrom-34-cm-1280455.html", img:"lib/lib39.png", wcm:40, hcm:150, dcm:40},
+  {id:"lib40", name:"Luminária Natural Folhas Papel de Fibras Branca e Verde 34 cm", cat:"luminaria", icon:"lampFloor", styles:["escandinavo"], min:168, max:168, storeName:"Mobly", url:"https://www.mobly.com.br/luminaria-natural-folhas-papel-de-fibras-branca-e-verde-34-cm-1280456.html", img:"lib/lib40.png", wcm:40, hcm:150, dcm:40},
+  {id:"lib41", name:"Luminária de Teto Minimum IV Marrom Claro e Branca", cat:"luminaria", icon:"lampFloor", styles:["escandinavo"], min:260, max:260, storeName:"Mobly", url:"https://www.mobly.com.br/luminaria-de-teto-minimum-iv-marrom-claro-e-branca-1083716.html", img:"lib/lib41.png", wcm:40, hcm:150, dcm:40},
+  {id:"lib42", name:"Tapete Essential II (200x250) Camelo", cat:"tapete", icon:"tapete", styles:["escandinavo"], min:1187, max:1187, storeName:"Mobly", url:"https://www.mobly.com.br/tapete-essential-ii-200x250-camelo-36922.html", img:"lib/lib42.png", wcm:200, hcm:90, dcm:160},
+  {id:"lib43", name:"Tapete Natural Retangular Sisal (60x180cm) Mesclado", cat:"tapete", icon:"tapete", styles:["escandinavo"], min:274, max:274, storeName:"Mobly", url:"https://www.mobly.com.br/tapete-natural-retangular-sisal-60x180cm-mesclado-727582.html", img:"lib/lib43.png", wcm:200, hcm:90, dcm:160},
+  {id:"lib44", name:"Tapete Liso Natural (200x250) Bege", cat:"tapete", icon:"tapete", styles:["escandinavo"], min:1129, max:1129, storeName:"Mobly", url:"https://www.mobly.com.br/tapete-liso-natural-200x250-bege-25950.html", img:"lib/lib44.png", wcm:200, hcm:90, dcm:160},
+  {id:"lib45", name:"Tapete Essential III 150x200 cm Polar Apaeb", cat:"tapete", icon:"tapete", styles:["escandinavo"], min:733, max:733, storeName:"Mobly", url:"https://www.mobly.com.br/tapete-essential-iii-150x200-cm-polar-apaeb-36902.html", img:"lib/lib45.png", wcm:200, hcm:90, dcm:160},
+  {id:"lib46", name:"Tapete Essential I 100x150 cm Mel Claro Apaeb", cat:"tapete", icon:"tapete", styles:["escandinavo"], min:373, max:373, storeName:"Mobly", url:"https://www.mobly.com.br/tapete-essential-i-100x150-cm-mel-claro-apaeb-36872.html", img:"lib/lib46.png", wcm:200, hcm:90, dcm:160}
+];
+const libById = Object.fromEntries(LIBRARY.map(c=>[c.id,c]));
+
 const CAT_LABELS = { sofa:"Sofá", poltrona:"Poltrona", "mesa-centro":"Mesa de centro", rack:"Rack / Aparador",
   estante:"Estante", cama:"Cama", "guarda-roupa":"Guarda-roupa", criado:"Criado / Cômoda", "mesa-jantar":"Mesa de jantar",
   cadeira:"Cadeira", luminaria:"Iluminação", tapete:"Tapete", cortina:"Cortina", decoracao:"Decoração", escrivaninha:"Escrivaninha" };
@@ -351,10 +451,10 @@ const CAT_DEPTH = { sofa:90, poltrona:85, "mesa-centro":60, rack:40, estante:35,
 function depthOf(c){ return (c && c.dcm) ? c.dcm : (CAT_DEPTH[c && c.cat] || 60); }
 
 /* Resolve um item por id — catálogo embutido OU produto adicionado pelo usuário (state.custom). */
-function def(id){ return catById[id] || ((state && state.custom) ? state.custom.find(c=>c.id===id) : null) || null; }
-function storeName(c){ return c.custom ? (c.storeName || "Loja") : (STORES[c.store] ? STORES[c.store].nome : "Loja"); }
-function buyUrl(c){ return c.custom ? (c.url || "") : (STORES[c.store] ? STORES[c.store].url(c.q) : ""); }
-function artHTML(c){ return c.img ? `<img src="${c.img}" alt="" draggable="false" style="width:100%;height:100%;object-fit:contain;display:block">` : iconSvg(c.icon||"mesaCentro"); }
+function def(id){ return catById[id] || libById[id] || ((state && state.custom) ? state.custom.find(c=>c.id===id) : null) || null; }
+function storeName(c){ if(c.storeName) return c.storeName; return STORES[c.store] ? STORES[c.store].nome : "Loja"; }
+function buyUrl(c){ if(c.url) return c.url; return STORES[c.store] ? STORES[c.store].url(c.q) : ""; }
+function artHTML(c){ return c.img ? `<img src="${esc(c.img)}" alt="" draggable="false" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:contain;display:block">` : iconSvg(c.icon||"mesaCentro"); }
 function aspectOf(c){ if(c.img && c.imgW && c.imgH) return c.imgW+" / "+c.imgH; const ic = ICONS[c.icon] || ICONS.mesaCentro; return ic.w+" / "+ic.h; }
 function buyLink(c){ const u = buyUrl(c); return u ? `<a href="${esc(u)}" target="_blank" rel="noopener">buscar ↗</a>` : ""; }
 const STYLE_LABELS = { escandinavo:"Escandinavo", moderno:"Moderno", industrial:"Industrial", minimalista:"Minimalista", classico:"Clássico", rustico:"Rústico" };
@@ -375,7 +475,7 @@ function defaultState(){
 }
 function curProj(){ return state.projects.find(p=>p.id===state.currentId) || state.projects[0]; }
 function sceneSpent(p){ return p.items.reduce((s,i)=> s + midOf(def(i.catId)||{min:0,max:0}), 0); }
-function allCatalog(){ return [...CAT, ...((state && state.custom) || [])]; }
+function allCatalog(){ return [...((state && state.custom) || []), ...LIBRARY, ...CAT]; }
 
 let saveT;
 function saveState(){ clearTimeout(saveT); saveT=setTimeout(()=>saveKey("state", state), 500); }
@@ -419,10 +519,41 @@ function budgetBarHTML(p){
     <div class="rest">${restTxt}</div></div>`;
 }
 
+/* Ambiente vazio desenhado (perspectiva 1 ponto) — fundo padrão pra compor os objetos */
+function roomBackdrop(){
+  return `<svg viewBox="0 0 1000 625" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="0,0 1000,0 720,150 280,150" fill="var(--rm-ceil)"/>
+    <polygon points="0,0 280,150 280,430 0,625" fill="var(--rm-wall2)"/>
+    <polygon points="1000,0 720,150 720,430 1000,625" fill="var(--rm-wall2)"/>
+    <rect x="280" y="150" width="440" height="280" fill="var(--rm-wall)"/>
+    <polygon points="0,625 1000,625 720,430 280,430" fill="var(--rm-floor)"/>
+    <g stroke="var(--rm-line)" stroke-width="2" fill="none">
+      <line x1="150" y1="625" x2="352" y2="430"/>
+      <line x1="400" y1="625" x2="448" y2="430"/>
+      <line x1="600" y1="625" x2="552" y2="430"/>
+      <line x1="850" y1="625" x2="648" y2="430"/>
+      <line x1="0" y1="545" x2="1000" y2="545"/>
+      <line x1="150" y1="483" x2="850" y2="483"/>
+    </g>
+    <rect x="325" y="195" width="150" height="120" fill="var(--rm-ceil)" stroke="var(--rm-line)" stroke-width="3"/>
+    <line x1="400" y1="195" x2="400" y2="315" stroke="var(--rm-line)" stroke-width="2"/>
+    <line x1="325" y1="255" x2="475" y2="255" stroke="var(--rm-line)" stroke-width="2"/>
+    <rect x="280" y="422" width="440" height="9" fill="var(--rm-floor2)"/>
+    <ellipse cx="500" cy="560" rx="360" ry="42" fill="#000" opacity="0.05"/>
+  </svg>`;
+}
+
 /* ============================ Aba: Montar (editor) ============================ */
 function renderMontar(v){
   const p = curProj();
-  v.appendChild(el(budgetBarHTML(p)));
+  const ws = el('<div class="workspace"></div>');
+  const budgetWrap = el('<div class="ws-budget"></div>');
+  const main = el('<div class="ws-main"></div>');
+  const side = el('<div class="ws-side"></div>');
+  ws.appendChild(budgetWrap); ws.appendChild(main); ws.appendChild(side);
+  v.appendChild(ws);
+
+  budgetWrap.appendChild(el(budgetBarHTML(p)));
 
   // alternador de visão: Foto (colagem) x Planta (vista de cima) x 3D
   const seg = el(`<div class="seg">
@@ -430,13 +561,33 @@ function renderMontar(v){
     <button data-view="planta" class="${state.ui.view==='planta'?'on':''}">📐 Planta</button>
     <button data-view="tresd" class="${state.ui.view==='tresd'?'on':''}">🧊 3D</button>
   </div>`);
-  v.appendChild(seg);
+  main.appendChild(seg);
   seg.querySelectorAll('[data-view]').forEach(b=> b.onclick=()=>{ state.ui.view=b.dataset.view; selId=null; saveState(); render(); });
 
-  if(state.ui.view==='planta') return renderPlanta(v, p);
-  if(state.ui.view==='tresd') return renderTresD(v, p);
-  renderFotoEditor(v, p);
+  if(state.ui.view==='planta') renderPlanta(main, p);
+  else if(state.ui.view==='tresd') renderTresD(main, p);
+  else renderFotoEditor(main, p);
+
+  renderAddRail(side, p);
 }
+
+/* Painel lateral (desktop): adicionar móveis rapidamente à cena */
+function renderAddRail(side, p){
+  const rail = el(`<div class="addrail"><h4>Adicionar móveis</h4><div class="railgrid"></div></div>`);
+  const g = rail.querySelector('.railgrid');
+  const items = allCatalog().filter(c=> !f_cat() || c.cat===f_cat());
+  items.slice(0, 60).forEach(c=>{
+    const card = el(`<div class="railcard" title="${esc(c.name)}">
+      <div class="rthumb">${artHTML(c)}</div>
+      <div class="rn">${esc(c.name)}</div>
+      <div class="rp">${brlRange(c)}</div>
+    </div>`);
+    card.onclick = ()=> addToScene(c.id);
+    g.appendChild(card);
+  });
+  side.appendChild(rail);
+}
+function f_cat(){ return ''; }
 
 function renderFotoEditor(v, p){
   const tools = el(`<div class="stage-tools">
@@ -450,9 +601,8 @@ function renderFotoEditor(v, p){
   $('#btAdd').onclick = ()=>{ state.ui.tab="catalogo"; render(); };
 
   const stage = el(`<div class="stage" id="stage">
-    ${p.bg? `<img class="bg" src="${p.bg}" alt="ambiente">` : '<div class="room"></div>'}
-    ${p.items.length===0 && !p.bg ? '<div class="hint">Toque em <b>📷 Foto do ambiente</b> para subir a foto ou planta do lugar,<br>ou em <b>＋ Móveis</b> para começar a montar a decoração.</div>':''}
-    ${p.items.length===0 && p.bg ? '<div class="hint">Agora toque em <b>＋ Móveis</b> e arraste as peças sobre a foto.</div>':''}
+    ${p.bg? `<img class="bg" src="${p.bg}" alt="ambiente">` : `<div class="room">${roomBackdrop()}</div>`}
+    ${p.items.length===0 ? `<div class="hint">Clique nos móveis do painel <b>Adicionar móveis</b> (ou na aba <b>🛒 Catálogo</b>) para posicioná-los no ambiente.<br>Prefere sua própria foto? Use <b>📷 Foto do ambiente</b>.</div>`:''}
   </div>`);
   v.appendChild(stage);
 
@@ -940,8 +1090,8 @@ function renderCatalogo(v){
   filters.querySelectorAll('[data-est]').forEach(b=> b.onclick=()=>{ f.estilo=b.dataset.est; saveState(); render(); });
   const sel=$('#fMax'); sel.value=String(f.maxPreco||0); sel.onchange=()=>{ f.maxPreco=+sel.value; saveState(); render(); };
 
-  // produtos do usuário primeiro, depois o catálogo embutido
-  let items = [...((state.custom)||[]), ...CAT].filter(c=>
+  // produtos do usuário, depois a biblioteca real (Mobly), depois categorias genéricas
+  let items = [...((state.custom)||[]), ...LIBRARY, ...CAT].filter(c=>
     (!f.cat || c.cat===f.cat) &&
     (!f.estilo || (c.styles||[]).includes(f.estilo)) &&
     (!f.maxPreco || c.min<=f.maxPreco));
