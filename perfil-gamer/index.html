@@ -9,9 +9,10 @@
 :root{
   --bg:#EEF1F6; --surface:#FFFFFF; --surface2:#E4E9F2; --ink:#141A26; --muted:#61697A; --line:#D8DEE9;
   --accent:#2E6FF2; --accent2:#7B4DF2; --accent-soft:rgba(46,111,242,.10);
-  --mp:#D69200; --mb:#0FA34E; --bo:#2563EB; --me:#5B6470; --ru:#E8590C; --mr:#D42A2A;
-  --mp-s:rgba(214,146,0,.18); --mb-s:rgba(15,163,78,.16); --bo-s:rgba(37,99,235,.15);
-  --me-s:rgba(91,100,112,.16); --ru-s:rgba(232,89,12,.16); --mr-s:rgba(212,42,42,.15);
+  --mp:#C98A00; --mb:#0E9A48; --bo:#2563EB; --me:#525C6B; --ru:#DE5A0C; --mr:#CE2626;
+  --mp-s:rgba(201,138,0,.18); --mb-s:rgba(14,154,72,.16); --bo-s:rgba(37,99,235,.15);
+  --me-s:rgba(82,92,107,.17); --ru-s:rgba(222,90,12,.16); --mr-s:rgba(206,38,38,.15);
+  --von:#FFFFFF;
   --shadow:0 4px 16px rgba(20,26,38,.07);
   --hero:linear-gradient(135deg,#182036 0%,#101624 60%,#131C30 100%);
 }
@@ -19,9 +20,10 @@
   :root{
     --bg:#0B0E14; --surface:#131824; --surface2:#1B2232; --ink:#EAEEF6; --muted:#8A94A8; --line:#232C40;
     --accent:#4D8DFF; --accent2:#9D7BFF; --accent-soft:rgba(77,141,255,.13);
-    --mp:#F5C518; --mb:#2FD675; --bo:#5B9DFF; --me:#96A1B2; --ru:#FF8A3D; --mr:#FF5555;
-    --mp-s:rgba(245,197,24,.18); --mb-s:rgba(47,214,117,.16); --bo-s:rgba(91,157,255,.16);
-    --me-s:rgba(150,161,178,.17); --ru-s:rgba(255,138,61,.16); --mr-s:rgba(255,85,85,.15);
+    --mp:#F5C518; --mb:#2FD675; --bo:#5B9DFF; --me:#A6B2C6; --ru:#FF8A3D; --mr:#FF5C5C;
+    --mp-s:rgba(245,197,24,.20); --mb-s:rgba(47,214,117,.18); --bo-s:rgba(91,157,255,.18);
+    --me-s:rgba(166,178,198,.20); --ru-s:rgba(255,138,61,.18); --mr-s:rgba(255,92,92,.17);
+    --von:#12161F;
     --shadow:0 4px 18px rgba(0,0,0,.4);
     --hero:linear-gradient(135deg,#1A2340 0%,#12182B 55%,#1B1530 100%);
   }
@@ -109,7 +111,7 @@ details.game summary:active{background:var(--surface2)}
 .grow{display:flex;align-items:center;gap:10px}
 .gname{flex:1;min-width:0;font-weight:750;font-size:.94rem;line-height:1.3}
 .vpill{flex:0 0 auto;font-size:.63rem;font-weight:800;letter-spacing:.04em;padding:5px 10px;border-radius:8px;
-  background:var(--vs,var(--surface2));color:var(--vc,var(--muted));white-space:nowrap}
+  background:var(--vc,var(--surface2));color:var(--von,var(--muted));white-space:nowrap}
 .gmeta{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;font-size:.7rem;color:var(--muted);font-weight:600}
 .gmeta .hrs{color:var(--ink);font-weight:800}
 .gbody{padding:2px 14px 13px 16px;border-top:1px solid var(--line)}
@@ -133,7 +135,7 @@ h2{font-size:.78rem;margin:20px 4px 9px;font-weight:800;letter-spacing:.1em;text
 .bar .lbl{flex:0 0 96px;font-size:.7rem;font-weight:800;text-align:right}
 .bar .track{flex:1;height:22px;background:var(--surface2);border-radius:8px;overflow:hidden}
 .bar .fill{height:100%;border-radius:8px;min-width:3px;display:flex;align-items:center;justify-content:flex-end;
-  padding-right:6px;font-size:.62rem;font-weight:800;color:#fff}
+  padding-right:6px;font-size:.62rem;font-weight:800;color:var(--von,#fff)}
 .bar .val{flex:0 0 40px;font-size:.7rem;color:var(--muted);font-weight:700}
 .rowline{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.82rem}
 .rowline:last-child{border-bottom:0}
