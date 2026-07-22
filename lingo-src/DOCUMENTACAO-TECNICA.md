@@ -230,6 +230,14 @@ aparelho. Camadas (todas testadas com requisições reais):
 - **Feito (jul/2026):** reconstrução completa (curso/exercícios/gramática-ponte/
   tutor/revisão/perfil) + PWA + modo mock + guardrails (§6b) + publicado no
   Vercel (§5b) + identidade editorial própria (§7).
+- **Feito (jul/2026) — aba Palavras (vocabulário):** baralho de cards que viram
+  para treino de caderno. Dois modos: **Escrever** (vê figura/emoji + PT →
+  escreve o FR à mão e fala → vira e confere palavra + pronúncia + áudio) e
+  **Ditado** (ouve o FR → escreve o que ouviu → vira e confere a grafia).
+  Auto-avaliação Acertei/Errei liga na revisão espaçada (`lib/srs.ts`).
+  Conteúdo: itens `tipo: "vocab"` em `data/content.json` (campos extras
+  `emoji`/`imagem`/`tema`/`genero`), lidos por `lib/vocab.ts`. Componente
+  `components/Vocabulario.tsx`; animação de virar em `app/globals.css` (`.vira`).
 - **Próximos:** mais conteúdo verificado por unidade (Tatoeba com filtros
   melhores), áudio TTS premium com cache, pronúncia por fonema (Azure),
   ícone PNG p/ iOS, contas com sincronização (Supabase), rate limit

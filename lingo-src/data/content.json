@@ -516,6 +516,50 @@
       "contexto": "emergencia",
       "fonte": "curado",
       "status": "verificado"
-    }
+    },
+
+    { "id": "v1", "tipo": "vocab", "alvo": "le pain", "traducao": "o pão", "pronuncia": "lё pã", "emoji": "🥖", "imagem": null, "tema": "comida", "genero": "m", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+    { "id": "v2", "tipo": "vocab", "alvo": "l'eau", "traducao": "a água", "pronuncia": "lô", "emoji": "💧", "imagem": null, "tema": "comida", "genero": "f", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+    { "id": "v3", "tipo": "vocab", "alvo": "le café", "traducao": "o café", "pronuncia": "lё ka-FÉ", "emoji": "☕", "imagem": null, "tema": "comida", "genero": "m", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+    { "id": "v4", "tipo": "vocab", "alvo": "le vin", "traducao": "o vinho", "pronuncia": "lё vã", "emoji": "🍷", "imagem": null, "tema": "comida", "genero": "m", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+    { "id": "v5", "tipo": "vocab", "alvo": "le fromage", "traducao": "o queijo", "pronuncia": "lё fro-MÁJ", "emoji": "🧀", "imagem": null, "tema": "comida", "genero": "m", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+    { "id": "v6", "tipo": "vocab", "alvo": "la pomme", "traducao": "a maçã", "pronuncia": "la PÓM", "emoji": "🍎", "imagem": null, "tema": "comida", "genero": "f", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+    { "id": "v7", "tipo": "vocab", "alvo": "le croissant", "traducao": "o croissant", "pronuncia": "lё krua-SÃ", "emoji": "🥐", "imagem": null, "tema": "comida", "genero": "m", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+    { "id": "v8", "tipo": "vocab", "alvo": "le lait", "traducao": "o leite", "pronuncia": "lё LÉ", "emoji": "🥛", "imagem": null, "tema": "comida", "genero": "m", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+
+    { "id": "v9", "tipo": "vocab", "alvo": "l'addition", "traducao": "a conta", "pronuncia": "la-di-si-ÕN", "emoji": "🧾", "imagem": null, "tema": "restaurante", "genero": "f", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+    { "id": "v10", "tipo": "vocab", "alvo": "le menu", "traducao": "o cardápio", "pronuncia": "lё mё-NÜ", "emoji": "📋", "imagem": null, "tema": "restaurante", "genero": "m", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+    { "id": "v11", "tipo": "vocab", "alvo": "un verre", "traducao": "um copo", "pronuncia": "ã VÉR", "emoji": "🥃", "imagem": null, "tema": "restaurante", "genero": "m", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+    { "id": "v12", "tipo": "vocab", "alvo": "une table", "traducao": "uma mesa", "pronuncia": "ün TÁBL", "emoji": "🍽️", "imagem": null, "tema": "restaurante", "genero": "f", "contexto": "restaurante", "fonte": "curado", "status": "verificado" },
+
+    { "id": "v13", "tipo": "vocab", "alvo": "zéro", "traducao": "zero", "pronuncia": "zé-RÔ", "emoji": "0️⃣", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v14", "tipo": "vocab", "alvo": "un", "traducao": "um (1)", "pronuncia": "ã", "emoji": "1️⃣", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v15", "tipo": "vocab", "alvo": "deux", "traducao": "dois", "pronuncia": "dё", "emoji": "2️⃣", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v16", "tipo": "vocab", "alvo": "trois", "traducao": "três", "pronuncia": "trua", "emoji": "3️⃣", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v17", "tipo": "vocab", "alvo": "quatre", "traducao": "quatro", "pronuncia": "KÁTR", "emoji": "4️⃣", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v18", "tipo": "vocab", "alvo": "cinq", "traducao": "cinco", "pronuncia": "sãk", "emoji": "5️⃣", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v19", "tipo": "vocab", "alvo": "six", "traducao": "seis", "pronuncia": "sis", "emoji": "6️⃣", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v20", "tipo": "vocab", "alvo": "sept", "traducao": "sete", "pronuncia": "SÉT", "emoji": "7️⃣", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v21", "tipo": "vocab", "alvo": "huit", "traducao": "oito", "pronuncia": "üit", "emoji": "8️⃣", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v22", "tipo": "vocab", "alvo": "neuf", "traducao": "nove", "pronuncia": "nЁF", "emoji": "9️⃣", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v23", "tipo": "vocab", "alvo": "dix", "traducao": "dez", "pronuncia": "dis", "emoji": "🔟", "imagem": null, "tema": "numeros", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+
+    { "id": "v24", "tipo": "vocab", "alvo": "bonjour", "traducao": "bom dia / olá", "pronuncia": "bõ-JUR", "emoji": "👋", "imagem": null, "tema": "saudacoes", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v25", "tipo": "vocab", "alvo": "au revoir", "traducao": "até logo / tchau", "pronuncia": "o-rё-VUÁR", "emoji": "👋", "imagem": null, "tema": "saudacoes", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v26", "tipo": "vocab", "alvo": "merci", "traducao": "obrigado(a)", "pronuncia": "mér-SI", "emoji": "🙏", "imagem": null, "tema": "saudacoes", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v27", "tipo": "vocab", "alvo": "oui", "traducao": "sim", "pronuncia": "ui", "emoji": "✅", "imagem": null, "tema": "saudacoes", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v28", "tipo": "vocab", "alvo": "non", "traducao": "não", "pronuncia": "nõ", "emoji": "❌", "imagem": null, "tema": "saudacoes", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v29", "tipo": "vocab", "alvo": "s'il vous plaît", "traducao": "por favor", "pronuncia": "sil vu PLÉ", "emoji": "🙏", "imagem": null, "tema": "saudacoes", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+    { "id": "v30", "tipo": "vocab", "alvo": "pardon", "traducao": "desculpe / com licença", "pronuncia": "par-DÕ", "emoji": "🙇", "imagem": null, "tema": "saudacoes", "genero": "—", "contexto": "geral", "fonte": "curado", "status": "verificado" },
+
+    { "id": "v31", "tipo": "vocab", "alvo": "la chambre", "traducao": "o quarto", "pronuncia": "la CHÃBR", "emoji": "🛏️", "imagem": null, "tema": "hotel", "genero": "f", "contexto": "hotel", "fonte": "curado", "status": "verificado" },
+    { "id": "v32", "tipo": "vocab", "alvo": "la clé", "traducao": "a chave", "pronuncia": "la KLÉ", "emoji": "🔑", "imagem": null, "tema": "hotel", "genero": "f", "contexto": "hotel", "fonte": "curado", "status": "verificado" },
+    { "id": "v33", "tipo": "vocab", "alvo": "la valise", "traducao": "a mala", "pronuncia": "la va-LÍZ", "emoji": "🧳", "imagem": null, "tema": "hotel", "genero": "f", "contexto": "hotel", "fonte": "curado", "status": "verificado" },
+
+    { "id": "v34", "tipo": "vocab", "alvo": "la rue", "traducao": "a rua", "pronuncia": "la RÜ", "emoji": "🛣️", "imagem": null, "tema": "rua", "genero": "f", "contexto": "rua", "fonte": "curado", "status": "verificado" },
+    { "id": "v35", "tipo": "vocab", "alvo": "la gare", "traducao": "a estação (de trem)", "pronuncia": "la GÁR", "emoji": "🚉", "imagem": null, "tema": "rua", "genero": "f", "contexto": "rua", "fonte": "curado", "status": "verificado" },
+    { "id": "v36", "tipo": "vocab", "alvo": "à gauche", "traducao": "à esquerda", "pronuncia": "a GÔCH", "emoji": "⬅️", "imagem": null, "tema": "rua", "genero": "—", "contexto": "rua", "fonte": "curado", "status": "verificado" },
+    { "id": "v37", "tipo": "vocab", "alvo": "à droite", "traducao": "à direita", "pronuncia": "a DRUÁT", "emoji": "➡️", "imagem": null, "tema": "rua", "genero": "—", "contexto": "rua", "fonte": "curado", "status": "verificado" },
+    { "id": "v38", "tipo": "vocab", "alvo": "tout droit", "traducao": "em frente / reto", "pronuncia": "tu DRUÁ", "emoji": "⬆️", "imagem": null, "tema": "rua", "genero": "—", "contexto": "rua", "fonte": "curado", "status": "verificado" }
   ]
 }

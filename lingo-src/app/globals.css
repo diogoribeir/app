@@ -238,6 +238,33 @@ body {
 }
 .pulsar { animation: pulsar 1.2s ease-in-out infinite; }
 
+/* ── Card que VIRA (aba Palavras / baralho de vocabulário) ─────────── */
+.vira {
+  perspective: 1200px;
+}
+.vira-interno {
+  position: relative;
+  width: 100%;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+  transform-style: preserve-3d;
+}
+.vira.virado .vira-interno {
+  transform: rotateY(180deg);
+}
+.vira-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+/* o verso ocupa o mesmo espaço da frente, já girado */
+.vira-face.verso {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .vira-interno { transition: none; }
+}
+
 /* barra de rolagem discreta */
 * {
   scrollbar-width: thin;

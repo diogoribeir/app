@@ -35,6 +35,11 @@ export interface ItemConteudo {
   status: "verificado" | "pendente";
   desmontado?: string; // frase "desmontada" peça por peça
   pronuncia?: string; // pronúncia simplificada para PT-BR
+  // ── só para tipo "vocab" (aba Vocabulário / baralho de cards) ──────
+  emoji?: string; // figura do card (padrão visual do app; ex.: "🥖")
+  imagem?: string | null; // caminho de ilustração/foto futura (por ora null)
+  tema?: string; // agrupador do baralho (ex.: "comida", "numeros")
+  genero?: "m" | "f" | "—"; // gênero do substantivo, quando fizer sentido
 }
 
 // ── Gramática (conteúdo curado, ponte PT-BR → FR) ───────────────────

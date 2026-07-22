@@ -6,6 +6,7 @@
 import { useEffect, useState } from "react";
 import Onboarding from "@/components/Onboarding";
 import Viagem from "@/components/Viagem";
+import Vocabulario from "@/components/Vocabulario";
 import Frases from "@/components/Frases";
 import Sessao from "@/components/Sessao";
 import Cena from "@/components/Cena";
@@ -18,7 +19,7 @@ import { gerarFilaLicao, gerarFilaRevisao } from "@/lib/exercicios";
 import { XP_LICAO, XP_REVISAO } from "@/lib/jogo";
 import type { Usuario, Exercicio } from "@/lib/types";
 
-type Aba = "viagem" | "frases" | "tutor" | "perfil";
+type Aba = "viagem" | "vocab" | "frases" | "tutor" | "perfil";
 
 type Tela =
   | { tipo: "abas" }
@@ -29,6 +30,7 @@ type Tela =
 
 const ABAS: { id: Aba; emoji: string; rotulo: string }[] = [
   { id: "viagem", emoji: "🗼", rotulo: "Viagem" },
+  { id: "vocab", emoji: "📇", rotulo: "Palavras" },
   { id: "frases", emoji: "🗣️", rotulo: "Frases" },
   { id: "tutor", emoji: "💬", rotulo: "Tutor" },
   { id: "perfil", emoji: "👤", rotulo: "Você" },
@@ -136,6 +138,11 @@ export default function Pagina() {
           aoAbrirGramatica={(topicoId) => setTela({ tipo: "gramatica", topicoId })}
           aoRevisar={(ids) => setTela({ tipo: "revisao", ids })}
         />
+      )}
+      {aba === "vocab" && (
+        <div className="px-4">
+          <Vocabulario />
+        </div>
       )}
       {aba === "frases" && (
         <div className="px-4">
