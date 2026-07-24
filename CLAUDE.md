@@ -94,7 +94,10 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   `perfil-gamer-src/` (dados mestres: `biblioteca_jogos.xlsx` + geradores + docs).
 - **O que faz:** biblioteca de jogos PS4/PS5 com veredictos estilo ACG (Masterpiece → Muito Ruim),
   3 abas: 🎮 Jogos (busca, filtros por veredicto/status, ordenação, custo/hora R$90) ·
-  📊 Estatísticas (distribuição, top horas, por gênero, insights, motivos de drop) · 🗓 Plano 2026.
+  📊 Estatísticas (distribuição, tempo total jogado, top horas com filtro por veredicto, hall do
+  custo/hora, por gênero, motivos de drop) · 🗓 Plano 2026.
+- **PWA:** instalável (manifest + `sw.js` network-first) e abre offline; ícones `icon-192/512.png`
+  gerados por canvas. Menu **⋯** no cabeçalho = backup exportar/importar (`.json` com jogos + plano).
 - **Filosofia (respeitar):** veredicto categórico, NUNCA notas numéricas na interface;
   componentes H/G/D/FF discretos como "análise interna". Detalhes em `perfil-gamer-src/README.md`.
 - **EDITÁVEL no app** (igual aos outros): botão "➕ Registrar jogo" + Editar/Excluir em cada card.

@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0B0E14" />
 <title>Perfil Gamer — Biblioteca de Jogos</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Perfil Gamer" />
 <style>
 :root{
   --bg:#EEF1F6; --surface:#FFFFFF; --surface2:#E4E9F2; --ink:#141A26; --muted:#61697A; --line:#D8DEE9;
@@ -47,6 +52,9 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
 .brand small{display:block;font-weight:600;font-size:.64rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
 .synctag{font-size:.6rem;font-weight:800;padding:4px 10px;border-radius:999px;background:var(--mb-s);color:var(--mb);white-space:nowrap}
 .synctag.off{background:var(--surface2);color:var(--muted)}
+.iconbtn{border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;
+  border-radius:11px;font-size:1.15rem;font-weight:800;line-height:1;cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
+.iconbtn:active{transform:scale(.96)}
 
 /* ---------- hero "jogando agora" ---------- */
 .hero{background:var(--hero);color:#EAEEF6;border-radius:20px;padding:14px 16px;margin-bottom:12px;
@@ -199,7 +207,10 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
       <div class="logo">🎮</div>
       <h1>Perfil Gamer<small>PS4 + PS5 · biblioteca</small></h1>
     </div>
-    <span class="synctag off" id="syncTag">conectando…</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="synctag off" id="syncTag">conectando…</span>
+      <button type="button" class="iconbtn" id="btnMenu" aria-label="Backup e dados">⋯</button>
+    </div>
   </header>
   <main id="content"></main>
 </div>
@@ -270,6 +281,19 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
       <button type="button" class="btn btn-ghost" id="pCancel">Cancelar</button>
       <button type="button" class="btn btn-save" id="pSave">Salvar</button>
     </div>
+  </div>
+</div>
+
+<div id="bmodal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="mbox">
+    <h2>⋯ Backup e dados</h2>
+    <p class="lead" style="margin:6px 2px 0">Baixe um arquivo com toda a biblioteca e o Plano 2026, ou restaure de um backup salvo. Útil como cópia de segurança fora da nuvem.</p>
+    <div class="mactions" style="margin-top:14px">
+      <button type="button" class="btn btn-ghost" id="bExport">⬇️ Baixar backup</button>
+      <button type="button" class="btn btn-save" id="bImport">⬆️ Importar backup</button>
+    </div>
+    <input id="bFile" type="file" accept="application/json,.json" style="display:none" />
+    <div class="mactions"><button type="button" class="btn btn-ghost" id="bClose">Fechar</button></div>
   </div>
 </div>
 
@@ -490,9 +514,26 @@ function viewStats(){
       <div class="n num">${v.length} jogos · ${Math.round(hrs).toLocaleString("pt-BR")}h<br>zera ${Math.round(c/fin*100)}% · dropa ${Math.round(d/fin*100)}%</div></div>`;
   }).join("");
   const drops = J.filter(g=>g.enc==="N").sort((a,b)=>b.horas-a.horas).map(gameCard).join("");
-  return `
+  // tempo total + hall do custo/hora
+  const jogaveis = J.filter(g=>!horasOcultas(g) && g.horas>0);
+  const totalH = jogaveis.reduce((s,g)=>s+g.horas,0);
+  const mediaH = jogaveis.length ? totalH/jogaveis.length : 0;
+  const dias = totalH/24;
+  const chRow = (g,i)=>`<div class="rowline"><span class="pos num">${i+1}</span>
+      <span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
+      <span class="nm">${esc(g.nome)}</span><span class="hv num">${fmtCH(custoHora(g))}</span></div>`;
+  const melhores = jogaveis.slice().sort((a,b)=>b.horas-a.horas).slice(0,5).map(chRow).join("");
+  const piores = jogaveis.slice().sort((a,b)=>a.horas-b.horas).slice(0,5).map(chRow).join("");
+  const overview = `<div class="strip" style="margin-bottom:10px">
+    <div class="cell"><div class="v num">${Math.round(totalH).toLocaleString("pt-BR")}h</div><div class="k">horas totais</div></div>
+    <div class="cell"><div class="v num">${Math.round(mediaH)}h</div><div class="k">média/jogo</div></div>
+    <div class="cell"><div class="v num">${Math.round(dias)}</div><div class="k">dias jogados</div></div>
+  </div>`;
+  return `${overview}
     <h2>⭐ Veredictos</h2><div class="card">${bars}</div>
     <h2>⏱ Top 10 — mais horas${statVer?` · ${statVer}`:""}</h2><div class="card">${topChips}${topRows}</div>
+    <h2>💰 Melhores compras — menor custo/hora</h2><div class="card">${melhores||'<p class="lead" style="margin:6px 2px">Sem dados.</p>'}</div>
+    <h2>💸 Mais caras por hora</h2><div class="card">${piores||'<p class="lead" style="margin:6px 2px">Sem dados.</p>'}</div>
     <h2>🎯 Por gênero principal</h2><div class="ggrid">${genRows}</div>
     <h2>❌ Drops — toque para ver o motivo</h2>${drops}`;
 }
@@ -630,6 +671,39 @@ $("#pSave").addEventListener("click", ()=>{
   closePlano(); savePlano(); render();
 });
 
+/* ---------- backup export / import ---------- */
+function openBackup(){ $("#bmodal").classList.remove("hidden"); }
+function closeBackup(){ $("#bmodal").classList.add("hidden"); }
+$("#btnMenu").addEventListener("click", openBackup);
+$("#bClose").addEventListener("click", closeBackup);
+$("#bmodal").addEventListener("click", e=>{ if (e.target === $("#bmodal")) closeBackup(); });
+$("#bExport").addEventListener("click", ()=>{
+  const data = { app:"perfil-gamer", exportedAt:new Date().toISOString(), jogos:J, plano:{ itens:P, horasDisp } };
+  const blob = new Blob([JSON.stringify(data,null,2)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = `perfil-gamer-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+$("#bImport").addEventListener("click", ()=>$("#bFile").click());
+$("#bFile").addEventListener("change", e=>{
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try {
+      const d = JSON.parse(r.result);
+      const js = Array.isArray(d.jogos) ? d.jogos : (Array.isArray(d) ? d : null);
+      if (!js){ alert("Arquivo inválido — não encontrei a lista de jogos."); return; }
+      if (!confirm(`Importar ${js.length} jogo(s)? Isso substitui a biblioteca e o plano atuais.`)) return;
+      js.forEach(g=>{ if (g && g.v === "Medíocre") g.v = "Mediano"; });
+      J = js;
+      if (d.plano && Array.isArray(d.plano.itens)){ P = d.plano.itens; if (typeof d.plano.horasDisp === "number") horasDisp = d.plano.horasDisp; }
+      saveJogos(); savePlano(); closeBackup(); render();
+    } catch(err){ alert("Não consegui ler o arquivo (JSON inválido)."); }
+  };
+  r.readAsText(f); e.target.value = "";
+});
+
 document.addEventListener("click", e=>{
   const t = e.target.closest("[data-tab]"); if (t){ tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
   if (e.target.closest("#btnFiltro")){ openSheet(); return; }
@@ -661,6 +735,9 @@ document.addEventListener("click", e=>{
 });
 render();
 boot();
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
 </script>
 </body>
 </html>
