@@ -733,11 +733,38 @@ function openRoomSheet(p){
 /* ---------- Vista 3D (Three.js, sob demanda) ---------- */
 function loadThree(){
   return new Promise((res, rej)=>{
-    if(window.THREE) return res();
+    function loadGLTF(){ if(window.THREE.GLTFLoader) return res(); const s2=document.createElement('script'); s2.src='./vendor/GLTFLoader.js'; s2.onload=()=>res(); s2.onerror=()=>rej(new Error('gltf')); document.head.appendChild(s2); }
+    if(window.THREE) return loadGLTF();
     const s=document.createElement('script'); s.src='./vendor/three.min.js';
-    s.onload=()=>res(); s.onerror=()=>rej(new Error('three'));
+    s.onload=loadGLTF; s.onerror=()=>rej(new Error('three'));
     document.head.appendChild(s);
   });
+}
+/* Modelos 3D reais (Kenney Furniture Kit — CC0). Mapa categoria -> arquivo GLB. */
+const MODEL_MAP = { sofa:"loungeSofa", poltrona:"loungeChair", "mesa-centro":"tableCoffee", rack:"cabinetTelevision",
+  estante:"bookcaseOpen", cama:"bedDouble", "guarda-roupa":"bookcaseClosedDoors", criado:"sideTableDrawers",
+  "mesa-jantar":"table", cadeira:"chair", luminaria:"lampRoundFloor", tapete:"rugRectangle", escrivaninha:"desk",
+  banheiro:"toilet", pia:"bathroomSink", banheira:"bathtub", chuveiro:"shower",
+  geladeira:"kitchenFridge", fogao:"kitchenStove", "pia-cozinha":"kitchenSink", armario:"kitchenCabinet" };
+function modelFile(c){
+  if(!c) return null;
+  if(c.model) return c.model;
+  if(c.cat==="decoracao"){
+    if(c.icon==="planta") return "pottedPlant";
+    if(c.icon==="tv") return "televisionModern";
+    if(c.icon==="espelho") return "bathroomMirror";
+    if(c.icon==="almofada") return "pillow";
+    return null;
+  }
+  return MODEL_MAP[c.cat] || null;
+}
+const MODEL_CACHE = {}; let _gltfLoader = null;
+function preloadModels(items){
+  const T=window.THREE; if(!T.GLTFLoader) return Promise.resolve();
+  if(!_gltfLoader) _gltfLoader = new T.GLTFLoader();
+  const files = [...new Set(items.map(it=>modelFile(def(it.catId))).filter(Boolean))];
+  return Promise.all(files.map(f=> MODEL_CACHE[f] ? Promise.resolve()
+    : _gltfLoader.loadAsync('./models/'+f+'.glb').then(g=>{ MODEL_CACHE[f]=g.scene; }).catch(()=>{}) ));
 }
 function renderTresD(v, p){
   const tools = el(`<div class="stage-tools">
@@ -753,7 +780,7 @@ function renderTresD(v, p){
   const wrap = el(`<div class="d3wrap" id="d3wrap">
     <div class="d3loading" id="d3loading">carregando 3D…</div>
     <div class="d3hud"><button id="d3reset">↺ Vista</button></div>
-    <div class="d3tip">Arraste o vazio p/ girar a sala · arraste um móvel p/ mover · pinça/rolar p/ zoom</div>
+    <div class="d3tip">Toque num móvel p/ selecionar → gire com ↺ ↻ · arraste p/ mover · arraste o vazio p/ girar a sala · pinça/rolar p/ zoom</div>
   </div>`);
   v.appendChild(wrap);
 
@@ -769,13 +796,30 @@ function renderTresD(v, p){
   $('#selDel').onclick = ()=>{ if(selId) removeItem(selId); };
   updateSelbar();
 
-  v.appendChild(el(`<div class="note" style="margin-top:10px">🧊 Prévia 3D à escala real do cômodo. Os móveis são representações; o produto real (foto, preço, link) fica no Catálogo/Orçamento.</div>`));
+  v.appendChild(el(`<div class="note" style="margin-top:10px">🧊 Ambiente 3D à escala real, com <b>móveis 3D de verdade</b> (giram, têm lados). São representações do tipo de móvel; o produto exato (foto, preço, link) fica no Catálogo/Orçamento.</div>`));
 
-  loadThree().then(()=>{ window.__td = init3D(wrap, p); })
+  loadThree().then(()=> preloadModels(p.items)).then(()=>{ window.__td = init3D(wrap, p); })
     .catch(()=>{ const l=$('#d3loading'); if(l) l.textContent='Não consegui carregar o 3D aqui. Use as abas Foto/Planta.'; });
 }
 
+/* Constrói a peça: usa o modelo 3D real (GLB) se disponível; senão, o modelo paramétrico. */
 function buildItem(c){
+  const T=window.THREE;
+  const mf = modelFile(c);
+  if(mf && MODEL_CACHE[mf]){
+    const g = MODEL_CACHE[mf].clone(true);
+    const box = new T.Box3().setFromObject(g); const sz = new T.Vector3(); box.getSize(sz);
+    // itens planos (tapete) escalam pela largura; os demais pela altura (proporção mais realista)
+    let s;
+    if(c.cat==="tapete") s = sz.x>0.001 ? (Math.max(c.wcm,40)/100)/sz.x : 1;
+    else s = sz.y>0.001 ? (Math.max(c.hcm,20)/100)/sz.y : 1;
+    g.scale.setScalar(s);
+    g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; if(o.material){ o.material=o.material.clone(); } } });
+    return g;
+  }
+  return buildItemBox(c);
+}
+function buildItemBox(c){
   const T=window.THREE;
   const w=Math.max(c.wcm,10)/100, d=Math.max(depthOf(c),10)/100, h=Math.max(c.hcm,5)/100;
   const g=new T.Group();
