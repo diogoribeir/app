@@ -272,11 +272,9 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
     <label for="pJogo">Nome do jogo *</label>
     <input id="pJogo" type="text" autocomplete="off" />
     <div class="mrow">
-      <div><label for="pLanc">Lançamento / quando</label><input id="pLanc" type="text" placeholder="Ex.: 05/Ago" autocomplete="off" /></div>
+      <div><label for="pData">Data (quando pretende jogar)</label><input id="pData" type="date" /></div>
       <div><label for="pEst">Estimativa (horas)</label><input id="pEst" type="number" min="0" step="1" /></div>
     </div>
-    <label for="pStatus">Status</label>
-    <input id="pStatus" type="text" placeholder="Ex.: Próximo, Setembro…" autocomplete="off" />
     <div class="mactions">
       <button type="button" class="btn btn-ghost" id="pCancel">Cancelar</button>
       <button type="button" class="btn btn-save" id="pSave">Salvar</button>
@@ -326,11 +324,35 @@ function saveJogos(){
 }
 /* ---------- plano 2026 (editável, sincronizado) ---------- */
 const LS_PLANO = "perfil-gamer:plano";
-let P = [];              // itens do plano [{jogo,lanc,est,status}]
-let horasDisp = 200;     // total de horas disponíveis (editável)
+let P = [];              // itens do plano [{jogo,est,data,iniciado,jid}]
 const estH = s => { const m = String(s??"").match(/[\d.]+/); return m ? parseFloat(m[0]) : 0; };
+
+/* --- orçamento de horas: calculado automaticamente a partir de hoje até 31/01/2027 --- */
+const PLANO_FIM = "2027-01-31";           // horizonte do plano
+const HORAS_SEMANA = 10;                  // no máximo 10h/semana normalmente
+const PERIODOS = [                        // exceções (por dia)
+  { de:"2026-09-10", ate:"2026-09-19", hDia:0  },  // sem jogatina (viagem)
+  { de:"2026-09-21", ate:"2026-09-24", hDia:10 },  // 10h por dia
+];
+function ymd(d){ return d.toISOString().slice(0,10); }
+function horasDoDia(iso){
+  for (const p of PERIODOS){ if (iso >= p.de && iso <= p.ate) return p.hDia; }
+  return HORAS_SEMANA/7;                   // média diária do teto semanal
+}
+function horasDisponiveis(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const fim = new Date(PLANO_FIM+"T00:00:00");
+  let total = 0;
+  for (let d = new Date(hoje); d <= fim; d.setDate(d.getDate()+1)) total += horasDoDia(ymd(d));
+  return Math.round(total);
+}
+const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+function fmtData(iso){
+  if (!iso) return "s/ data";
+  const [a,m,dd] = iso.split("-"); return `${dd}/${MESES[Number(m)-1]}`;
+}
 function savePlano(){
-  const payload = { itens: P, horasDisp };
+  const payload = { itens: P };
   try { localStorage.setItem(LS_PLANO, JSON.stringify(payload)); } catch(e){}
   fetch(`${SYNC_URL}/plano2026.json`, { method:"PUT", body: JSON.stringify(payload) })
     .then(()=>{ cloudOK = true; syncStamp = Date.now();
@@ -342,7 +364,7 @@ function savePlano(){
 async function boot(){
   try { const raw = localStorage.getItem(LS_KEY); if (raw) J = JSON.parse(raw); } catch(e){}
   try { const raw = localStorage.getItem(LS_PLANO); if (raw){ const p = JSON.parse(raw);
-    if (p && Array.isArray(p.itens)) { P = p.itens; if (typeof p.horasDisp === "number") horasDisp = p.horasDisp; } } } catch(e){}
+    if (p && Array.isArray(p.itens)) P = p.itens; } } catch(e){}
   try {
     const r = await fetch(`${SYNC_URL}/jogos.json`, { cache:"no-store" });
     if (r.ok) {
@@ -359,11 +381,13 @@ async function boot(){
     const r = await fetch(`${SYNC_URL}/plano2026.json`, { cache:"no-store" });
     if (r.ok) {
       const v = await r.json();
-      if (v && Array.isArray(v.itens)) { P = v.itens; if (typeof v.horasDisp === "number") horasDisp = v.horasDisp; }
+      if (v && Array.isArray(v.itens)) P = v.itens;
       else if (P.length === 0 && Array.isArray(window.PLANO)) { P = window.PLANO.slice(); savePlano(); }
     }
   } catch(e){}
   if (P.length === 0 && Array.isArray(window.PLANO)) P = window.PLANO.slice();
+  // migração: itens antigos ({lanc,status}) → garante campo data
+  P.forEach(p=>{ if (p.data === undefined) p.data = ""; });
   try { const r = await fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" });
     const v = await r.json(); if (typeof v === "number") syncStamp = v; } catch(e){}
   render();
@@ -540,37 +564,41 @@ function viewStats(){
 
 /* ---------- aba Plano ---------- */
 function viewPlano(){
+  const disp = horasDisponiveis();
   const somaEst = P.reduce((s,p)=>s+estH(p.est),0);
-  const rest = horasDisp - somaEst;
+  const rest = disp - somaEst;
   const cabe = rest >= 0;
   const cor = cabe ? "var(--mb)" : "var(--mr)";
-  const pct = horasDisp>0 ? Math.min(somaEst/horasDisp*100,100) : 0;
-  const rows = P.length ? P.map((p,i)=>`
+  const pct = disp>0 ? Math.min(somaEst/disp*100,100) : 0;
+  // fila ordenada por data (sem data vai pro fim)
+  const fila = P.map((p,i)=>({p,i})).sort((a,b)=>{
+    const da=a.p.data||"9999", db=b.p.data||"9999";
+    return da<db?-1:da>db?1:0;
+  });
+  const rows = fila.length ? fila.map(({p,i})=>`
     <div class="pitem">
-      <span class="pwhen">${esc(p.lanc||"—")}</span>
-      <div class="pbody"><div class="t">${esc(p.jogo)}</div>
-        <div class="s num">estimativa ${estH(p.est)?estH(p.est)+"h":"—"}${p.status?` · ${esc(p.status)}`:""}</div></div>
+      <span class="pwhen">${esc(fmtData(p.data))}</span>
+      <div class="pbody"><div class="t">${esc(p.jogo)}${p.iniciado?' <span style="color:var(--bo);font-size:.66rem;font-weight:800">🎮 jogando</span>':''}</div>
+        <div class="s num">estimativa ${estH(p.est)?estH(p.est)+"h":"—"}</div></div>
       <div style="display:flex;flex-direction:column;gap:6px">
+        ${p.iniciado?'':`<button type="button" class="cbtn" style="padding:6px 10px" data-pjogar="${i}" title="Marcar como jogando agora">▶️</button>`}
         <button type="button" class="cbtn" style="padding:6px 10px" data-peditar="${i}">✏️</button>
         <button type="button" class="cbtn del" style="padding:6px 10px" data-pexcluir="${i}">🗑</button>
       </div>
     </div>`).join("") : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
-  return `<p class="lead">Planeje a fila de 2026 e veja se as horas dos jogos cabem no seu tempo disponível.</p>
-    <h2>⏳ Horas disponíveis</h2>
+  return `<p class="lead">Fila até 31/jan/2027. As horas disponíveis são calculadas sozinhas a partir de hoje (10h/semana; 21–24/set 10h/dia; sem jogatina 10–19/set).</p>
+    <h2>⏳ Horas disponíveis (auto)</h2>
     <div class="card">
-      <label style="display:block;font-size:.68rem;color:var(--muted);font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">Total de horas que você tem</label>
-      <input id="pHorasDisp" type="number" min="0" step="1" value="${horasDisp}"
-        style="width:100%;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:inherit;font-size:1rem;font-weight:800" />
-      <div class="strip" style="margin:12px 0 0">
-        <div class="cell"><div class="v num">${Math.round(somaEst)}h</div><div class="k">soma dos jogos</div></div>
-        <div class="cell"><div class="v num">${horasDisp}h</div><div class="k">disponível</div></div>
+      <div class="strip" style="margin:0">
+        <div class="cell"><div class="v num">${Math.round(somaEst)}h</div><div class="k">soma da fila</div></div>
+        <div class="cell"><div class="v num">${disp}h</div><div class="k">disponível</div></div>
         <div class="cell"><div class="v num" style="color:${cor}">${cabe?"":"−"}${Math.abs(Math.round(rest))}h</div><div class="k">${cabe?"sobra":"falta"}</div></div>
       </div>
       <div class="bar" style="margin-top:12px"><div class="track"><div class="fill" style="width:${Math.max(pct,3)}%;background:${cor}">${Math.round(pct)}%</div></div></div>
-      <div class="lead" style="margin:8px 2px 0;color:${cor}">${cabe?`✓ Cabe no tempo — sobram ${Math.round(rest)}h.`:`⚠ Passou ${Math.abs(Math.round(rest))}h do disponível. Tire um jogo ou aumente as horas.`}</div>
+      <div class="lead" style="margin:8px 2px 0;color:${cor}">${cabe?`✓ Cabe no tempo — sobram ${Math.round(rest)}h até 31/jan.`:`⚠ Passou ${Math.abs(Math.round(rest))}h do disponível. Tire um jogo ou reduza estimativas.`}</div>
     </div>
     <button type="button" class="addbtn" id="btnAddPlano">➕ Adicionar jogo planejado</button>
-    <h2>🗓 Fila de jogos</h2><div class="card">${rows}</div>`;
+    <h2>🗓 Fila de jogos (por data)</h2><div class="card">${rows}</div>`;
 }
 
 /* ---------- render ---------- */
@@ -586,8 +614,6 @@ function render(){
     const pos = b.selectionStart; render(); const nb=$("#busca"); if(nb){ nb.focus(); nb.setSelectionRange(pos,pos); }
   }); }
   const o = $("#ordem"); if (o) o.addEventListener("change", e=>{ ordem=e.target.value; render(); });
-  const hd = $("#pHorasDisp"); if (hd) hd.addEventListener("change", e=>{
-    horasDisp = Math.max(0, Number(e.target.value)||0); savePlano(); });
 }
 
 /* ---------- registrar / editar / excluir ---------- */
@@ -653,9 +679,8 @@ function openPlano(idx){
   const p = (idx==null) ? null : P[idx];
   $("#pTitle").textContent = p ? "Editar jogo planejado" : "Adicionar jogo planejado";
   $("#pJogo").value = p?.jogo || "";
-  $("#pLanc").value = p?.lanc || "";
+  $("#pData").value = p?.data || "";
   $("#pEst").value = p ? (estH(p.est)||"") : "";
-  $("#pStatus").value = p?.status || "";
   $("#pmodal").classList.remove("hidden");
   setTimeout(()=>$("#pJogo").focus(), 60);
 }
@@ -666,7 +691,9 @@ $("#pSave").addEventListener("click", ()=>{
   const jogo = $("#pJogo").value.trim();
   if (!jogo){ $("#pJogo").focus(); return; }
   const h = $("#pEst").value;
-  const reg = { jogo, lanc: $("#pLanc").value.trim(), est: h==="" ? "" : (Number(h)+"h"), status: $("#pStatus").value.trim() };
+  const prev = (pEditIdx!=null && P[pEditIdx]) ? P[pEditIdx] : {};
+  const reg = { jogo, data: $("#pData").value || "", est: h==="" ? "" : (Number(h)+"h"),
+                iniciado: !!prev.iniciado, jid: prev.jid };
   if (pEditIdx!=null && P[pEditIdx]) P[pEditIdx] = reg; else P.push(reg);
   closePlano(); savePlano(); render();
 });
@@ -678,7 +705,7 @@ $("#btnMenu").addEventListener("click", openBackup);
 $("#bClose").addEventListener("click", closeBackup);
 $("#bmodal").addEventListener("click", e=>{ if (e.target === $("#bmodal")) closeBackup(); });
 $("#bExport").addEventListener("click", ()=>{
-  const data = { app:"perfil-gamer", exportedAt:new Date().toISOString(), jogos:J, plano:{ itens:P, horasDisp } };
+  const data = { app:"perfil-gamer", exportedAt:new Date().toISOString(), jogos:J, plano:{ itens:P } };
   const blob = new Blob([JSON.stringify(data,null,2)], { type:"application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -697,7 +724,7 @@ $("#bFile").addEventListener("change", e=>{
       if (!confirm(`Importar ${js.length} jogo(s)? Isso substitui a biblioteca e o plano atuais.`)) return;
       js.forEach(g=>{ if (g && g.v === "Medíocre") g.v = "Mediano"; });
       J = js;
-      if (d.plano && Array.isArray(d.plano.itens)){ P = d.plano.itens; if (typeof d.plano.horasDisp === "number") horasDisp = d.plano.horasDisp; }
+      if (d.plano && Array.isArray(d.plano.itens)){ P = d.plano.itens; P.forEach(p=>{ if (p.data === undefined) p.data = ""; }); }
       saveJogos(); savePlano(); closeBackup(); render();
     } catch(err){ alert("Não consegui ler o arquivo (JSON inválido)."); }
   };
@@ -724,6 +751,15 @@ document.addEventListener("click", e=>{
   if (pe){ openPlano(Number(pe.dataset.peditar)); return; }
   const px = e.target.closest("[data-pexcluir]");
   if (px){ const i=Number(px.dataset.pexcluir); if (P[i]){ P.splice(i,1); savePlano(); render(); } return; }
+  const pj = e.target.closest("[data-pjogar]");
+  if (pj){ const i=Number(pj.dataset.pjogar); const p=P[i]; if (!p) return;
+    // liga como "jogando agora": reaproveita jogo existente ou cria na biblioteca
+    let g = J.find(x=>(x.nome||"").toLowerCase()===p.jogo.toLowerCase());
+    if (g){ g.enc = "#"; }
+    else { g = { id: J.reduce((m,x)=>Math.max(m,x.id||0),0)+1, nome:p.jogo, horas:0, enc:"#",
+                 w:1, v:"N/A", genres:"", motivo:"", obs:"" }; J.push(g); }
+    p.iniciado = true; p.jid = g.id;
+    saveJogos(); savePlano(); tab="jogos"; render(); window.scrollTo({top:0}); return; }
   const hh = e.target.closest("[data-editar-hero]");
   if (hh){ const g = J.find(x=>String(x.id)===hh.dataset.editarHero); if (g) openModal(g); return; }
   const ed = e.target.closest("[data-editar]");
