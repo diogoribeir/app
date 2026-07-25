@@ -79,7 +79,8 @@
     padding:8px 10px;box-shadow:var(--shadow);align-items:center;gap:8px}
   .selbar.on{display:flex}
   .selbar .nm{flex:1;min-width:0;font-weight:700;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .selbar button{background:var(--chip);border-radius:9px;padding:7px 9px;font-size:.9rem}
+  .selbar button{background:var(--chip);border-radius:9px;padding:7px 9px;font-size:.9rem;font-weight:700}
+  .selbar button.danger{background:var(--over);color:#fff}
 
   /* Buttons */
   .btn{background:var(--chip);border-radius:12px;padding:10px 12px;font-weight:700;font-size:.86rem;display:inline-flex;align-items:center;gap:6px}
@@ -592,11 +593,13 @@ function renderFotoEditor(v, p){
     <button id="selBack" title="Enviar para trás">⬇︎</button>
     <button id="selFront" title="Trazer para frente">⬆︎</button>
     <button id="selDup" title="Duplicar">⧉</button>
+    <button id="selDel" class="danger" title="Remover">🗑️ Excluir</button>
   </div>`);
   v.appendChild(selbar);
   $('#selBack').onclick = ()=> zChange(-1);
   $('#selFront').onclick = ()=> zChange(1);
   $('#selDup').onclick = ()=> dupSel();
+  $('#selDel').onclick = ()=>{ if(selId) removeItem(selId); };
 
   // desenhar peças
   p.items.slice().sort((a,b)=>a.z-b.z).forEach(it=> stage.appendChild(makeSticker(it)));
@@ -756,11 +759,13 @@ function renderTresD(v, p){
 
   const selbar = el(`<div class="selbar" id="selbar">
     <span class="nm" id="selName"></span>
-    <button id="selRot90" title="Girar 90°">⟳ 90°</button>
-    <button id="selDel" title="Remover">🗑️</button>
+    <button id="selRotL" title="Girar esquerda">↺ 45°</button>
+    <button id="selRotR" title="Girar direita">↻ 45°</button>
+    <button id="selDel" class="danger" title="Remover">🗑️ Excluir</button>
   </div>`);
   v.appendChild(selbar);
-  $('#selRot90').onclick = ()=>{ if(window.__td) window.__td.rotateSel(); };
+  $('#selRotL').onclick = ()=>{ if(window.__td) window.__td.rotateSel(-45); };
+  $('#selRotR').onclick = ()=>{ if(window.__td) window.__td.rotateSel(45); };
   $('#selDel').onclick = ()=>{ if(selId) removeItem(selId); };
   updateSelbar();
 
@@ -872,7 +877,7 @@ function init3D(wrap, p){
   if(selId && byId[selId]) showHelper(selId);
 
   const ray=new T.Raycaster(); const floorPlane=new T.Plane(new T.Vector3(0,1,0),0); const ndc=new T.Vector2();
-  function setNdc(x,y){ const r=renderer.domElement.getBoundingClientRect(); ndc.x=((x-r.left)/r.width)*2-1; ndc.y=-((y-r.top)/r.height)*2+1; }
+  function setNdc(x,y){ const r=renderer.domElement.getBoundingClientRect(); ndc.x=((x-r.left)/r.width)*2-1; ndc.y=-((y-r.top)/r.height)*2+1; camera.updateMatrixWorld(); }
   function pickFurniture(x,y){ setNdc(x,y); ray.setFromCamera(ndc,camera); const hits=ray.intersectObjects(furns.children,true); if(!hits.length) return null; let o=hits[0].object; while(o && o.userData.itemId===undefined) o=o.parent; return o||null; }
   function floorPoint(x,y){ setNdc(x,y); ray.setFromCamera(ndc,camera); const pt=new T.Vector3(); return ray.ray.intersectPlane(floorPlane,pt)?pt:null; }
 
@@ -922,7 +927,7 @@ function init3D(wrap, p){
 
   return {
     scene, renderer, furns, camera,
-    rotateSel(){ const it=p.items.find(x=>x.id===selId); if(!it) return; it.prot=(((it.prot||0)+90)%360); const g=byId[it.id]; if(g){ place(g,it); if(helper) helper.update(); } saveState(); requestRender(); },
+    rotateSel(deg){ const it=p.items.find(x=>x.id===selId); if(!it) return; it.prot=((((it.prot||0)+(deg||45))%360)+360)%360; const g=byId[it.id]; if(g){ place(g,it); if(helper) helper.update(); } saveState(); requestRender(); },
     dispose(){
       disposed=true; if(raf) cancelAnimationFrame(raf);
       dom.removeEventListener('pointerdown',onDown); dom.removeEventListener('pointermove',onMove);
