@@ -159,14 +159,18 @@ h2{font-size:.78rem;margin:20px 4px 9px;font-weight:800;letter-spacing:.1em;text
 .lead{color:var(--muted);font-size:.78rem;margin:0 2px 10px;line-height:1.5}
 
 /* ---------- plano ---------- */
-.pitem{display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.pitem{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 .pitem:last-child{border-bottom:0}
-.pwhen{flex:0 0 58px;text-align:center;background:var(--accent-soft);color:var(--accent);border-radius:10px;
-  font-size:.62rem;font-weight:800;padding:6px 2px;letter-spacing:.02em}
+.pwhen{flex:0 0 50px;text-align:center;background:var(--accent-soft);color:var(--accent);border-radius:9px;
+  font-size:.62rem;font-weight:800;padding:5px 2px;letter-spacing:.02em;line-height:1.1}
 .pbody{flex:1;min-width:0}
-.pbody .t{font-size:.86rem;font-weight:750}
-.pbody .s{font-size:.68rem;color:var(--muted);margin-top:2px;font-weight:600;line-height:1.4}
-.pest{flex:0 0 auto;font-size:.72rem;font-weight:800;color:var(--accent)}
+.pbody .t{font-size:.82rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pbody .s{font-size:.66rem;color:var(--muted);margin-top:1px;font-weight:700}
+.pacts{display:flex;gap:5px;flex:0 0 auto}
+.pbtn{border:1px solid var(--line);background:var(--surface2);color:var(--ink);width:30px;height:30px;
+  border-radius:9px;font-size:.82rem;cursor:pointer;display:grid;place-items:center;padding:0}
+.pbtn.del{color:var(--mr)}
+.pbtn:active{transform:scale(.93)}
 
 /* ---------- modal ---------- */
 .modal{position:fixed;inset:0;background:rgba(4,6,11,.65);display:flex;align-items:flex-end;justify-content:center;z-index:60}
@@ -578,12 +582,12 @@ function viewPlano(){
   const rows = fila.length ? fila.map(({p,i})=>`
     <div class="pitem">
       <span class="pwhen">${esc(fmtData(p.data))}</span>
-      <div class="pbody"><div class="t">${esc(p.jogo)}${p.iniciado?' <span style="color:var(--bo);font-size:.66rem;font-weight:800">🎮 jogando</span>':''}</div>
-        <div class="s num">estimativa ${estH(p.est)?estH(p.est)+"h":"—"}</div></div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        ${p.iniciado?'':`<button type="button" class="cbtn" style="padding:6px 10px" data-pjogar="${i}" title="Marcar como jogando agora">▶️</button>`}
-        <button type="button" class="cbtn" style="padding:6px 10px" data-peditar="${i}">✏️</button>
-        <button type="button" class="cbtn del" style="padding:6px 10px" data-pexcluir="${i}">🗑</button>
+      <div class="pbody"><div class="t">${p.iniciado?'🎮 ':''}${esc(p.jogo)}</div>
+        <div class="s num">${estH(p.est)?estH(p.est)+"h":"—"}${p.iniciado?" · jogando":""}</div></div>
+      <div class="pacts">
+        ${p.iniciado?'':`<button type="button" class="pbtn" data-pjogar="${i}" title="Marcar como jogando agora">▶️</button>`}
+        <button type="button" class="pbtn" data-peditar="${i}" title="Editar">✏️</button>
+        <button type="button" class="pbtn del" data-pexcluir="${i}" title="Excluir">🗑</button>
       </div>
     </div>`).join("") : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
   return `<p class="lead">Fila até 31/jan/2027. As horas disponíveis são calculadas sozinhas a partir de hoje (10h/semana; 21–24/set 10h/dia; sem jogatina 10–19/set).</p>
