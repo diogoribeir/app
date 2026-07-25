@@ -100,7 +100,15 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
   font-weight:700;padding:11px 15px;border-radius:12px;cursor:pointer}
 .tchip.on{border-color:var(--vc,var(--accent));color:var(--vc,var(--accent));background:var(--vs,var(--accent-soft));font-weight:800}
 .tchip:active{transform:scale(.97)}
-.toolrow{display:flex;align-items:center;gap:8px;margin:8px 0 12px}
+/* chips de filtro inline (aba Jogos) — linha rolável na horizontal */
+.frow{display:flex;gap:7px;overflow-x:auto;margin-top:9px;padding-bottom:2px;scrollbar-width:none}
+.frow::-webkit-scrollbar{display:none}
+.fchip{flex:0 0 auto;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);font:inherit;
+  font-size:.8rem;font-weight:700;padding:8px 13px;border-radius:11px;cursor:pointer;white-space:nowrap}
+.fchip.on{border-color:var(--vc,var(--accent));color:#fff;background:var(--vc,var(--accent));font-weight:800}
+.fchip.clear{margin-left:auto;color:var(--mr);border-color:var(--line);background:var(--surface)}
+.fchip:active{transform:scale(.96)}
+.toolrow{display:flex;align-items:center;gap:8px;margin:11px 0 12px}
 .toolrow select{flex:1;padding:10px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);
   color:var(--ink);font:inherit;font-size:.84rem;font-weight:600}
 .count{flex:0 0 auto;font-size:.7rem;color:var(--muted);font-weight:700}
@@ -271,19 +279,6 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
     <div class="mactions">
       <button type="button" class="btn btn-ghost" id="mCancel">Cancelar</button>
       <button type="button" class="btn btn-save" id="mSave">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<div id="fmodal" class="modal hidden" role="dialog" aria-modal="true">
-  <div class="mbox">
-    <h2>🎚 Filtros</h2>
-    <p style="margin:4px 0 0;font-size:.74rem;color:var(--muted);line-height:1.5">Toque para ligar/desligar — pode escolher vários.</p>
-    <div class="fgroup"><div class="glabel">Status</div><div class="tchips" id="fgStatus"></div></div>
-    <div class="fgroup"><div class="glabel">Veredicto</div><div class="tchips" id="fgVer"></div></div>
-    <div class="mactions">
-      <button type="button" class="btn btn-ghost" id="fClear">Limpar</button>
-      <button type="button" class="btn btn-save" id="fApply">Mostrar tudo</button>
     </div>
   </div>
 </div>
@@ -514,21 +509,22 @@ function viewJogos(){
   </div>
   <button type="button" class="addbtn" id="btnAdd">➕ Registrar jogo</button>
   <input class="search" id="busca" type="search" placeholder="Buscar jogo ou gênero…" value="${esc(busca)}" />
-  <div class="fbar">
-    <button type="button" class="fbtn ${(fStatus.size+fVer.size)?"on":""}" id="btnFiltro">🎚 Filtros${(fStatus.size+fVer.size)?` (${fStatus.size+fVer.size})`:""}</button>
+  <div class="frow">
+    ${Object.entries(STATUS_LABEL).map(([s,l])=>`<button type="button" class="fchip ${fStatus.has(s)?"on":""}" data-tstatus="${esc(s)}">${l}</button>`).join("")}
+  </div>
+  <div class="frow">
+    ${ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]};--vs:${VC[v][1]}" data-tver="${esc(v)}">${VC[v][2]} ${esc(v)}</button>`).join("")}
+  </div>
+  <div class="toolrow">
     <select id="ordem" aria-label="Ordenar">
       <option value="horas" ${ordem==="horas"?"selected":""}>⏱ Mais horas</option>
       <option value="veredicto" ${ordem==="veredicto"?"selected":""}>🏆 Melhor veredicto</option>
       <option value="custo" ${ordem==="custo"?"selected":""}>💰 Melhor custo/hora</option>
       <option value="nome" ${ordem==="nome"?"selected":""}>🔤 Nome (A–Z)</option>
     </select>
+    <span class="count num">${lst.length} jogo(s)</span>
+    ${(fStatus.size+fVer.size)?`<button type="button" class="fchip clear" data-unall="1">limpar</button>`:""}
   </div>
-  ${(fStatus.size+fVer.size) ? `<div class="achips">
-    ${[...fStatus].map(s=>`<button class="achip" data-unstatus="${esc(s)}">${STATUS_LABEL[s]} <span class="x">✕</span></button>`).join("")}
-    ${[...fVer].map(v=>`<button class="achip" style="--vc:${VC[v]?VC[v][0]:"var(--accent)"};--vs:${VC[v]?VC[v][1]:"var(--accent-soft)"}" data-unver="${esc(v)}">${VC[v]?VC[v][2]+" ":""}${esc(v)} <span class="x">✕</span></button>`).join("")}
-    ${(fStatus.size+fVer.size)>1?`<button class="achip clear" data-unall="1">limpar tudo</button>`:""}
-  </div>`:""}
-  <div class="toolrow"><span class="count num">${lst.length} jogo(s) na lista</span></div>
   ${lst.map(gameCard).join("") || '<p class="lead">Nenhum jogo com esse filtro.</p>'}`;
 }
 
@@ -693,21 +689,6 @@ $("#mSave").addEventListener("click", ()=>{
   closeModal(); saveJogos(); render();
 });
 
-/* ---------- painel de filtros ---------- */
-function renderSheet(){
-  $("#fgStatus").innerHTML = Object.entries(STATUS_LABEL).map(([s,l])=>
-    `<button type="button" class="tchip ${fStatus.has(s)?"on":""}" data-tstatus="${esc(s)}">${l}</button>`).join("");
-  $("#fgVer").innerHTML = ORD.slice().reverse().map(v=>
-    `<button type="button" class="tchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]};--vs:${VC[v][1]}" data-tver="${esc(v)}">${VC[v][2]} ${esc(v)}</button>`).join("");
-  const n = aplicarFiltros(J.slice()).length;
-  $("#fApply").textContent = (fStatus.size+fVer.size) ? `Mostrar ${n} jogo(s)` : "Mostrar tudo";
-}
-function openSheet(){ renderSheet(); $("#fmodal").classList.remove("hidden"); }
-function closeSheet(){ $("#fmodal").classList.add("hidden"); render(); }
-$("#fApply").addEventListener("click", closeSheet);
-$("#fClear").addEventListener("click", ()=>{ fStatus.clear(); fVer.clear(); renderSheet(); });
-$("#fmodal").addEventListener("click", e=>{ if (e.target === $("#fmodal")) closeSheet(); });
-
 /* ---------- modal do plano ---------- */
 let pEditIdx = null;
 function openPlano(idx){
@@ -769,15 +750,10 @@ $("#bFile").addEventListener("change", e=>{
 
 document.addEventListener("click", e=>{
   const t = e.target.closest("[data-tab]"); if (t){ tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
-  if (e.target.closest("#btnFiltro")){ openSheet(); return; }
   const ts = e.target.closest("[data-tstatus]");
-  if (ts){ const s=ts.dataset.tstatus; fStatus.has(s)?fStatus.delete(s):fStatus.add(s); renderSheet(); return; }
+  if (ts){ const s=ts.dataset.tstatus; fStatus.has(s)?fStatus.delete(s):fStatus.add(s); render(); return; }
   const tv = e.target.closest("[data-tver]");
-  if (tv){ const v=tv.dataset.tver; fVer.has(v)?fVer.delete(v):fVer.add(v); renderSheet(); return; }
-  const us = e.target.closest("[data-unstatus]");
-  if (us){ fStatus.delete(us.dataset.unstatus); render(); return; }
-  const uv = e.target.closest("[data-unver]");
-  if (uv){ fVer.delete(uv.dataset.unver); render(); return; }
+  if (tv){ const v=tv.dataset.tver; fVer.has(v)?fVer.delete(v):fVer.add(v); render(); return; }
   if (e.target.closest("[data-unall]")){ fStatus.clear(); fVer.clear(); render(); return; }
   if (e.target.closest("#btnAdd")){ openModal(null); return; }
   const sv = e.target.closest("[data-statver]");
