@@ -158,24 +158,6 @@ h2{font-size:.78rem;margin:20px 4px 9px;font-weight:800;letter-spacing:.1em;text
 .gcell .n{font-size:.62rem;color:var(--muted);margin-top:3px;font-weight:600;line-height:1.45}
 .lead{color:var(--muted);font-size:.78rem;margin:0 2px 10px;line-height:1.5}
 
-/* ---------- seções recolhíveis (estatísticas) ---------- */
-details.sec{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);margin-bottom:9px;overflow:hidden}
-details.sec>summary{cursor:pointer;list-style:none;padding:13px 15px;display:flex;align-items:center;gap:9px;
-  font-size:.8rem;font-weight:800;letter-spacing:.03em}
-details.sec>summary::-webkit-details-marker{display:none}
-details.sec>summary .sic{font-size:1rem}
-details.sec>summary .ssub{margin-left:auto;font-size:.68rem;color:var(--muted);font-weight:700}
-details.sec>summary .schev{color:var(--muted);font-size:.8rem;transition:transform .18s;margin-left:6px}
-details.sec[open]>summary .schev{transform:rotate(90deg)}
-details.sec>summary:active{background:var(--surface2)}
-.secbody{padding:2px 15px 14px}
-.droprow{padding:8px 0;border-bottom:1px solid var(--line)}
-.droprow:last-child{border-bottom:0}
-.droprow .dhead{display:flex;align-items:center;gap:8px}
-.droprow .dnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:650;font-size:.82rem}
-.droprow .dhv{flex:0 0 auto;font-weight:800;font-size:.74rem;color:var(--muted)}
-.droprow .dmot{font-size:.7rem;color:var(--muted);margin:3px 0 0 17px;line-height:1.45}
-
 /* ---------- plano ---------- */
 .pitem{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 .pitem:last-child{border-bottom:0}
@@ -428,7 +410,6 @@ const fVer = new Set();      // multi: veredictos
 let busca = "";
 let ordem = "horas";
 let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
-const secOpen = new Set(["ver"]);  // seções abertas nas Estatísticas
 const STATUS_LABEL = {"S":"✅ Zerados","N":"❌ Dropados","#":"🔄 Jogando"};
 function aplicarFiltros(lst){
   if (fStatus.size) lst = lst.filter(g=>fStatus.has(g.enc));
@@ -560,12 +541,7 @@ function viewStats(){
     return `<div class="gcell"><div class="t">${esc(k)}</div>
       <div class="n num">${v.length} jogos · ${Math.round(hrs).toLocaleString("pt-BR")}h<br>zera ${Math.round(c/fin*100)}% · dropa ${Math.round(d/fin*100)}%</div></div>`;
   }).join("");
-  const dropsLst = J.filter(g=>g.enc==="N").sort((a,b)=>b.horas-a.horas);
-  const drops = dropsLst.map(g=>`<div class="droprow">
-    <div class="dhead"><span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
-      <span class="dnm">${esc(g.nome)}</span><span class="dhv num">${g.horas}h</span></div>
-    ${g.motivo?`<div class="dmot">${esc(g.motivo)}</div>`:""}</div>`).join("")
-    || '<p class="lead" style="margin:6px 2px">Nenhum drop registrado.</p>';
+  const drops = J.filter(g=>g.enc==="N").sort((a,b)=>b.horas-a.horas).map(gameCard).join("");
   // tempo total + hall do custo/hora
   const jogaveis = J.filter(g=>!horasOcultas(g) && g.horas>0);
   const totalH = jogaveis.reduce((s,g)=>s+g.horas,0);
@@ -581,18 +557,13 @@ function viewStats(){
     <div class="cell"><div class="v num">${Math.round(mediaH)}h</div><div class="k">média/jogo</div></div>
     <div class="cell"><div class="v num">${Math.round(dias)}</div><div class="k">dias jogados</div></div>
   </div>`;
-  // seções recolhíveis
-  const sec = (id,ic,title,sub,inner)=>`<details class="sec" data-sec="${id}" ${secOpen.has(id)?"open":""}>
-      <summary><span class="sic">${ic}</span><span>${title}</span>${sub?`<span class="ssub">${sub}</span>`:'<span style="margin-left:auto"></span>'}<span class="schev">▸</span></summary>
-      <div class="secbody">${inner}</div></details>`;
-  const custo = `<div style="font-size:.66rem;color:var(--muted);font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin:2px 0 4px">💰 Melhores compras (menor R$/h)</div>${melhores||'<p class="lead" style="margin:4px 2px">Sem dados.</p>'}
-    <div style="font-size:.66rem;color:var(--muted);font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin:14px 0 4px">💸 Mais caras por hora</div>${piores||'<p class="lead" style="margin:4px 2px">Sem dados.</p>'}`;
   return `${overview}
-    ${sec("ver","⭐","Veredictos", `${rated.length} avaliados`, bars)}
-    ${sec("top","⏱","Top horas", statVer||"", topChips+topRows)}
-    ${sec("custo","💰","Custo/hora", "", custo)}
-    ${sec("gen","🎯","Por gênero", "", `<div class="ggrid">${genRows}</div>`)}
-    ${sec("drop","❌","Drops", `${dropsLst.length}`, drops)}`;
+    <h2>⭐ Veredictos</h2><div class="card">${bars}</div>
+    <h2>⏱ Top 10 — mais horas${statVer?` · ${statVer}`:""}</h2><div class="card">${topChips}${topRows}</div>
+    <h2>💰 Melhores compras — menor custo/hora</h2><div class="card">${melhores||'<p class="lead" style="margin:6px 2px">Sem dados.</p>'}</div>
+    <h2>💸 Mais caras por hora</h2><div class="card">${piores||'<p class="lead" style="margin:6px 2px">Sem dados.</p>'}</div>
+    <h2>🎯 Por gênero principal</h2><div class="ggrid">${genRows}</div>
+    <h2>❌ Drops — toque para ver o motivo</h2>${drops}`;
 }
 
 /* ---------- aba Plano ---------- */
@@ -647,9 +618,6 @@ function render(){
     const pos = b.selectionStart; render(); const nb=$("#busca"); if(nb){ nb.focus(); nb.setSelectionRange(pos,pos); }
   }); }
   const o = $("#ordem"); if (o) o.addEventListener("change", e=>{ ordem=e.target.value; render(); });
-  document.querySelectorAll("details.sec").forEach(d=>d.addEventListener("toggle", ()=>{
-    d.open ? secOpen.add(d.dataset.sec) : secOpen.delete(d.dataset.sec);
-  }));
 }
 
 /* ---------- registrar / editar / excluir ---------- */
