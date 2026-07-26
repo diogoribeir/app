@@ -545,6 +545,13 @@ function renderMontar(v){
   main.appendChild(seg);
   seg.querySelectorAll('[data-view]').forEach(b=> b.onclick=()=>{ state.ui.view=b.dataset.view; selId=null; saveState(); render(); });
 
+  const gen = el(`<button class="btn primary block" id="btGen" style="margin-bottom:12px">🪄 Montar ${esc(ROOMS[p.room].label.toLowerCase())} automático</button>`);
+  main.appendChild(gen);
+  $('#btGen').onclick = ()=>{
+    if(p.items.length && !confirm('Isso vai refazer o ambiente automaticamente (mantém o cômodo e o orçamento). Continuar?')) return;
+    autoDecorate(p); selId=null; render();
+  };
+
   if(state.ui.view==='planta') renderPlanta(main, p);
   else if(state.ui.view==='tresd') renderTresD(main, p);
   else renderFotoEditor(main, p);
@@ -726,8 +733,77 @@ function openRoomSheet(p){
       <div class="field"><label>Comprimento (m)</label><input type="number" step="0.1" id="rL" value="${p.roomL}" /></div>
     </div>
     <div class="note">Meça as paredes do cômodo. Os móveis aparecem à escala real; se uma peça passar das paredes, ela fica vermelha (não cabe assim).</div>
-    <div class="sheet-acts"><button class="btn primary" id="rSave">Salvar</button></div>`);
-  $('#rSave').onclick = ()=>{ p.roomW=clamp(+$('#rW').value||4,1,40); p.roomL=clamp(+$('#rL').value||3.5,1,40); saveState(); closeSheet(); render(); };
+    <div class="sheet-acts">
+      <button class="btn" id="rGen">✨ Salvar e montar automático</button>
+      <button class="btn primary" id="rSave">Salvar</button>
+    </div>`);
+  const apply=()=>{ p.roomW=clamp(+$('#rW').value||4,1,40); p.roomL=clamp(+$('#rL').value||3.5,1,40); };
+  $('#rSave').onclick = ()=>{ apply(); saveState(); closeSheet(); render(); };
+  $('#rGen').onclick = ()=>{ apply(); autoDecorate(p); closeSheet(); selId=null; render(); };
+}
+
+/* ============ Designer automático — monta o ambiente mobiliado a partir das medidas ============ */
+/* Convenção de posição: px 0=parede esquerda(-x) …1=direita(+x); py 0=parede do fundo(-z) …1=frente(+z).
+   prot (com a convenção do place()): 0 = olha p/ +z (frente) · 180 = -z · 90 = -x (esquerda) · 270 = +x (direita). */
+const DECOR_TEMPLATES = {
+  sala: [
+    {cat:"sofa", px:0.5, py:0.18, prot:0},
+    {cat:"tapete", px:0.5, py:0.46, prot:0, optional:true},
+    {cat:"mesa-centro", px:0.5, py:0.44, prot:0, optional:true},
+    {cat:"rack", px:0.5, py:0.9, prot:180, optional:true},
+    {cat:"decoracao", icon:"tv", px:0.5, py:0.95, prot:180, optional:true},
+    {cat:"luminaria", px:0.14, py:0.22, prot:0, optional:true},
+    {cat:"decoracao", icon:"planta", px:0.86, py:0.22, prot:0, optional:true},
+    {cat:"poltrona", px:0.17, py:0.62, prot:270, optional:true}
+  ],
+  quarto: [
+    {cat:"cama", px:0.5, py:0.24, prot:0},
+    {cat:"criado", px:0.24, py:0.13, prot:0, optional:true},
+    {cat:"criado", px:0.76, py:0.13, prot:0, optional:true},
+    {cat:"guarda-roupa", px:0.13, py:0.62, prot:270, optional:true},
+    {cat:"tapete", px:0.5, py:0.62, prot:0, optional:true},
+    {cat:"luminaria", px:0.86, py:0.85, prot:0, optional:true}
+  ],
+  jantar: [
+    {cat:"mesa-jantar", px:0.5, py:0.5, prot:0},
+    {cat:"cadeira", px:0.5, py:0.31, prot:0, optional:true},
+    {cat:"cadeira", px:0.5, py:0.69, prot:180, optional:true},
+    {cat:"cadeira", px:0.33, py:0.5, prot:270, optional:true},
+    {cat:"cadeira", px:0.67, py:0.5, prot:90, optional:true},
+    {cat:"rack", px:0.5, py:0.9, prot:180, optional:true},
+    {cat:"decoracao", icon:"planta", px:0.86, py:0.15, prot:0, optional:true}
+  ],
+  escritorio: [
+    {cat:"escrivaninha", px:0.5, py:0.16, prot:0},
+    {cat:"cadeira", px:0.5, py:0.36, prot:180, optional:true},
+    {cat:"estante", px:0.13, py:0.5, prot:270, optional:true},
+    {cat:"decoracao", icon:"planta", px:0.86, py:0.85, prot:0, optional:true}
+  ]
+};
+function pickForCat(cat, icon, remaining){
+  let opts = allCatalog().filter(c=> c.cat===cat && (!icon || c.icon===icon));
+  if(!opts.length) return null;
+  const withModel = opts.filter(c=> modelFile(c)); if(withModel.length) opts = withModel;
+  const withImg = opts.filter(c=> c.img); if(withImg.length) opts = withImg;   // prefere produto real
+  const fit = opts.filter(c=> midOf(c) <= Math.max(remaining,0));
+  const pool = (fit.length ? fit : opts).slice().sort((a,b)=> a.min-b.min);
+  return pool[0];
+}
+function autoDecorate(p){
+  const tmpl = DECOR_TEMPLATES[p.room] || DECOR_TEMPLATES.sala;
+  const budget = p.budget>0 ? p.budget : Infinity;
+  const items=[]; let spent=0, z=1;
+  for(const slot of tmpl){
+    const remaining = budget - spent;
+    const c = pickForCat(slot.cat, slot.icon, remaining);
+    if(!c) continue;
+    if(slot.optional && midOf(c) > remaining) continue;
+    items.push({ id:uid(), catId:c.id, cx:clamp(slot.px,0.08,0.92), cy:clamp(0.5+(slot.py-0.5)*0.5,0.15,0.85),
+      wFrac:clamp(c.wcm/450,0.16,0.72), rot:0, z:z++, px:slot.px, py:slot.py, prot:slot.prot||0 });
+    spent += midOf(c);
+  }
+  p.items = items; saveState();
+  toast(items.length? 'Ambiente montado 🪄' : 'Nada coube no orçamento');
 }
 
 /* ---------- Vista 3D (Three.js, sob demanda) ---------- */
@@ -746,6 +822,8 @@ const MODEL_MAP = { sofa:"loungeSofa", poltrona:"loungeChair", "mesa-centro":"ta
   "mesa-jantar":"table", cadeira:"chair", luminaria:"lampRoundFloor", tapete:"rugRectangle", escrivaninha:"desk",
   banheiro:"toilet", pia:"bathroomSink", banheira:"bathtub", chuveiro:"shower",
   geladeira:"kitchenFridge", fogao:"kitchenStove", "pia-cozinha":"kitchenSink", armario:"kitchenCabinet" };
+/* modelos cujo "fundo" é +z por padrão — giramos 180° p/ todos olharem +z em prot=0 */
+const FLIP_MODELS = { cabinetTelevision:1, cabinetTelevisionDoors:1, desk:1, deskCorner:1, kitchenCabinet:1, kitchenSink:1, kitchenStove:1, kitchenFridge:1 };
 function modelFile(c){
   if(!c) return null;
   if(c.model) return c.model;
@@ -807,15 +885,17 @@ function buildItem(c){
   const T=window.THREE;
   const mf = modelFile(c);
   if(mf && MODEL_CACHE[mf]){
-    const g = MODEL_CACHE[mf].clone(true);
-    const box = new T.Box3().setFromObject(g); const sz = new T.Vector3(); box.getSize(sz);
+    const m = MODEL_CACHE[mf].clone(true);
+    const box = new T.Box3().setFromObject(m); const sz = new T.Vector3(); box.getSize(sz);
     // itens planos (tapete) escalam pela largura; os demais pela altura (proporção mais realista)
     let s;
     if(c.cat==="tapete") s = sz.x>0.001 ? (Math.max(c.wcm,40)/100)/sz.x : 1;
     else s = sz.y>0.001 ? (Math.max(c.hcm,20)/100)/sz.y : 1;
-    g.scale.setScalar(s);
-    g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; if(o.material){ o.material=o.material.clone(); } } });
-    return g;
+    m.scale.setScalar(s);
+    m.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; if(o.material){ o.material=o.material.clone(); } } });
+    if(FLIP_MODELS[mf]) m.rotation.y = Math.PI; // normaliza p/ todos "olharem" +z em prot=0
+    const outer = new T.Group(); outer.add(m);
+    return outer;
   }
   return buildItemBox(c);
 }
