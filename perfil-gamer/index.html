@@ -100,11 +100,10 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
   font-weight:700;padding:11px 15px;border-radius:12px;cursor:pointer}
 .tchip.on{border-color:var(--vc,var(--accent));color:var(--vc,var(--accent));background:var(--vs,var(--accent-soft));font-weight:800}
 .tchip:active{transform:scale(.97)}
-/* chips de filtro inline (aba Jogos) — linha rolável na horizontal */
-.frow{display:flex;gap:7px;overflow-x:auto;margin-top:9px;padding-bottom:2px;scrollbar-width:none}
-.frow::-webkit-scrollbar{display:none}
-.fchip{flex:0 0 auto;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);font:inherit;
-  font-size:.8rem;font-weight:700;padding:8px 13px;border-radius:11px;cursor:pointer;white-space:nowrap}
+/* chips de filtro inline (aba Jogos) — quebram em linhas, nada cortado */
+.frow{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.fchip{border:1.5px solid var(--line);background:var(--surface);color:var(--muted);font:inherit;
+  font-size:.78rem;font-weight:700;padding:7px 11px;border-radius:11px;cursor:pointer;white-space:nowrap}
 .fchip.on{border-color:var(--vc,var(--accent));color:#fff;background:var(--vc,var(--accent));font-weight:800}
 .fchip.clear{margin-left:auto;color:var(--mr);border-color:var(--line);background:var(--surface)}
 .fchip:active{transform:scale(.96)}
