@@ -100,12 +100,17 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
   font-weight:700;padding:11px 15px;border-radius:12px;cursor:pointer}
 .tchip.on{border-color:var(--vc,var(--accent));color:var(--vc,var(--accent));background:var(--vs,var(--accent-soft));font-weight:800}
 .tchip:active{transform:scale(.97)}
-/* chips de filtro inline (aba Jogos) — quebram em linhas, nada cortado */
-.frow{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
-.fchip{border:1.5px solid var(--line);background:var(--surface);color:var(--muted);font:inherit;
-  font-size:.78rem;font-weight:700;padding:7px 11px;border-radius:11px;cursor:pointer;white-space:nowrap}
-.fchip.on{border-color:var(--vc,var(--accent));color:#fff;background:var(--vc,var(--accent));font-weight:800}
-.fchip.clear{margin-left:auto;color:var(--mr);border-color:var(--line);background:var(--surface)}
+/* chips de filtro inline (aba Jogos) — pílulas calmas, cor só quando ativas */
+.flabel{font-size:.58rem;color:var(--muted);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin:11px 2px 0}
+.frow{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.fchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);
+  color:var(--ink);font:inherit;font-size:.76rem;font-weight:700;padding:7px 12px;border-radius:999px;
+  cursor:pointer;white-space:nowrap}
+.fchip .cdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.fchip.on{color:var(--von,#fff);font-weight:800;border-color:transparent;background:var(--vc,var(--accent));
+  box-shadow:0 2px 8px rgba(0,0,0,.10)}
+.fchip.on .cdot{background:var(--von,#fff)!important;opacity:.9}
+.fchip.clear{margin-left:auto;color:var(--mr);border-style:dashed}
 .fchip:active{transform:scale(.96)}
 .toolrow{display:flex;align-items:center;gap:8px;margin:11px 0 12px}
 .toolrow select{flex:1;padding:10px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);
@@ -508,11 +513,13 @@ function viewJogos(){
   </div>
   <button type="button" class="addbtn" id="btnAdd">➕ Registrar jogo</button>
   <input class="search" id="busca" type="search" placeholder="Buscar jogo ou gênero…" value="${esc(busca)}" />
+  <div class="flabel">Situação</div>
   <div class="frow">
     ${Object.entries(STATUS_LABEL).map(([s,l])=>`<button type="button" class="fchip ${fStatus.has(s)?"on":""}" data-tstatus="${esc(s)}">${l}</button>`).join("")}
   </div>
+  <div class="flabel">Veredicto</div>
   <div class="frow">
-    ${ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]};--vs:${VC[v][1]}" data-tver="${esc(v)}">${VC[v][2]} ${esc(v)}</button>`).join("")}
+    ${ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)}</button>`).join("")}
   </div>
   <div class="toolrow">
     <select id="ordem" aria-label="Ordenar">
