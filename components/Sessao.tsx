@@ -116,6 +116,15 @@ export default function Sessao({
     else setIndice((i) => i + 1);
   }
 
+  function voltar() {
+    if (indice === 0) return;
+    setChecado(null);
+    setEscolha(null);
+    setMontagem([]);
+    setFalou(false);
+    setIndice((i) => i - 1);
+  }
+
   const podeVerificar =
     ex &&
     (ex.tipo === "apresentar" ||
@@ -167,7 +176,7 @@ export default function Sessao({
   // ── sessão em andamento ───────────────────────────────────────────
   return (
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-4">
-      {/* topo: sair + progresso */}
+      {/* topo: sair + voltar + progresso */}
       <div className="flex items-center gap-3 py-4">
         <button
           onClick={() => setConfirmaSaida(true)}
@@ -175,6 +184,14 @@ export default function Sessao({
           className="text-2xl font-black text-[var(--suave)] transition hover:text-[var(--texto)]"
         >
           ✕
+        </button>
+        <button
+          onClick={voltar}
+          disabled={indice === 0}
+          aria-label="Voltar ao exercício anterior"
+          className="text-2xl font-black text-[var(--suave)] transition hover:text-[var(--texto)] disabled:pointer-events-none disabled:opacity-25"
+        >
+          ‹
         </button>
         <div className="h-4 flex-1 overflow-hidden rounded-full bg-[var(--borda)]">
           <div

@@ -74,6 +74,13 @@ export default function LicaoGramatica({
     }
   }
 
+  function voltar() {
+    if (indice === 0) return;
+    setEscolha(null);
+    setChecado(false);
+    setIndice((i) => i - 1);
+  }
+
   if (fim) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center px-6 text-center">
@@ -105,6 +112,14 @@ export default function LicaoGramatica({
           className="text-2xl font-black text-[var(--suave)] transition hover:text-[var(--texto)]"
         >
           ✕
+        </button>
+        <button
+          onClick={voltar}
+          disabled={indice === 0}
+          aria-label="Voltar à página anterior"
+          className="text-2xl font-black text-[var(--suave)] transition hover:text-[var(--texto)] disabled:pointer-events-none disabled:opacity-25"
+        >
+          ‹
         </button>
         <div className="h-4 flex-1 overflow-hidden rounded-full bg-[var(--borda)]">
           <div
