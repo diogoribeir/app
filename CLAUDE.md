@@ -106,7 +106,8 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   automaticamente** de hoje até **31/jan/2027** (10h/semana; 21–24/set 10h/dia; sem jogatina 10–19/set —
   constantes `PERIODOS`/`HORAS_SEMANA`/`PLANO_FIM`), e o app mostra se a fila cabe (sobra/falta). Cada
   item tem **▶️ "estou jogando"**, que marca o jogo como *jogando agora*: ele vira o card do topo da aba
-  Jogos e entra na biblioteca. Na aba 📊
+  Jogos e entra na biblioteca; o "falta na fila" desconta as horas já jogadas desse jogo (estimativa −
+  horas). Na aba 📊
   **Estatísticas**, o "Top 10 — mais horas" tem chips para filtrar por veredicto (Masterpiece, Muito Bom…).
 - **Sincronização:** Realtime Database via REST, nó **`planos/perfil-gamer-dt2026`** — a nuvem é a
   fonte da verdade; `perfil-gamer/dados.js` é só a carga inicial (seed). localStorage = cópia offline;

@@ -253,7 +253,7 @@ window.JOGOS = [
   "g": "N/A",
   "d": 2,
   "ff": 3,
-  "v": "N/A",
+  "v": "Bom",
   "obs": ""
  },
  {

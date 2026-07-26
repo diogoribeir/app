@@ -239,7 +239,7 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
   <header class="top">
     <div class="brand">
       <div class="logo">🎮</div>
-      <h1>Perfil Gamer<small>PS4 + PS5 · biblioteca</small></h1>
+      <h1>Perfil Gamer<small>Biblioteca de jogos</small></h1>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       <span class="synctag off" id="syncTag">conectando…</span>
@@ -479,7 +479,7 @@ function gameCard(g){
 }
 function viewJogos(){
   let lst = J.slice();
-  if (busca) { const b = busca.toLowerCase(); lst = lst.filter(g=>g.nome.toLowerCase().includes(b)||(g.genres||"").toLowerCase().includes(b)); }
+  if (busca) { const b = busca.toLowerCase(); lst = lst.filter(g=>g.nome.toLowerCase().includes(b)||(g.genres||"").toLowerCase().includes(b)||(g.obs||"").toLowerCase().includes(b)); }
   lst = aplicarFiltros(lst);
   const ords = {
     horas:(a,b)=>b.horas-a.horas,
@@ -600,7 +600,13 @@ function viewStats(){
 /* ---------- aba Plano ---------- */
 function viewPlano(){
   const disp = horasDisponiveis();
-  const somaEst = P.reduce((s,p)=>s+estH(p.est),0);
+  // jogo do plano ligado à biblioteca (p/ descontar horas já jogadas do jogo atual)
+  const linked = p => p.iniciado ? (J.find(x=>x.id===p.jid) || J.find(x=>(x.nome||"").toLowerCase()===p.jogo.toLowerCase())) : null;
+  // horas que ainda faltam pra cada jogo: estimativa menos o que já foi jogado (0 se zerou/dropou)
+  const faltaH = p => { const est=estH(p.est); const g=linked(p);
+    if (g) return (g.enc==="S"||g.enc==="N") ? 0 : Math.max(est-(g.horas||0),0);
+    return est; };
+  const somaEst = P.reduce((s,p)=>s+faltaH(p),0);
   const rest = disp - somaEst;
   const cabe = rest >= 0;
   const cor = cabe ? "var(--mb)" : "var(--mr)";
@@ -610,22 +616,28 @@ function viewPlano(){
     const da=a.p.data||"9999", db=b.p.data||"9999";
     return da<db?-1:da>db?1:0;
   });
-  const rows = fila.length ? fila.map(({p,i})=>`
-    <div class="pitem">
+  const rows = fila.length ? fila.map(({p,i})=>{
+    const est=estH(p.est), g=linked(p), falta=faltaH(p);
+    let sub = est?est+"h":"—";
+    if (g && g.enc==="#") sub = `${g.horas||0}h de ${est}h · faltam ${Math.round(falta)}h`;
+    else if (g && g.enc==="S") sub = `✅ zerado (${g.horas||0}h)`;
+    else if (g && g.enc==="N") sub = `❌ dropado (${g.horas||0}h)`;
+    return `<div class="pitem">
       <span class="pwhen">${esc(fmtData(p.data))}</span>
       <div class="pbody"><div class="t">${p.iniciado?'🎮 ':''}${esc(p.jogo)}</div>
-        <div class="s num">${estH(p.est)?estH(p.est)+"h":"—"}${p.iniciado?" · jogando":""}</div></div>
+        <div class="s num">${sub}</div></div>
       <div class="pacts">
         ${p.iniciado?'':`<button type="button" class="pbtn" data-pjogar="${i}" title="Marcar como jogando agora">▶️</button>`}
         <button type="button" class="pbtn" data-peditar="${i}" title="Editar">✏️</button>
         <button type="button" class="pbtn del" data-pexcluir="${i}" title="Excluir">🗑</button>
       </div>
-    </div>`).join("") : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
-  return `<p class="lead">Fila até 31/jan/2027. As horas disponíveis são calculadas sozinhas a partir de hoje (10h/semana; 21–24/set 10h/dia; sem jogatina 10–19/set).</p>
+    </div>`;
+  }).join("") : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
+  return `<p class="lead">Fila até 31/jan/2027. As horas disponíveis recalculam sozinhas a partir de hoje (10h/semana; 21–24/set 10h/dia; sem jogatina 10–19/set), e o "falta" desconta as horas que você já jogou do jogo atual.</p>
     <h2>⏳ Horas disponíveis (auto)</h2>
     <div class="card">
       <div class="strip" style="margin:0">
-        <div class="cell"><div class="v num">${Math.round(somaEst)}h</div><div class="k">soma da fila</div></div>
+        <div class="cell"><div class="v num">${Math.round(somaEst)}h</div><div class="k">falta na fila</div></div>
         <div class="cell"><div class="v num">${disp}h</div><div class="k">disponível</div></div>
         <div class="cell"><div class="v num" style="color:${cor}">${cabe?"":"−"}${Math.abs(Math.round(rest))}h</div><div class="k">${cabe?"sobra":"falta"}</div></div>
       </div>
