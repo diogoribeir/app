@@ -402,6 +402,7 @@ async function boot(){
   try { const raw = localStorage.getItem(LS_KEY); if (raw) J = JSON.parse(raw); } catch(e){}
   try { const raw = localStorage.getItem(LS_PLANO); if (raw){ const p = JSON.parse(raw);
     if (p && Array.isArray(p.itens)) P = p.itens; } } catch(e){}
+  render();  // 1ª pintura com a cópia do aparelho (evita "piscar" o seed antigo)
   try {
     const r = await fetch(`${SYNC_URL}/jogos.json`, { cache:"no-store" });
     if (r.ok) {
@@ -863,7 +864,6 @@ document.addEventListener("click", e=>{
     if (g && confirm(`Excluir "${g.nome}" da biblioteca?`)){ J = J.filter(x=>x.id!==g.id); saveJogos(); render(); }
     return; }
 });
-render();
 boot();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
