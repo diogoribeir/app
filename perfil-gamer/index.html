@@ -201,6 +201,16 @@ details.sec>summary:active{background:var(--surface2)}
   border-radius:9px;font-size:.82rem;cursor:pointer;display:grid;place-items:center;padding:0}
 .pbtn.del{color:var(--mr)}
 .pbtn:active{transform:scale(.93)}
+/* jogatinas (playthroughs) dentro do card */
+.runs{margin-top:11px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.runrow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:.75rem;font-weight:700}
+.runrow:last-child{border-bottom:0}
+.runrow .rlbl{flex:0 0 auto;background:var(--surface2);color:var(--muted);border-radius:7px;padding:2px 7px;font-size:.66rem;font-weight:800}
+.runrow .rst{flex:0 0 auto;color:var(--muted)}
+.runrow .rhr{flex:0 0 auto;color:var(--ink);font-weight:800}
+.runrow .rv{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
+.runrow .racts{flex:0 0 auto;display:flex;gap:5px;margin-left:auto}
+.runrow .racts .pbtn{width:26px;height:26px;font-size:.72rem}
 
 /* ---------- modal ---------- */
 .modal{position:fixed;inset:0;background:rgba(4,6,11,.65);display:flex;align-items:flex-end;justify-content:center;z-index:60}
@@ -313,6 +323,28 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
     </div>
     <input id="bFile" type="file" accept="application/json,.json" style="display:none" />
     <div class="mactions"><button type="button" class="btn btn-ghost" id="bClose">Fechar</button></div>
+  </div>
+</div>
+
+<div id="rmodal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="mbox">
+    <h2 id="rTitle">Nova jogatina</h2>
+    <p class="lead" id="rSub" style="margin:4px 2px 0"></p>
+    <div class="mrow">
+      <div><label for="rHoras">Horas</label><input id="rHoras" type="number" min="0" step="0.5" /></div>
+      <div><label for="rEnc">Status</label>
+        <select id="rEnc"><option value="#">🔄 Jogando</option><option value="S">✅ Zerado</option><option value="N">❌ Dropado</option></select></div>
+    </div>
+    <label for="rV">Veredicto desta jogatina</label>
+    <select id="rV"><option value="N/A">— sem veredicto —</option>
+      <option>Masterpiece</option><option>Muito Bom</option><option>Bom</option>
+      <option>Mediano</option><option>Ruim</option><option>Muito Ruim</option></select>
+    <label for="rObs">Observação</label><textarea id="rObs"></textarea>
+    <label for="rMotivo">Motivo (se dropado)</label><textarea id="rMotivo"></textarea>
+    <div class="mactions">
+      <button type="button" class="btn btn-ghost" id="rCancel">Cancelar</button>
+      <button type="button" class="btn btn-save" id="rSave">Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -430,7 +462,7 @@ let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
 const secOpen = new Set(["ver"]);  // seções abertas nas Estatísticas
 const STATUS_LABEL = {"S":"✅ Zerados","N":"❌ Dropados","#":"🔄 Jogando"};
 function aplicarFiltros(lst){
-  if (fStatus.size) lst = lst.filter(g=>fStatus.has(g.enc));
+  if (fStatus.size) lst = lst.filter(g=>fStatus.has(effEnc(g)));
   if (fVer.size) lst = lst.filter(g=>fVer.has(g.v));
   return lst;
 }
@@ -441,7 +473,18 @@ function vpill(v){
   return c ? `<span class="vpill" style="--vc:${c[0]};--vs:${c[1]}">${c[2]} ${esc(v)}</span>`
            : `<span class="vpill">sem veredicto</span>`;
 }
-function custoHora(g){ return g.horas>0 ? (CUSTO/g.horas) : null; }
+/* ---------- jogatinas (playthroughs): jogatina 1 = campos base; g.runs = 2ª, 3ª… ---------- */
+function allRuns(g){
+  const base = { horas:g.horas||0, enc:g.enc, v:g.v, obs:g.obs||"", motivo:g.motivo||"" };
+  const ex = (g.runs||[]).map(r=>({ horas:r.horas||0, enc:r.enc||"S", v:r.v||"N/A", obs:r.obs||"", motivo:r.motivo||"" }));
+  return [base, ...ex];
+}
+function nRuns(g){ return 1 + ((g.runs||[]).length); }
+function totalHoras(g){ return allRuns(g).reduce((s,r)=>s+(r.horas||0),0); }
+function effEnc(g){ const rs=allRuns(g); return rs.some(r=>r.enc==="#") ? "#" : g.enc; }
+function playingIdx(g){ return allRuns(g).findIndex(r=>r.enc==="#"); }
+const ORD_LABEL = ["1ª","2ª","3ª","4ª","5ª","6ª"];
+function custoHora(g){ const h=totalHoras(g); return h>0 ? (CUSTO/h) : null; }
 function horasOcultas(g){ return /FINAL FANTASY XIV/i.test(g.nome||""); }
 function fmtCH(c){ return c==null?"—":("R$ "+c.toFixed(2).replace(".",",")+"/h"); }
 
@@ -449,29 +492,40 @@ function fmtCH(c){ return c==null?"—":("R$ "+c.toFixed(2).replace(".",",")+"/h
 function gameCard(g){
   const ch = custoHora(g);
   const c = VC[g.v];
+  const th = totalHoras(g), ee = effEnc(g), multi = nRuns(g)>1;
   const comp = [g.h!=null&&g.h!=="N/A"?`H ${g.h}`:null, g.g!=null&&g.g!=="N/A"?`G ${g.g}`:null,
                 g.d!=null?`D ${g.d}`:null, g.ff!=null?`FF ${g.ff}`:null].filter(Boolean).join(" · ");
+  const runsHtml = multi ? `<div class="runs">${allRuns(g).map((r,i)=>`
+      <div class="runrow">
+        <span class="rlbl">${ORD_LABEL[i]||(i+1)+"ª"}</span>
+        <span class="rst">${statusTxt(r.enc)}</span>
+        ${horasOcultas(g)?"":`<span class="rhr num">${r.horas}h</span>`}
+        ${r.v&&r.v!=="N/A"?`<span class="rv" style="color:${VC[r.v]?VC[r.v][0]:"var(--muted)"}">${VC[r.v]?VC[r.v][2]:""} ${esc(r.v)}</span>`:""}
+        ${i>0?`<span class="racts"><button type="button" class="pbtn" data-runedit="${g.id}:${i}" title="Editar jogatina">✏️</button><button type="button" class="pbtn del" data-rundel="${g.id}:${i}" title="Excluir jogatina">🗑</button></span>`:""}
+      </div>`).join("")}</div>` : "";
   return `<details class="game" style="--vc:${c?c[0]:"var(--line)"};--vs:${c?c[1]:"var(--surface2)"}">
     <summary>
       <div class="grow"><div class="gname">${esc(g.nome)}</div>${vpill(g.v)}</div>
       <div class="gmeta">
-        ${horasOcultas(g)?"":`<span class="hrs num">⏱ ${g.horas}h</span>`}
-        <span>${statusTxt(g.enc)}</span>
+        ${horasOcultas(g)?"":`<span class="hrs num">⏱ ${th}h</span>`}
+        <span>${statusTxt(ee)}</span>
         <span>${esc((g.genres||"").split(",")[0].trim())}</span>
-        ${g.w>=2?`<span>♥ ${g.w}×</span>`:""}
+        ${multi?`<span>🔁 ${nRuns(g)} jogatinas</span>`:(g.w>=2?`<span>♥ ${g.w}×</span>`:"")}
       </div>
     </summary>
     <div class="gbody">
       <div class="row">
         ${horasOcultas(g)?"":`<span class="stat"><b class="num">${fmtCH(ch)}</b>custo/hora</span>
-        <span class="stat"><b class="num">${g.horas}h</b>tempo total</span>`}
+        <span class="stat"><b class="num">${th}h</b>tempo total</span>`}
         <span class="stat"><b>${esc(g.genres||"—")}</b>gêneros</span>
       </div>
+      ${runsHtml}
       ${g.motivo?`<div class="gnote"><b>Motivo do drop:</b> ${esc(g.motivo)}</div>`:""}
       ${g.obs?`<div class="gnote"><b>Obs:</b> ${esc(g.obs)}</div>`:""}
       ${comp?`<div class="internal">análise interna · ${esc(comp)}</div>`:""}
       <div class="cardbtns">
         <button type="button" class="cbtn" data-editar="${g.id}">✏️ Editar</button>
+        <button type="button" class="cbtn" data-novarun="${g.id}">🔁 Nova jogatina</button>
         <button type="button" class="cbtn del" data-excluir="${g.id}">🗑 Excluir</button>
       </div>
     </div>
@@ -482,8 +536,8 @@ function viewJogos(){
   if (busca) { const b = busca.toLowerCase(); lst = lst.filter(g=>g.nome.toLowerCase().includes(b)||(g.genres||"").toLowerCase().includes(b)||(g.obs||"").toLowerCase().includes(b)); }
   lst = aplicarFiltros(lst);
   const ords = {
-    horas:(a,b)=>b.horas-a.horas,
-    veredicto:(a,b)=>(ORD.indexOf(b.v)-ORD.indexOf(a.v))||(b.horas-a.horas),
+    horas:(a,b)=>totalHoras(b)-totalHoras(a),
+    veredicto:(a,b)=>(ORD.indexOf(b.v)-ORD.indexOf(a.v))||(totalHoras(b)-totalHoras(a)),
     nome:(a,b)=>a.nome.localeCompare(b.nome,"pt"),
     custo:(a,b)=>{const ca=custoHora(a)??1e9, cb=custoHora(b)??1e9; return ca-cb;}
   };
@@ -491,15 +545,17 @@ function viewJogos(){
 
   const tot=J.length;
   const comp=J.filter(g=>g.enc==="S").length, drop=J.filter(g=>g.enc==="N").length;
-  const agora = J.filter(g=>g.enc==="#");
+  const agora = J.filter(g=>effEnc(g)==="#");
+  const heroPI = agora.length ? playingIdx(agora[0]) : -1;
+  const heroRun = heroPI>=0 ? allRuns(agora[0])[heroPI] : null;
   const hero = agora.length ? `
     <div class="hero" data-editar-hero="${agora[0].id}">
       <div class="hrow">
         <span class="hicon">🕹️</span>
         <div class="hbody">
-          <div class="tagline">Jogando agora</div>
+          <div class="tagline">Jogando agora${heroPI>0?` · ${ORD_LABEL[heroPI]||(heroPI+1)+"ª"} jogatina`:""}</div>
           <div class="hname">${esc(agora[0].nome)}</div>
-          <div class="hmeta num">${horasOcultas(agora[0])?"":`⏱ ${agora[0].horas}h · `}${agora[0].obs?`${esc(agora[0].obs.split("·")[0].trim())}`:""}${agora.length>1?` · +${agora.length-1} em progresso`:""}</div>
+          <div class="hmeta num">${horasOcultas(agora[0])?"":`⏱ ${heroRun?heroRun.horas:totalHoras(agora[0])}h · `}${agora[0].obs?`${esc(agora[0].obs.split("·")[0].trim())}`:""}${agora.length>1?` · +${agora.length-1} em progresso`:""}</div>
         </div>
         <span class="hgo">›</span>
       </div>
@@ -545,10 +601,10 @@ function viewStats(){
       <div class="val num">${Math.round(dist[v]/(rated.length||1)*100)}%</div></div>`).join("");
   let topLst = J.slice().filter(g=>!horasOcultas(g));
   if (statVer) topLst = topLst.filter(g=>g.v===statVer);
-  const topRows = topLst.sort((a,b)=>b.horas-a.horas).slice(0,10).map((g,i)=>
+  const topRows = topLst.sort((a,b)=>totalHoras(b)-totalHoras(a)).slice(0,10).map((g,i)=>
     `<div class="rowline"><span class="pos num">${i+1}</span>
       <span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
-      <span class="nm">${esc(g.nome)}</span><span class="hv num">${g.horas}h</span></div>`).join("")
+      <span class="nm">${esc(g.nome)}</span><span class="hv num">${totalHoras(g)}h</span></div>`).join("")
     || '<p class="lead" style="margin:6px 2px">Nenhum jogo com esse veredicto.</p>';
   const topChips = `<div class="tchips" style="margin-bottom:11px">
     <button type="button" class="tchip ${statVer===""?"on":""}" data-statver="">Todos</button>
@@ -558,26 +614,26 @@ function viewStats(){
   J.forEach(g=>{ const k=(g.genres||"?").split(",")[0].trim(); (gen[k]=gen[k]||[]).push(g); });
   const genRows = Object.entries(gen).sort((a,b)=>b[1].length-a[1].length).slice(0,10).map(([k,v])=>{
     const c=v.filter(x=>x.enc==="S").length, d=v.filter(x=>x.enc==="N").length, fin=Math.max(c+d,1);
-    const hrs=v.reduce((s,x)=>s+(horasOcultas(x)?0:x.horas),0);
+    const hrs=v.reduce((s,x)=>s+(horasOcultas(x)?0:totalHoras(x)),0);
     return `<div class="gcell"><div class="t">${esc(k)}</div>
       <div class="n num">${v.length} jogos · ${Math.round(hrs).toLocaleString("pt-BR")}h<br>zera ${Math.round(c/fin*100)}% · dropa ${Math.round(d/fin*100)}%</div></div>`;
   }).join("");
-  const dropsLst = J.filter(g=>g.enc==="N").sort((a,b)=>b.horas-a.horas);
+  const dropsLst = J.filter(g=>g.enc==="N").sort((a,b)=>totalHoras(b)-totalHoras(a));
   const drops = dropsLst.map(g=>`<div class="droprow">
     <div class="dhead"><span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
-      <span class="dnm">${esc(g.nome)}</span><span class="dhv num">${g.horas}h</span></div>
+      <span class="dnm">${esc(g.nome)}</span><span class="dhv num">${totalHoras(g)}h</span></div>
     ${g.motivo?`<div class="dmot">${esc(g.motivo)}</div>`:""}</div>`).join("")
     || '<p class="lead" style="margin:6px 2px">Nenhum drop registrado.</p>';
   // tempo total + hall do custo/hora
-  const jogaveis = J.filter(g=>!horasOcultas(g) && g.horas>0);
-  const totalH = jogaveis.reduce((s,g)=>s+g.horas,0);
+  const jogaveis = J.filter(g=>!horasOcultas(g) && totalHoras(g)>0);
+  const totalH = jogaveis.reduce((s,g)=>s+totalHoras(g),0);
   const mediaH = jogaveis.length ? totalH/jogaveis.length : 0;
   const dias = totalH/24;
   const chRow = (g,i)=>`<div class="rowline"><span class="pos num">${i+1}</span>
       <span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
       <span class="nm">${esc(g.nome)}</span><span class="hv num">${fmtCH(custoHora(g))}</span></div>`;
-  const melhores = jogaveis.slice().sort((a,b)=>b.horas-a.horas).slice(0,5).map(chRow).join("");
-  const piores = jogaveis.slice().sort((a,b)=>a.horas-b.horas).slice(0,5).map(chRow).join("");
+  const melhores = jogaveis.slice().sort((a,b)=>totalHoras(b)-totalHoras(a)).slice(0,5).map(chRow).join("");
+  const piores = jogaveis.slice().sort((a,b)=>totalHoras(a)-totalHoras(b)).slice(0,5).map(chRow).join("");
   const overview = `<div class="strip" style="margin-bottom:10px">
     <div class="cell"><div class="v num">${Math.round(totalH).toLocaleString("pt-BR")}h</div><div class="k">horas totais</div></div>
     <div class="cell"><div class="v num">${Math.round(mediaH)}h</div><div class="k">média/jogo</div></div>
@@ -602,9 +658,11 @@ function viewPlano(){
   const disp = horasDisponiveis();
   // jogo do plano ligado à biblioteca (p/ descontar horas já jogadas do jogo atual)
   const linked = p => p.iniciado ? (J.find(x=>x.id===p.jid) || J.find(x=>(x.nome||"").toLowerCase()===p.jogo.toLowerCase())) : null;
+  // horas já jogadas na jogatina atual (a que está "jogando"); se nenhuma, usa a base
+  const jogadasAtual = g => { const pi=playingIdx(g); return pi>=0 ? (allRuns(g)[pi].horas||0) : (g.horas||0); };
   // horas que ainda faltam pra cada jogo: estimativa menos o que já foi jogado (0 se zerou/dropou)
   const faltaH = p => { const est=estH(p.est); const g=linked(p);
-    if (g) return (g.enc==="S"||g.enc==="N") ? 0 : Math.max(est-(g.horas||0),0);
+    if (g) return effEnc(g)==="#" ? Math.max(est-jogadasAtual(g),0) : ((g.enc==="S"||g.enc==="N")?0:Math.max(est-(g.horas||0),0));
     return est; };
   const somaEst = P.reduce((s,p)=>s+faltaH(p),0);
   const rest = disp - somaEst;
@@ -619,9 +677,9 @@ function viewPlano(){
   const rows = fila.length ? fila.map(({p,i})=>{
     const est=estH(p.est), g=linked(p), falta=faltaH(p);
     let sub = est?est+"h":"—";
-    if (g && g.enc==="#") sub = `${g.horas||0}h de ${est}h · faltam ${Math.round(falta)}h`;
-    else if (g && g.enc==="S") sub = `✅ zerado (${g.horas||0}h)`;
-    else if (g && g.enc==="N") sub = `❌ dropado (${g.horas||0}h)`;
+    if (g && effEnc(g)==="#") sub = `${jogadasAtual(g)}h de ${est}h · faltam ${Math.round(falta)}h`;
+    else if (g && g.enc==="S") sub = `✅ zerado (${totalHoras(g)}h)`;
+    else if (g && g.enc==="N") sub = `❌ dropado (${totalHoras(g)}h)`;
     return `<div class="pitem">
       <span class="pwhen">${esc(fmtData(p.data))}</span>
       <div class="pbody"><div class="t">${p.iniciado?'🎮 ':''}${esc(p.jogo)}</div>
@@ -733,6 +791,34 @@ $("#pSave").addEventListener("click", ()=>{
   closePlano(); savePlano(); render();
 });
 
+/* ---------- modal de jogatina (playthrough) ---------- */
+let runG = null, runIdx = null;   // runIdx: índice de exibição (>=1) ou null p/ nova
+function openRun(g, idx){
+  runG = g; runIdx = idx;
+  const r = (idx!=null) ? (g.runs||[])[idx-1] : null;
+  $("#rTitle").textContent = (idx!=null) ? `Editar ${ORD_LABEL[idx]||(idx+1)+"ª"} jogatina` : "Nova jogatina (NG+/rejogar)";
+  $("#rSub").textContent = g.nome;
+  $("#rHoras").value = r ? (r.horas ?? "") : "";
+  $("#rEnc").value = r ? (r.enc || "#") : "#";
+  $("#rV").value = (r && ORD.includes(r.v)) ? r.v : "N/A";
+  $("#rObs").value = r ? (r.obs || "") : "";
+  $("#rMotivo").value = r ? (r.motivo || "") : "";
+  $("#rmodal").classList.remove("hidden");
+  setTimeout(()=>$("#rHoras").focus(), 60);
+}
+function closeRun(){ $("#rmodal").classList.add("hidden"); runG = null; runIdx = null; }
+$("#rCancel").addEventListener("click", closeRun);
+$("#rmodal").addEventListener("click", e=>{ if (e.target === $("#rmodal")) closeRun(); });
+$("#rSave").addEventListener("click", ()=>{
+  if (!runG) return;
+  const numOr = (id,def)=>{ const v=$(id).value; return v===""?def:Number(v); };
+  const reg = { horas:numOr("#rHoras",0), enc:$("#rEnc").value, v:$("#rV").value,
+                obs:$("#rObs").value.trim(), motivo:$("#rMotivo").value.trim() };
+  runG.runs = runG.runs || [];
+  if (runIdx!=null) runG.runs[runIdx-1] = reg; else runG.runs.push(reg);
+  closeRun(); saveJogos(); render();
+});
+
 /* ---------- backup export / import ---------- */
 function openBackup(){ $("#bmodal").classList.remove("hidden"); }
 function closeBackup(){ $("#bmodal").classList.add("hidden"); }
@@ -785,11 +871,21 @@ document.addEventListener("click", e=>{
   if (pj){ const i=Number(pj.dataset.pjogar); const p=P[i]; if (!p) return;
     // liga como "jogando agora": reaproveita jogo existente ou cria na biblioteca
     let g = J.find(x=>(x.nome||"").toLowerCase()===p.jogo.toLowerCase());
-    if (g){ g.enc = "#"; }
-    else { g = { id: J.reduce((m,x)=>Math.max(m,x.id||0),0)+1, nome:p.jogo, horas:0, enc:"#",
+    if (g){
+      if (g.enc==="S"||g.enc==="N"){ (g.runs=g.runs||[]).push({horas:0,enc:"#",v:"N/A",obs:"",motivo:""}); } // já terminou → nova jogatina (NG+)
+      else g.enc = "#";
+    } else { g = { id: J.reduce((m,x)=>Math.max(m,x.id||0),0)+1, nome:p.jogo, horas:0, enc:"#",
                  w:1, v:"N/A", genres:"", motivo:"", obs:"" }; J.push(g); }
     p.iniciado = true; p.jid = g.id;
     saveJogos(); savePlano(); tab="jogos"; render(); window.scrollTo({top:0}); return; }
+  // ---- jogatinas (playthroughs) ----
+  const nr = e.target.closest("[data-novarun]");
+  if (nr){ const g=J.find(x=>String(x.id)===nr.dataset.novarun); if (g) openRun(g, null); return; }
+  const re = e.target.closest("[data-runedit]");
+  if (re){ const [gid,idx]=re.dataset.runedit.split(":"); const g=J.find(x=>String(x.id)===gid); if (g) openRun(g, Number(idx)); return; }
+  const rd = e.target.closest("[data-rundel]");
+  if (rd){ const [gid,idx]=rd.dataset.rundel.split(":"); const g=J.find(x=>String(x.id)===gid);
+    if (g && g.runs){ g.runs.splice(Number(idx)-1,1); if(!g.runs.length) delete g.runs; saveJogos(); render(); } return; }
   const hh = e.target.closest("[data-editar-hero]");
   if (hh){ const g = J.find(x=>String(x.id)===hh.dataset.editarHero); if (g) openModal(g); return; }
   const ed = e.target.closest("[data-editar]");
