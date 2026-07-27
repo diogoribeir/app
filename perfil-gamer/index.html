@@ -282,8 +282,6 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
     <input id="fGenres" type="text" placeholder="Ex.: Action RPG, Souls-like" autocomplete="off" />
     <div id="fMotivoWrap"><label for="fMotivo">Motivo da desistência (se dropado)</label>
     <textarea id="fMotivo"></textarea></div>
-    <label for="fObs">Observação</label>
-    <textarea id="fObs"></textarea>
     <details class="internal-fields"><summary>análise interna (opcional) — H · G · D · FF</summary>
       <div class="mrow4">
         <div><label for="fH">História 1-4</label><input id="fH" type="number" min="1" max="4" /></div>
@@ -331,18 +329,9 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
 <div id="rmodal" class="modal hidden" role="dialog" aria-modal="true">
   <div class="mbox">
     <h2 id="rTitle">Nova jogatina</h2>
-    <p class="lead" id="rSub" style="margin:4px 2px 0"></p>
-    <div class="mrow">
-      <div><label for="rHoras">Horas</label><input id="rHoras" type="number" min="0" step="0.5" /></div>
-      <div><label for="rEnc">Status</label>
-        <select id="rEnc"><option value="#">🔄 Jogando</option><option value="S">✅ Zerado</option><option value="N">❌ Dropado</option></select></div>
-    </div>
-    <label for="rV">Veredicto desta jogatina</label>
-    <select id="rV"><option value="N/A">— sem veredicto —</option>
-      <option>Masterpiece</option><option>Muito Bom</option><option>Bom</option>
-      <option>Mediano</option><option>Ruim</option><option>Muito Ruim</option></select>
-    <label for="rObs">Observação</label><textarea id="rObs"></textarea>
-    <label for="rMotivo">Motivo (se dropado)</label><textarea id="rMotivo"></textarea>
+    <p class="lead" id="rSub" style="margin:4px 2px 8px"></p>
+    <label for="rHoras">Horas desta jogatina</label>
+    <input id="rHoras" type="number" min="0" step="0.5" />
     <div class="mactions">
       <button type="button" class="btn btn-ghost" id="rCancel">Cancelar</button>
       <button type="button" class="btn btn-save" id="rSave">Salvar</button>
@@ -464,7 +453,7 @@ let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
 const secOpen = new Set(["ver"]);  // seções abertas nas Estatísticas
 const STATUS_LABEL = {"S":"✅ Zerados","N":"❌ Dropados","#":"🔄 Jogando"};
 function aplicarFiltros(lst){
-  if (fStatus.size) lst = lst.filter(g=>fStatus.has(effEnc(g)));
+  if (fStatus.size) lst = lst.filter(g=>fStatus.has(g.enc));
   if (fVer.size) lst = lst.filter(g=>fVer.has(g.v));
   return lst;
 }
@@ -475,17 +464,11 @@ function vpill(v){
   return c ? `<span class="vpill" style="--vc:${c[0]};--vs:${c[1]}">${c[2]} ${esc(v)}</span>`
            : `<span class="vpill">sem veredicto</span>`;
 }
-/* ---------- jogatinas (playthroughs): jogatina 1 = campos base; g.runs = 2ª, 3ª… ---------- */
-function allRuns(g){
-  const base = { horas:g.horas||0, enc:g.enc, v:g.v, obs:g.obs||"", motivo:g.motivo||"" };
-  const ex = (g.runs||[]).map(r=>({ horas:r.horas||0, enc:r.enc||"S", v:r.v||"N/A", obs:r.obs||"", motivo:r.motivo||"" }));
-  return [base, ...ex];
-}
+/* ---------- jogatinas (playthroughs): só HORAS por jogatina; veredicto/status = 1 por jogo ---------- */
+function runHoras(g){ return [g.horas||0, ...((g.runs||[]).map(r=>(r&&r.horas)||0))]; }  // [W1, W2, …]
 function nRuns(g){ return 1 + ((g.runs||[]).length); }
-function totalHoras(g){ return allRuns(g).reduce((s,r)=>s+(r.horas||0),0); }
-function effEnc(g){ const rs=allRuns(g); return rs.some(r=>r.enc==="#") ? "#" : g.enc; }
-function playingIdx(g){ return allRuns(g).findIndex(r=>r.enc==="#"); }
-const ORD_LABEL = ["1ª","2ª","3ª","4ª","5ª","6ª"];
+function totalHoras(g){ return runHoras(g).reduce((s,h)=>s+h,0); }
+function runsResumo(g){ return runHoras(g).map((h,i)=>`W${i+1} ${h}h`).join(" · "); }
 function custoHora(g){ const h=totalHoras(g); return h>0 ? (CUSTO/h) : null; }
 function horasOcultas(g){ return /FINAL FANTASY XIV/i.test(g.nome||""); }
 function fmtCH(c){ return c==null?"—":("R$ "+c.toFixed(2).replace(".",",")+"/h"); }
@@ -494,25 +477,17 @@ function fmtCH(c){ return c==null?"—":("R$ "+c.toFixed(2).replace(".",",")+"/h
 function gameCard(g){
   const ch = custoHora(g);
   const c = VC[g.v];
-  const th = totalHoras(g), ee = effEnc(g), multi = nRuns(g)>1;
+  const th = totalHoras(g), multi = nRuns(g)>1;
   const comp = [g.h!=null&&g.h!=="N/A"?`H ${g.h}`:null, g.g!=null&&g.g!=="N/A"?`G ${g.g}`:null,
                 g.d!=null?`D ${g.d}`:null, g.ff!=null?`FF ${g.ff}`:null].filter(Boolean).join(" · ");
-  const runsHtml = multi ? `<div class="runs">${allRuns(g).map((r,i)=>`
-      <div class="runrow">
-        <span class="rlbl">${ORD_LABEL[i]||(i+1)+"ª"}</span>
-        <span class="rst">${statusTxt(r.enc)}</span>
-        ${horasOcultas(g)?"":`<span class="rhr num">${r.horas}h</span>`}
-        ${r.v&&r.v!=="N/A"?`<span class="rv" style="color:${VC[r.v]?VC[r.v][0]:"var(--muted)"}">${VC[r.v]?VC[r.v][2]:""} ${esc(r.v)}</span>`:""}
-        ${i>0?`<span class="racts"><button type="button" class="pbtn" data-runedit="${g.id}:${i}" title="Editar jogatina">✏️</button><button type="button" class="pbtn del" data-rundel="${g.id}:${i}" title="Excluir jogatina">🗑</button></span>`:""}
-      </div>`).join("")}</div>` : "";
   return `<details class="game" style="--vc:${c?c[0]:"var(--line)"};--vs:${c?c[1]:"var(--surface2)"}">
     <summary>
       <div class="grow"><div class="gname">${esc(g.nome)}</div>${vpill(g.v)}</div>
       <div class="gmeta">
         ${horasOcultas(g)?"":`<span class="hrs num">⏱ ${th}h</span>`}
-        <span>${statusTxt(ee)}</span>
+        <span>${statusTxt(g.enc)}</span>
         <span>${esc((g.genres||"").split(",")[0].trim())}</span>
-        ${multi?`<span>🔁 ${nRuns(g)} jogatinas</span>`:(g.w>=2?`<span>♥ ${g.w}×</span>`:"")}
+        ${multi&&!horasOcultas(g)?`<span class="num">🔁 ${runsResumo(g)}</span>`:""}
       </div>
     </summary>
     <div class="gbody">
@@ -521,9 +496,7 @@ function gameCard(g){
         <span class="stat"><b class="num">${th}h</b>tempo total</span>`}
         <span class="stat"><b>${esc(g.genres||"—")}</b>gêneros</span>
       </div>
-      ${runsHtml}
       ${g.motivo?`<div class="gnote"><b>Motivo do drop:</b> ${esc(g.motivo)}</div>`:""}
-      ${g.obs?`<div class="gnote"><b>Obs:</b> ${esc(g.obs)}</div>`:""}
       ${comp?`<div class="internal">análise interna · ${esc(comp)}</div>`:""}
       <div class="cardbtns">
         <button type="button" class="cbtn" data-editar="${g.id}">✏️ Editar</button>
@@ -535,7 +508,7 @@ function gameCard(g){
 }
 function viewJogos(){
   let lst = J.slice();
-  if (busca) { const b = busca.toLowerCase(); lst = lst.filter(g=>g.nome.toLowerCase().includes(b)||(g.genres||"").toLowerCase().includes(b)||(g.obs||"").toLowerCase().includes(b)); }
+  if (busca) { const b = busca.toLowerCase(); lst = lst.filter(g=>g.nome.toLowerCase().includes(b)||(g.genres||"").toLowerCase().includes(b)); }
   lst = aplicarFiltros(lst);
   const ords = {
     horas:(a,b)=>totalHoras(b)-totalHoras(a),
@@ -547,17 +520,15 @@ function viewJogos(){
 
   const tot=J.length;
   const comp=J.filter(g=>g.enc==="S").length, drop=J.filter(g=>g.enc==="N").length;
-  const agora = J.filter(g=>effEnc(g)==="#");
-  const heroPI = agora.length ? playingIdx(agora[0]) : -1;
-  const heroRun = heroPI>=0 ? allRuns(agora[0])[heroPI] : null;
+  const agora = J.filter(g=>g.enc==="#");
   const hero = agora.length ? `
     <div class="hero" data-editar-hero="${agora[0].id}">
       <div class="hrow">
         <span class="hicon">🕹️</span>
         <div class="hbody">
-          <div class="tagline">Jogando agora${heroPI>0?` · ${ORD_LABEL[heroPI]||(heroPI+1)+"ª"} jogatina`:""}</div>
+          <div class="tagline">Jogando agora</div>
           <div class="hname">${esc(agora[0].nome)}</div>
-          <div class="hmeta num">${horasOcultas(agora[0])?"":`⏱ ${heroRun?heroRun.horas:totalHoras(agora[0])}h · `}${agora[0].obs?`${esc(agora[0].obs.split("·")[0].trim())}`:""}${agora.length>1?` · +${agora.length-1} em progresso`:""}</div>
+          <div class="hmeta num">${horasOcultas(agora[0])?"":`⏱ ${totalHoras(agora[0])}h`}${nRuns(agora[0])>1?` · ${runsResumo(agora[0])}`:""}${agora.length>1?` · +${agora.length-1} em progresso`:""}</div>
         </div>
         <span class="hgo">›</span>
       </div>
@@ -660,11 +631,11 @@ function viewPlano(){
   const disp = horasDisponiveis();
   // jogo do plano ligado à biblioteca (p/ descontar horas já jogadas do jogo atual)
   const linked = p => p.iniciado ? (J.find(x=>x.id===p.jid) || J.find(x=>(x.nome||"").toLowerCase()===p.jogo.toLowerCase())) : null;
-  // horas já jogadas na jogatina atual (a que está "jogando"); se nenhuma, usa a base
-  const jogadasAtual = g => { const pi=playingIdx(g); return pi>=0 ? (allRuns(g)[pi].horas||0) : (g.horas||0); };
+  // horas já jogadas na jogatina atual = a última jogatina (a em andamento)
+  const jogadasAtual = g => { const h=runHoras(g); return h[h.length-1]||0; };
   // horas que ainda faltam pra cada jogo: estimativa menos o que já foi jogado (0 se zerou/dropou)
   const faltaH = p => { const est=estH(p.est); const g=linked(p);
-    if (g) return effEnc(g)==="#" ? Math.max(est-jogadasAtual(g),0) : ((g.enc==="S"||g.enc==="N")?0:Math.max(est-(g.horas||0),0));
+    if (g) return g.enc==="#" ? Math.max(est-jogadasAtual(g),0) : ((g.enc==="S"||g.enc==="N")?0:Math.max(est-(g.horas||0),0));
     return est; };
   const somaEst = P.reduce((s,p)=>s+faltaH(p),0);
   const rest = disp - somaEst;
@@ -679,7 +650,7 @@ function viewPlano(){
   const rows = fila.length ? fila.map(({p,i})=>{
     const est=estH(p.est), g=linked(p), falta=faltaH(p);
     let sub = est?est+"h":"—";
-    if (g && effEnc(g)==="#") sub = `${jogadasAtual(g)}h de ${est}h · faltam ${Math.round(falta)}h`;
+    if (g && g.enc==="#") sub = `${jogadasAtual(g)}h de ${est}h · faltam ${Math.round(falta)}h`;
     else if (g && g.enc==="S") sub = `✅ zerado (${totalHoras(g)}h)`;
     else if (g && g.enc==="N") sub = `❌ dropado (${totalHoras(g)}h)`;
     return `<div class="pitem">
@@ -737,7 +708,6 @@ function openModal(g){
   $("#fV").value = (g && ORD.includes(g.v)) ? g.v : "N/A";
   $("#fGenres").value = g?.genres || "";
   $("#fMotivo").value = g?.motivo || "";
-  $("#fObs").value = g?.obs || "";
   const iv = (x)=> (x==null||x==="N/A") ? "" : x;
   $("#fH").value = iv(g?.h); $("#fG").value = iv(g?.g); $("#fD").value = iv(g?.d); $("#fFF").value = iv(g?.ff);
   // jogatinas: só ao editar um jogo existente
@@ -748,15 +718,14 @@ function openModal(g){
   setTimeout(()=>$("#fNome").focus(), 60);
 }
 function renderMRuns(g){
-  const rs = allRuns(g);
-  $("#mRuns").innerHTML = rs.length>1 ? rs.map((r,i)=>`
+  const h = runHoras(g);
+  $("#mRuns").innerHTML = h.length>1 ? h.map((hr,i)=>`
     <div class="runrow">
-      <span class="rlbl">${ORD_LABEL[i]||(i+1)+"ª"}</span>
-      <span class="rst">${statusTxt(r.enc)}</span>
-      <span class="rhr num">${r.horas}h</span>
-      ${r.v&&r.v!=="N/A"?`<span class="rv" style="color:${VC[r.v]?VC[r.v][0]:"var(--muted)"}">${VC[r.v]?VC[r.v][2]:""} ${esc(r.v)}</span>`:"<span class='rv'></span>"}
-    </div>`).join("") + `<p class="lead" style="margin:6px 2px 0;font-size:.66rem">Editar/excluir cada jogatina: no card do jogo (aba Jogos).</p>`
-    : `<p class="lead" style="margin:2px">Só a 1ª jogatina (os campos acima). Toque abaixo para separar uma 2ª com horas próprias.</p>`;
+      <span class="rlbl">W${i+1}</span>
+      <span class="rhr num" style="margin-left:auto">${hr}h</span>
+      ${i>0?`<span class="racts"><button type="button" class="pbtn" data-runedit="${g.id}:${i}">✏️</button><button type="button" class="pbtn del" data-rundel="${g.id}:${i}">🗑</button></span>`:""}
+    </div>`).join("")
+    : `<p class="lead" style="margin:2px">Só a 1ª jogatina (as horas acima). Toque abaixo para somar uma 2ª com horas próprias.</p>`;
 }
 function closeModal(){ $("#modal").classList.add("hidden"); editId = null; }
 $("#mCancel").addEventListener("click", closeModal);
@@ -769,7 +738,7 @@ $("#mSave").addEventListener("click", ()=>{
     nome, horas: numOr("#fHoras", 0), enc: $("#fEnc").value,
     motivo: $("#fMotivo").value.trim(), genres: $("#fGenres").value.trim(),
     h: numOr("#fH", null), g: numOr("#fG", null), d: numOr("#fD", null), ff: numOr("#fFF", null),
-    v: $("#fV").value, obs: $("#fObs").value.trim()
+    v: $("#fV").value
   };
   if (editId != null){
     const i = J.findIndex(x=>x.id===editId);
@@ -789,12 +758,11 @@ $("#mAddRun").addEventListener("click", ()=>{
   const reg = { nome, horas: numOr("#fHoras",0), enc: $("#fEnc").value,
     motivo: $("#fMotivo").value.trim(), genres: $("#fGenres").value.trim(),
     h: numOr("#fH",null), g: numOr("#fG",null), d: numOr("#fD",null), ff: numOr("#fFF",null),
-    v: $("#fV").value, obs: $("#fObs").value.trim() };
+    v: $("#fV").value };
   let g;
   if (editId != null){ const i=J.findIndex(x=>x.id===editId); if(i>=0){ J[i]=Object.assign({},J[i],reg); g=J[i]; } }
   else { reg.id=J.reduce((m,x)=>Math.max(m,x.id||0),0)+1; reg.w=1; J.push(reg); g=reg; }
-  closeModal(); saveJogos();
-  if (g) openRun(g, null);
+  if (g){ editId = g.id; saveJogos(); openRun(g, null); }   // mantém o Editar aberto atrás; rSave atualiza a lista
 });
 
 /* ---------- modal do plano ---------- */
@@ -828,13 +796,9 @@ let runG = null, runIdx = null;   // runIdx: índice de exibição (>=1) ou null
 function openRun(g, idx){
   runG = g; runIdx = idx;
   const r = (idx!=null) ? (g.runs||[])[idx-1] : null;
-  $("#rTitle").textContent = (idx!=null) ? `Editar ${ORD_LABEL[idx]||(idx+1)+"ª"} jogatina` : "Nova jogatina (NG+/rejogar)";
+  $("#rTitle").textContent = (idx!=null) ? `Editar W${idx+1} — horas` : "Nova jogatina (NG+/rejogar)";
   $("#rSub").textContent = g.nome;
   $("#rHoras").value = r ? (r.horas ?? "") : "";
-  $("#rEnc").value = r ? (r.enc || "#") : "#";
-  $("#rV").value = (r && ORD.includes(r.v)) ? r.v : "N/A";
-  $("#rObs").value = r ? (r.obs || "") : "";
-  $("#rMotivo").value = r ? (r.motivo || "") : "";
   $("#rmodal").classList.remove("hidden");
   setTimeout(()=>$("#rHoras").focus(), 60);
 }
@@ -844,11 +808,12 @@ $("#rmodal").addEventListener("click", e=>{ if (e.target === $("#rmodal")) close
 $("#rSave").addEventListener("click", ()=>{
   if (!runG) return;
   const numOr = (id,def)=>{ const v=$(id).value; return v===""?def:Number(v); };
-  const reg = { horas:numOr("#rHoras",0), enc:$("#rEnc").value, v:$("#rV").value,
-                obs:$("#rObs").value.trim(), motivo:$("#rMotivo").value.trim() };
+  const reg = { horas:numOr("#rHoras",0) };
   runG.runs = runG.runs || [];
   if (runIdx!=null) runG.runs[runIdx-1] = reg; else runG.runs.push(reg);
+  const wasG = runG;
   closeRun(); saveJogos(); render();
+  if (editId!=null && wasG && wasG.id===editId) renderMRuns(wasG);  // Editar aberto: atualiza lista
 });
 
 /* ---------- backup export / import ---------- */
@@ -904,10 +869,10 @@ document.addEventListener("click", e=>{
     // liga como "jogando agora": reaproveita jogo existente ou cria na biblioteca
     let g = J.find(x=>(x.nome||"").toLowerCase()===p.jogo.toLowerCase());
     if (g){
-      if (g.enc==="S"||g.enc==="N"){ (g.runs=g.runs||[]).push({horas:0,enc:"#",v:"N/A",obs:"",motivo:""}); } // já terminou → nova jogatina (NG+)
-      else g.enc = "#";
+      if (g.enc==="S"||g.enc==="N"){ (g.runs=g.runs||[]).push({horas:0}); } // já terminou → nova jogatina (NG+), só horas
+      g.enc = "#";
     } else { g = { id: J.reduce((m,x)=>Math.max(m,x.id||0),0)+1, nome:p.jogo, horas:0, enc:"#",
-                 w:1, v:"N/A", genres:"", motivo:"", obs:"" }; J.push(g); }
+                 w:1, v:"N/A", genres:"", motivo:"" }; J.push(g); }
     p.iniciado = true; p.jid = g.id;
     saveJogos(); savePlano(); tab="jogos"; render(); window.scrollTo({top:0}); return; }
   // ---- jogatinas (playthroughs) ----
@@ -917,7 +882,8 @@ document.addEventListener("click", e=>{
   if (re){ const [gid,idx]=re.dataset.runedit.split(":"); const g=J.find(x=>String(x.id)===gid); if (g) openRun(g, Number(idx)); return; }
   const rd = e.target.closest("[data-rundel]");
   if (rd){ const [gid,idx]=rd.dataset.rundel.split(":"); const g=J.find(x=>String(x.id)===gid);
-    if (g && g.runs){ g.runs.splice(Number(idx)-1,1); if(!g.runs.length) delete g.runs; saveJogos(); render(); } return; }
+    if (g && g.runs){ g.runs.splice(Number(idx)-1,1); if(!g.runs.length) delete g.runs; saveJogos(); render();
+      if (editId!=null && String(editId)===gid) renderMRuns(g); } return; }
   const hh = e.target.closest("[data-editar-hero]");
   if (hh){ const g = J.find(x=>String(x.id)===hh.dataset.editarHero); if (g) openModal(g); return; }
   const ed = e.target.closest("[data-editar]");
