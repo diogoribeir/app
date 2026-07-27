@@ -219,9 +219,14 @@ details.sec>summary:active{background:var(--surface2)}
 
 /* ---------- modal ---------- */
 .modal{position:fixed;inset:0;background:rgba(4,6,11,.65);display:flex;align-items:flex-end;justify-content:center;z-index:60}
+.modal:not(.hidden){animation:fadeBg .2s ease}
 .modal.hidden{display:none}
 .mbox{background:var(--surface);color:var(--ink);width:100%;max-width:640px;border-radius:22px 22px 0 0;
   padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
+.modal:not(.hidden) .mbox{animation:sheetUp .26s cubic-bezier(.22,1,.36,1)}
+@keyframes fadeBg{from{opacity:0}to{opacity:1}}
+@keyframes sheetUp{from{transform:translateY(26px);opacity:.3}to{transform:none;opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .mbox h2{margin:0 0 4px;font-size:1rem;text-transform:none;letter-spacing:0;color:var(--ink)}
 .mbox label{display:block;font-size:.68rem;color:var(--muted);font-weight:800;margin:12px 0 4px;letter-spacing:.05em;text-transform:uppercase}
 .mbox label.checkline{display:flex;align-items:center;gap:9px;font-size:.82rem;color:var(--ink);text-transform:none;letter-spacing:0;margin:13px 0 2px;cursor:pointer;line-height:1.3}
@@ -688,10 +693,12 @@ function viewPlano(){
 
 /* ---------- render ---------- */
 const VIEWS = {jogos:viewJogos, stats:viewStats, plano:viewPlano};
+let _lastTab = null;
 function render(){
   $("#tabbar").innerHTML = TABS.map(([id,l,ic])=>
     `<button type="button" data-tab="${id}" class="${id===tab?'on':''}"><span class="ic">${ic}</span><span>${l}</span></button>`).join("");
   $("#content").innerHTML = VIEWS[tab]();
+  if (tab !== _lastTab){ const c=$("#content"); c.style.animation="none"; void c.offsetWidth; c.style.animation="fadeUp .22s ease"; _lastTab=tab; }
   const st = $("#syncTag");
   st.textContent = cloudOK ? "sincronizado ✓" : "offline · salva no aparelho";
   st.className = "synctag" + (cloudOK ? "" : " off");
