@@ -866,8 +866,10 @@ document.addEventListener("click", e=>{
   if (px){ const i=Number(px.dataset.pexcluir); if (P[i]){ P.splice(i,1); savePlano(); render(); } return; }
   const pj = e.target.closest("[data-pjogar]");
   if (pj){ const i=Number(pj.dataset.pjogar); const p=P[i]; if (!p) return;
-    // liga como "jogando agora": reaproveita jogo existente ou cria na biblioteca
-    let g = J.find(x=>(x.nome||"").toLowerCase()===p.jogo.toLowerCase());
+    // liga como "jogando agora": reaproveita jogo existente (nome igual OU parecido) ou cria na biblioteca
+    const key = (p.jogo||"").trim().toLowerCase();
+    let g = J.find(x=>(x.nome||"").trim().toLowerCase()===key)
+         || (key.length>=4 ? J.find(x=>{ const n=(x.nome||"").trim().toLowerCase(); return n && (n.includes(key)||key.includes(n)); }) : null);
     if (g){
       if (g.enc==="S"||g.enc==="N"){ (g.runs=g.runs||[]).push({horas:0}); } // já terminou → nova jogatina (NG+), só horas
       g.enc = "#";
