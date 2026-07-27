@@ -105,7 +105,9 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   jogatinas. Helpers: `runHoras/totalHoras/runsResumo`. (Não há campo Observação.)
 - **Filosofia (respeitar):** veredicto categórico, NUNCA notas numéricas na interface;
   componentes H/G/D/FF discretos como "análise interna". Detalhes em `perfil-gamer-src/README.md`.
-- **EDITÁVEL no app** (igual aos outros): botão "➕ Registrar jogo" + Editar/Excluir em cada card.
+- **EDITÁVEL no app** (igual aos outros): botão "➕ Registrar jogo" (modal). **Editar é inline no card**:
+  tocar no jogo expande o card já como editor (nome, horas W1, status, veredicto, 🎁 grátis, gêneros,
+  motivo, jogatinas W2+, análise interna, Excluir) — salva ao sair de cada campo, sem abrir janela.
   A aba 🗓 **Plano 2026** é editável: cada jogo planejado tem só **nome + estimativa de horas + data
   (calendário)**; a fila fica **ordenada por data**. As **horas disponíveis são calculadas
   automaticamente** de hoje até **31/jan/2027** (10h/semana; 21–24/set 10h/dia; sem jogatina 10–19/set —
