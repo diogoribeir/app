@@ -265,16 +265,18 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
     <label for="fNome">Nome do jogo *</label>
     <input id="fNome" type="text" autocomplete="off" />
     <div class="mrow">
-      <div><label for="fHoras">Horas totais</label><input id="fHoras" type="number" min="0" step="0.5" /></div>
+      <div><label for="fHoras" id="fHorasLbl">Horas</label><input id="fHoras" type="number" min="0" step="0.5" /></div>
       <div><label for="fEnc">Status</label>
         <select id="fEnc"><option value="#">🔄 Jogando</option><option value="S">✅ Zerado</option><option value="N">❌ Dropado</option></select></div>
     </div>
-    <div class="mrow">
-      <div><label for="fW">Walkthroughs</label><input id="fW" type="number" min="1" step="1" value="1" /></div>
-      <div><label for="fV">Veredicto</label>
-        <select id="fV"><option value="N/A">— ainda sem veredicto —</option>
-          <option>Masterpiece</option><option>Muito Bom</option><option>Bom</option>
-          <option>Mediano</option><option>Ruim</option><option>Muito Ruim</option></select></div>
+    <label for="fV">Veredicto</label>
+    <select id="fV"><option value="N/A">— ainda sem veredicto —</option>
+      <option>Masterpiece</option><option>Muito Bom</option><option>Bom</option>
+      <option>Mediano</option><option>Ruim</option><option>Muito Ruim</option></select>
+    <div id="mRunsWrap" style="display:none">
+      <label>Jogatinas (cada uma com horas próprias)</label>
+      <div id="mRuns"></div>
+      <button type="button" class="cbtn" id="mAddRun" style="width:100%;margin-top:6px">🔁 Adicionar jogatina (NG+/rejogar)</button>
     </div>
     <label for="fGenres">Gêneros (1º = principal, separados por vírgula)</label>
     <input id="fGenres" type="text" placeholder="Ex.: Action RPG, Souls-like" autocomplete="off" />
@@ -732,15 +734,29 @@ function openModal(g){
   $("#fNome").value = g?.nome || "";
   $("#fHoras").value = g?.horas ?? "";
   $("#fEnc").value = g?.enc || "#";
-  $("#fW").value = g?.w ?? 1;
   $("#fV").value = (g && ORD.includes(g.v)) ? g.v : "N/A";
   $("#fGenres").value = g?.genres || "";
   $("#fMotivo").value = g?.motivo || "";
   $("#fObs").value = g?.obs || "";
   const iv = (x)=> (x==null||x==="N/A") ? "" : x;
   $("#fH").value = iv(g?.h); $("#fG").value = iv(g?.g); $("#fD").value = iv(g?.d); $("#fFF").value = iv(g?.ff);
+  // jogatinas: só ao editar um jogo existente
+  const multi = g && nRuns(g)>1;
+  $("#fHorasLbl").textContent = multi ? "Horas (1ª jogatina)" : "Horas";
+  if (g){ $("#mRunsWrap").style.display=""; renderMRuns(g); } else { $("#mRunsWrap").style.display="none"; }
   $("#modal").classList.remove("hidden");
   setTimeout(()=>$("#fNome").focus(), 60);
+}
+function renderMRuns(g){
+  const rs = allRuns(g);
+  $("#mRuns").innerHTML = rs.length>1 ? rs.map((r,i)=>`
+    <div class="runrow">
+      <span class="rlbl">${ORD_LABEL[i]||(i+1)+"ª"}</span>
+      <span class="rst">${statusTxt(r.enc)}</span>
+      <span class="rhr num">${r.horas}h</span>
+      ${r.v&&r.v!=="N/A"?`<span class="rv" style="color:${VC[r.v]?VC[r.v][0]:"var(--muted)"}">${VC[r.v]?VC[r.v][2]:""} ${esc(r.v)}</span>`:"<span class='rv'></span>"}
+    </div>`).join("") + `<p class="lead" style="margin:6px 2px 0;font-size:.66rem">Editar/excluir cada jogatina: no card do jogo (aba Jogos).</p>`
+    : `<p class="lead" style="margin:2px">Só a 1ª jogatina (os campos acima). Toque abaixo para separar uma 2ª com horas próprias.</p>`;
 }
 function closeModal(){ $("#modal").classList.add("hidden"); editId = null; }
 $("#mCancel").addEventListener("click", closeModal);
@@ -750,19 +766,35 @@ $("#mSave").addEventListener("click", ()=>{
   if (!nome){ $("#fNome").focus(); return; }
   const numOr = (id, def)=>{ const v = $(id).value; return v==="" ? def : Number(v); };
   const reg = {
-    nome, horas: numOr("#fHoras", 0), enc: $("#fEnc").value, w: numOr("#fW", 1),
+    nome, horas: numOr("#fHoras", 0), enc: $("#fEnc").value,
     motivo: $("#fMotivo").value.trim(), genres: $("#fGenres").value.trim(),
     h: numOr("#fH", null), g: numOr("#fG", null), d: numOr("#fD", null), ff: numOr("#fFF", null),
     v: $("#fV").value, obs: $("#fObs").value.trim()
   };
   if (editId != null){
     const i = J.findIndex(x=>x.id===editId);
-    if (i>=0) J[i] = Object.assign({}, J[i], reg);
+    if (i>=0) J[i] = Object.assign({}, J[i], reg);   // preserva w e runs existentes
   } else {
     reg.id = J.reduce((m,x)=>Math.max(m, x.id||0), 0) + 1;
+    reg.w = 1;
     J.push(reg);
   }
   closeModal(); saveJogos(); render();
+});
+// adicionar jogatina de dentro do Editar: salva os campos base e abre o modal de jogatina
+$("#mAddRun").addEventListener("click", ()=>{
+  const nome = $("#fNome").value.trim();
+  if (!nome){ $("#fNome").focus(); return; }
+  const numOr = (id, def)=>{ const v = $(id).value; return v==="" ? def : Number(v); };
+  const reg = { nome, horas: numOr("#fHoras",0), enc: $("#fEnc").value,
+    motivo: $("#fMotivo").value.trim(), genres: $("#fGenres").value.trim(),
+    h: numOr("#fH",null), g: numOr("#fG",null), d: numOr("#fD",null), ff: numOr("#fFF",null),
+    v: $("#fV").value, obs: $("#fObs").value.trim() };
+  let g;
+  if (editId != null){ const i=J.findIndex(x=>x.id===editId); if(i>=0){ J[i]=Object.assign({},J[i],reg); g=J[i]; } }
+  else { reg.id=J.reduce((m,x)=>Math.max(m,x.id||0),0)+1; reg.w=1; J.push(reg); g=reg; }
+  closeModal(); saveJogos();
+  if (g) openRun(g, null);
 });
 
 /* ---------- modal do plano ---------- */
