@@ -224,6 +224,8 @@ details.sec>summary:active{background:var(--surface2)}
   padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
 .mbox h2{margin:0 0 4px;font-size:1rem;text-transform:none;letter-spacing:0;color:var(--ink)}
 .mbox label{display:block;font-size:.68rem;color:var(--muted);font-weight:800;margin:12px 0 4px;letter-spacing:.05em;text-transform:uppercase}
+.mbox label.checkline{display:flex;align-items:center;gap:9px;font-size:.82rem;color:var(--ink);text-transform:none;letter-spacing:0;margin:13px 0 2px;cursor:pointer;line-height:1.3}
+.mbox label.checkline input{width:auto;margin:0;flex:0 0 auto;width:18px;height:18px}
 .mbox input,.mbox select,.mbox textarea{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:12px;
   background:var(--bg);color:var(--ink);font:inherit;font-size:.95rem}
 .mbox textarea{min-height:64px;resize:vertical}
@@ -278,6 +280,7 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
     <select id="fV"><option value="N/A">— ainda sem veredicto —</option>
       <option>Masterpiece</option><option>Muito Bom</option><option>Bom</option>
       <option>Mediano</option><option>Ruim</option><option>Muito Ruim</option></select>
+    <label class="checkline" for="fGratis"><input type="checkbox" id="fGratis" /> 🎁 Veio grátis (PSN Plus/incluído) — sem custo/hora</label>
     <div id="mRunsWrap" style="display:none">
       <label>Outras jogatinas — só as horas (W1 = campo acima)</label>
       <div id="mRuns"></div>
@@ -463,7 +466,8 @@ function runHoras(g){ return [g.horas||0, ...((g.runs||[]).map(r=>(r&&r.horas)||
 function nRuns(g){ return 1 + ((g.runs||[]).length); }
 function totalHoras(g){ return runHoras(g).reduce((s,h)=>s+h,0); }
 function runsResumo(g){ return runHoras(g).map((h,i)=>`W${i+1} ${h}h`).join(" · "); }
-function custoHora(g){ const h=totalHoras(g); return h>0 ? (CUSTO/h) : null; }
+function custoHora(g){ if (g.gratis) return null; const h=totalHoras(g); return h>0 ? (CUSTO/h) : null; }
+function fmtCusto(g){ return g.gratis ? "🎁 grátis" : fmtCH(custoHora(g)); }
 function horasOcultas(g){ return /FINAL FANTASY XIV/i.test(g.nome||""); }
 function fmtCH(c){ return c==null?"—":("R$ "+c.toFixed(2).replace(".",",")+"/h"); }
 
@@ -480,13 +484,14 @@ function gameCard(g){
       <div class="gmeta">
         ${horasOcultas(g)?"":`<span class="hrs num">⏱ ${th}h</span>`}
         <span>${statusTxt(g.enc)}</span>
+        ${horasOcultas(g)?"":`<span class="num">${fmtCusto(g)}</span>`}
         <span>${esc((g.genres||"").split(",")[0].trim())}</span>
         ${multi&&!horasOcultas(g)?`<span class="num">🔁 ${runsResumo(g)}</span>`:""}
       </div>
     </summary>
     <div class="gbody">
       <div class="row">
-        ${horasOcultas(g)?"":`<span class="stat"><b class="num">${fmtCH(ch)}</b>custo/hora</span>
+        ${horasOcultas(g)?"":`<span class="stat"><b class="num">${fmtCusto(g)}</b>custo/hora</span>
         <span class="stat"><b class="num">${th}h</b>tempo total</span>`}
         <span class="stat"><b>${esc(g.genres||"—")}</b>gêneros</span>
       </div>
@@ -544,15 +549,16 @@ function viewJogos(){
   <div class="frow">
     ${ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)}</button>`).join("")}
   </div>
+  <div class="flabel">Ordenar</div>
+  <div class="frow">
+    <button type="button" class="fchip ${ordem==="horas"?"on":""}" data-ordem="horas">⏱ Mais horas</button>
+    <button type="button" class="fchip ${ordem==="veredicto"?"on":""}" data-ordem="veredicto">🏆 Veredicto</button>
+    <button type="button" class="fchip ${ordem==="custo"?"on":""}" data-ordem="custo">💰 Custo/h</button>
+    <button type="button" class="fchip ${ordem==="nome"?"on":""}" data-ordem="nome">🔤 A–Z</button>
+  </div>
   <div class="toolrow">
-    <select id="ordem" aria-label="Ordenar">
-      <option value="horas" ${ordem==="horas"?"selected":""}>⏱ Mais horas</option>
-      <option value="veredicto" ${ordem==="veredicto"?"selected":""}>🏆 Melhor veredicto</option>
-      <option value="custo" ${ordem==="custo"?"selected":""}>💰 Melhor custo/hora</option>
-      <option value="nome" ${ordem==="nome"?"selected":""}>🔤 Nome (A–Z)</option>
-    </select>
     <span class="count num">${lst.length} jogo(s)</span>
-    ${(fStatus.size+fVer.size)?`<button type="button" class="fchip clear" data-unall="1">limpar</button>`:""}
+    ${(fStatus.size+fVer.size)?`<button type="button" class="fchip clear" data-unall="1">limpar filtros</button>`:""}
   </div>
   ${lst.map(gameCard).join("") || '<p class="lead">Nenhum jogo com esse filtro.</p>'}`;
 }
@@ -599,8 +605,9 @@ function viewStats(){
   const chRow = (g,i)=>`<div class="rowline"><span class="pos num">${i+1}</span>
       <span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
       <span class="nm">${esc(g.nome)}</span><span class="hv num">${fmtCH(custoHora(g))}</span></div>`;
-  const melhores = jogaveis.slice().sort((a,b)=>totalHoras(b)-totalHoras(a)).slice(0,5).map(chRow).join("");
-  const piores = jogaveis.slice().sort((a,b)=>totalHoras(a)-totalHoras(b)).slice(0,5).map(chRow).join("");
+  const pagos = jogaveis.filter(g=>!g.gratis);  // custo/hora só faz sentido pros que custaram
+  const melhores = pagos.slice().sort((a,b)=>totalHoras(b)-totalHoras(a)).slice(0,5).map(chRow).join("");
+  const piores = pagos.slice().sort((a,b)=>totalHoras(a)-totalHoras(b)).slice(0,5).map(chRow).join("");
   const overview = `<div class="strip" style="margin-bottom:10px">
     <div class="cell"><div class="v num">${Math.round(totalH).toLocaleString("pt-BR")}h</div><div class="k">horas totais</div></div>
     <div class="cell"><div class="v num">${Math.round(mediaH)}h</div><div class="k">média/jogo</div></div>
@@ -691,7 +698,6 @@ function render(){
   const b = $("#busca"); if (b){ b.addEventListener("input", e=>{ busca=e.target.value;
     const pos = b.selectionStart; render(); const nb=$("#busca"); if(nb){ nb.focus(); nb.setSelectionRange(pos,pos); }
   }); }
-  const o = $("#ordem"); if (o) o.addEventListener("change", e=>{ ordem=e.target.value; render(); });
   document.querySelectorAll("details.sec").forEach(d=>d.addEventListener("toggle", ()=>{
     d.open ? secOpen.add(d.dataset.sec) : secOpen.delete(d.dataset.sec);
   }));
@@ -706,6 +712,7 @@ function openModal(g){
   $("#fHoras").value = g?.horas ?? "";
   $("#fEnc").value = g?.enc || "#";
   $("#fV").value = (g && ORD.includes(g.v)) ? g.v : "N/A";
+  $("#fGratis").checked = !!g?.gratis;
   $("#fGenres").value = g?.genres || "";
   $("#fMotivo").value = g?.motivo || "";
   const iv = (x)=> (x==null||x==="N/A") ? "" : x;
@@ -743,7 +750,7 @@ $("#mSave").addEventListener("click", ()=>{
     nome, horas: numOr("#fHoras", 0), enc: $("#fEnc").value,
     motivo: $("#fMotivo").value.trim(), genres: $("#fGenres").value.trim(),
     h: numOr("#fH", null), g: numOr("#fG", null), d: numOr("#fD", null), ff: numOr("#fFF", null),
-    v: $("#fV").value, runs
+    v: $("#fV").value, gratis: $("#fGratis").checked, runs
   };
   if (editId != null){
     const i = J.findIndex(x=>x.id===editId);
@@ -829,6 +836,8 @@ document.addEventListener("click", e=>{
   const tv = e.target.closest("[data-tver]");
   if (tv){ const v=tv.dataset.tver; fVer.has(v)?fVer.delete(v):fVer.add(v); render(); return; }
   if (e.target.closest("[data-unall]")){ fStatus.clear(); fVer.clear(); render(); return; }
+  const od = e.target.closest("[data-ordem]");
+  if (od){ ordem = od.dataset.ordem; render(); return; }
   if (e.target.closest("#btnAdd")){ openModal(null); return; }
   const sv = e.target.closest("[data-statver]");
   if (sv){ statVer = sv.dataset.statver; render(); return; }
