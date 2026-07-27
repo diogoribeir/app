@@ -799,6 +799,7 @@ window.JOGOS = [
  {
   "id": 54,
   "nome": "Star Wars Outlaws",
+  "gratis": true,
   "horas": 17,
   "enc": "N",
   "w": 1,
@@ -994,6 +995,7 @@ window.JOGOS = [
  {
   "id": 67,
   "nome": "The Order: 1886",
+  "gratis": true,
   "horas": 9,
   "enc": "S",
   "w": 1,
@@ -1054,6 +1056,7 @@ window.JOGOS = [
  {
   "id": 72,
   "nome": "Wuchang: Fallen Feathers",
+  "gratis": true,
   "horas": 0.5,
   "enc": "N",
   "w": 1,
