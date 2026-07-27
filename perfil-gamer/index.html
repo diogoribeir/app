@@ -573,9 +573,9 @@ function viewStats(){
       <span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
       <span class="nm">${esc(g.nome)}</span><span class="hv num">${totalHoras(g)}h</span></div>`).join("")
     || '<p class="lead" style="margin:6px 2px">Nenhum jogo com esse veredicto.</p>';
-  const topChips = `<div class="tchips" style="margin-bottom:11px">
-    <button type="button" class="tchip ${statVer===""?"on":""}" data-statver="">Todos</button>
-    ${ORD.slice().reverse().map(v=>`<button type="button" class="tchip ${statVer===v?"on":""}" style="--vc:${VC[v][0]};--vs:${VC[v][1]}" data-statver="${esc(v)}">${VC[v][2]} ${esc(v)}</button>`).join("")}
+  const topChips = `<div class="frow" style="margin-bottom:12px">
+    <button type="button" class="fchip ${statVer===""?"on":""}" data-statver="">Todos</button>
+    ${ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${statVer===v?"on":""}" style="--vc:${VC[v][0]}" data-statver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)}</button>`).join("")}
   </div>`;
   const gen = {};
   J.forEach(g=>{ const k=(g.genres||"?").split(",")[0].trim(); (gen[k]=gen[k]||[]).push(g); });
