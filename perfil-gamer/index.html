@@ -211,6 +211,11 @@ details.sec>summary:active{background:var(--surface2)}
 .runrow .rv{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
 .runrow .racts{flex:0 0 auto;display:flex;gap:5px;margin-left:auto}
 .runrow .racts .pbtn{width:26px;height:26px;font-size:.72rem}
+.runrow .runh{flex:1;min-width:0;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;
+  background:var(--bg);color:var(--ink);font:inherit;font-size:.9rem;font-weight:700}
+.runrow .runh:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
+#mRuns{display:flex;flex-direction:column;gap:7px;margin-top:6px}
+#mRuns .runrow{border:1px solid var(--line);border-radius:11px;padding:7px 9px}
 
 /* ---------- modal ---------- */
 .modal{position:fixed;inset:0;background:rgba(4,6,11,.65);display:flex;align-items:flex-end;justify-content:center;z-index:60}
@@ -274,9 +279,9 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
       <option>Masterpiece</option><option>Muito Bom</option><option>Bom</option>
       <option>Mediano</option><option>Ruim</option><option>Muito Ruim</option></select>
     <div id="mRunsWrap" style="display:none">
-      <label>Jogatinas (cada uma com horas próprias)</label>
+      <label>Outras jogatinas — só as horas (W1 = campo acima)</label>
       <div id="mRuns"></div>
-      <button type="button" class="cbtn" id="mAddRun" style="width:100%;margin-top:6px">🔁 Adicionar jogatina (NG+/rejogar)</button>
+      <button type="button" class="cbtn" id="mAddRun" style="width:100%;margin-top:8px">➕ Adicionar jogatina (NG+/rejogar)</button>
     </div>
     <label for="fGenres">Gêneros (1º = principal, separados por vírgula)</label>
     <input id="fGenres" type="text" placeholder="Ex.: Action RPG, Souls-like" autocomplete="off" />
@@ -326,18 +331,6 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
   </div>
 </div>
 
-<div id="rmodal" class="modal hidden" role="dialog" aria-modal="true">
-  <div class="mbox">
-    <h2 id="rTitle">Nova jogatina</h2>
-    <p class="lead" id="rSub" style="margin:4px 2px 8px"></p>
-    <label for="rHoras">Horas desta jogatina</label>
-    <input id="rHoras" type="number" min="0" step="0.5" />
-    <div class="mactions">
-      <button type="button" class="btn btn-ghost" id="rCancel">Cancelar</button>
-      <button type="button" class="btn btn-save" id="rSave">Salvar</button>
-    </div>
-  </div>
-</div>
 
 <nav class="tabbar" id="tabbar" aria-label="Abas"></nav>
 <script src="dados.js"></script>
@@ -629,8 +622,14 @@ function viewStats(){
 /* ---------- aba Plano ---------- */
 function viewPlano(){
   const disp = horasDisponiveis();
-  // jogo do plano ligado à biblioteca (p/ descontar horas já jogadas do jogo atual)
-  const linked = p => p.iniciado ? (J.find(x=>x.id===p.jid) || J.find(x=>(x.nome||"").toLowerCase()===p.jogo.toLowerCase())) : null;
+  // jogo do plano ligado à biblioteca: entre os de nome igual/parecido (+ o do jid), pega o com MAIS horas (o real, não uma duplicata)
+  const linked = p => {
+    if (!p.iniciado) return null;
+    const key = (p.jogo||"").trim().toLowerCase();
+    const cands = J.filter(x=>{ const n=(x.nome||"").trim().toLowerCase(); return n===key || (key.length>=4 && (n.includes(key)||key.includes(n))); });
+    if (p.jid!=null){ const byId=J.find(x=>x.id===p.jid); if (byId && !cands.includes(byId)) cands.push(byId); }
+    return cands.length ? cands.sort((a,b)=>totalHoras(b)-totalHoras(a))[0] : null;
+  };
   // horas já jogadas na jogatina atual = a última jogatina (a em andamento)
   const jogadasAtual = g => { const h=runHoras(g); return h[h.length-1]||0; };
   // horas que ainda faltam pra cada jogo: estimativa menos o que já foi jogado (0 se zerou/dropou)
@@ -713,19 +712,22 @@ function openModal(g){
   // jogatinas: só ao editar um jogo existente
   const multi = g && nRuns(g)>1;
   $("#fHorasLbl").textContent = multi ? "Horas (1ª jogatina)" : "Horas";
-  if (g){ $("#mRunsWrap").style.display=""; renderMRuns(g); } else { $("#mRunsWrap").style.display="none"; }
+  if (g){ $("#mRunsWrap").style.display=""; renderMRuns(g); } else { $("#mRunsWrap").style.display="none"; $("#mRuns").innerHTML=""; }
   $("#modal").classList.remove("hidden");
   setTimeout(()=>$("#fNome").focus(), 60);
 }
+function runRowHtml(wn, val){
+  return `<div class="runrow">
+    <span class="rlbl">W${wn}</span>
+    <input class="runh" type="number" min="0" step="0.5" inputmode="decimal" value="${val}" aria-label="Horas W${wn}" />
+    <span style="color:var(--muted);font-size:.72rem">h</span>
+    <button type="button" class="pbtn del" data-rundelrow title="Remover jogatina">✕</button>
+  </div>`;
+}
+function renumberRuns(){ [...document.querySelectorAll("#mRuns .runrow")].forEach((row,i)=>{ row.querySelector(".rlbl").textContent = "W"+(i+2); }); }
 function renderMRuns(g){
-  const h = runHoras(g);
-  $("#mRuns").innerHTML = h.length>1 ? h.map((hr,i)=>`
-    <div class="runrow">
-      <span class="rlbl">W${i+1}</span>
-      <span class="rhr num" style="margin-left:auto">${hr}h</span>
-      ${i>0?`<span class="racts"><button type="button" class="pbtn" data-runedit="${g.id}:${i}">✏️</button><button type="button" class="pbtn del" data-rundel="${g.id}:${i}">🗑</button></span>`:""}
-    </div>`).join("")
-    : `<p class="lead" style="margin:2px">Só a 1ª jogatina (as horas acima). Toque abaixo para somar uma 2ª com horas próprias.</p>`;
+  const ex = (g && g.runs) || [];
+  $("#mRuns").innerHTML = ex.map((r,i)=>runRowHtml(i+2, r.horas ?? 0)).join("");
 }
 function closeModal(){ $("#modal").classList.add("hidden"); editId = null; }
 $("#mCancel").addEventListener("click", closeModal);
@@ -734,15 +736,17 @@ $("#mSave").addEventListener("click", ()=>{
   const nome = $("#fNome").value.trim();
   if (!nome){ $("#fNome").focus(); return; }
   const numOr = (id, def)=>{ const v = $(id).value; return v==="" ? def : Number(v); };
+  // jogatinas extras (W2+), lidas inline
+  const runs = [...document.querySelectorAll("#mRuns .runh")].map(inp=>({ horas: Number(inp.value)||0 }));
   const reg = {
     nome, horas: numOr("#fHoras", 0), enc: $("#fEnc").value,
     motivo: $("#fMotivo").value.trim(), genres: $("#fGenres").value.trim(),
     h: numOr("#fH", null), g: numOr("#fG", null), d: numOr("#fD", null), ff: numOr("#fFF", null),
-    v: $("#fV").value
+    v: $("#fV").value, runs
   };
   if (editId != null){
     const i = J.findIndex(x=>x.id===editId);
-    if (i>=0) J[i] = Object.assign({}, J[i], reg);   // preserva w e runs existentes
+    if (i>=0) J[i] = Object.assign({}, J[i], reg);   // preserva w
   } else {
     reg.id = J.reduce((m,x)=>Math.max(m, x.id||0), 0) + 1;
     reg.w = 1;
@@ -750,19 +754,12 @@ $("#mSave").addEventListener("click", ()=>{
   }
   closeModal(); saveJogos(); render();
 });
-// adicionar jogatina de dentro do Editar: salva os campos base e abre o modal de jogatina
+// adicionar jogatina: cria uma linha de horas inline (sem abrir outra tela)
 $("#mAddRun").addEventListener("click", ()=>{
-  const nome = $("#fNome").value.trim();
-  if (!nome){ $("#fNome").focus(); return; }
-  const numOr = (id, def)=>{ const v = $(id).value; return v==="" ? def : Number(v); };
-  const reg = { nome, horas: numOr("#fHoras",0), enc: $("#fEnc").value,
-    motivo: $("#fMotivo").value.trim(), genres: $("#fGenres").value.trim(),
-    h: numOr("#fH",null), g: numOr("#fG",null), d: numOr("#fD",null), ff: numOr("#fFF",null),
-    v: $("#fV").value };
-  let g;
-  if (editId != null){ const i=J.findIndex(x=>x.id===editId); if(i>=0){ J[i]=Object.assign({},J[i],reg); g=J[i]; } }
-  else { reg.id=J.reduce((m,x)=>Math.max(m,x.id||0),0)+1; reg.w=1; J.push(reg); g=reg; }
-  if (g){ editId = g.id; saveJogos(); openRun(g, null); }   // mantém o Editar aberto atrás; rSave atualiza a lista
+  const wn = document.querySelectorAll("#mRuns .runrow").length + 2;
+  $("#mRuns").insertAdjacentHTML("beforeend", runRowHtml(wn, ""));
+  const inputs = document.querySelectorAll("#mRuns .runh");
+  inputs[inputs.length-1].focus();
 });
 
 /* ---------- modal do plano ---------- */
@@ -789,31 +786,6 @@ $("#pSave").addEventListener("click", ()=>{
                 iniciado: !!prev.iniciado, jid: prev.jid };
   if (pEditIdx!=null && P[pEditIdx]) P[pEditIdx] = reg; else P.push(reg);
   closePlano(); savePlano(); render();
-});
-
-/* ---------- modal de jogatina (playthrough) ---------- */
-let runG = null, runIdx = null;   // runIdx: índice de exibição (>=1) ou null p/ nova
-function openRun(g, idx){
-  runG = g; runIdx = idx;
-  const r = (idx!=null) ? (g.runs||[])[idx-1] : null;
-  $("#rTitle").textContent = (idx!=null) ? `Editar W${idx+1} — horas` : "Nova jogatina (NG+/rejogar)";
-  $("#rSub").textContent = g.nome;
-  $("#rHoras").value = r ? (r.horas ?? "") : "";
-  $("#rmodal").classList.remove("hidden");
-  setTimeout(()=>$("#rHoras").focus(), 60);
-}
-function closeRun(){ $("#rmodal").classList.add("hidden"); runG = null; runIdx = null; }
-$("#rCancel").addEventListener("click", closeRun);
-$("#rmodal").addEventListener("click", e=>{ if (e.target === $("#rmodal")) closeRun(); });
-$("#rSave").addEventListener("click", ()=>{
-  if (!runG) return;
-  const numOr = (id,def)=>{ const v=$(id).value; return v===""?def:Number(v); };
-  const reg = { horas:numOr("#rHoras",0) };
-  runG.runs = runG.runs || [];
-  if (runIdx!=null) runG.runs[runIdx-1] = reg; else runG.runs.push(reg);
-  const wasG = runG;
-  closeRun(); saveJogos(); render();
-  if (editId!=null && wasG && wasG.id===editId) renderMRuns(wasG);  // Editar aberto: atualiza lista
 });
 
 /* ---------- backup export / import ---------- */
@@ -877,15 +849,11 @@ document.addEventListener("click", e=>{
                  w:1, v:"N/A", genres:"", motivo:"" }; J.push(g); }
     p.iniciado = true; p.jid = g.id;
     saveJogos(); savePlano(); tab="jogos"; render(); window.scrollTo({top:0}); return; }
-  // ---- jogatinas (playthroughs) ----
+  // ---- jogatinas (playthroughs): "nova jogatina" do card abre o Editar (jogatinas inline lá) ----
   const nr = e.target.closest("[data-novarun]");
-  if (nr){ const g=J.find(x=>String(x.id)===nr.dataset.novarun); if (g) openRun(g, null); return; }
-  const re = e.target.closest("[data-runedit]");
-  if (re){ const [gid,idx]=re.dataset.runedit.split(":"); const g=J.find(x=>String(x.id)===gid); if (g) openRun(g, Number(idx)); return; }
-  const rd = e.target.closest("[data-rundel]");
-  if (rd){ const [gid,idx]=rd.dataset.rundel.split(":"); const g=J.find(x=>String(x.id)===gid);
-    if (g && g.runs){ g.runs.splice(Number(idx)-1,1); if(!g.runs.length) delete g.runs; saveJogos(); render();
-      if (editId!=null && String(editId)===gid) renderMRuns(g); } return; }
+  if (nr){ const g=J.find(x=>String(x.id)===nr.dataset.novarun); if (g){ openModal(g); setTimeout(()=>$("#mAddRun")&&$("#mAddRun").click(),80); } return; }
+  const dr = e.target.closest("[data-rundelrow]");
+  if (dr){ dr.closest(".runrow").remove(); renumberRuns(); return; }
   const hh = e.target.closest("[data-editar-hero]");
   if (hh){ const g = J.find(x=>String(x.id)===hh.dataset.editarHero); if (g) openModal(g); return; }
   const ed = e.target.closest("[data-editar]");
