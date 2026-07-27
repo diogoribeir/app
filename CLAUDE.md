@@ -98,11 +98,11 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   custo/hora, por gênero, motivos de drop) · 🗓 Plano 2026.
 - **PWA:** instalável (manifest + `sw.js` network-first) e abre offline; ícones `icon-192/512.png`
   gerados por canvas. Menu **⋯** no cabeçalho = backup exportar/importar (`.json` com jogos + plano).
-- **Jogatinas (playthroughs):** cada jogo pode ter mais de uma jogatina (rejogar/NG+) — a 1ª são os
-  campos base do jogo e as demais ficam em `g.runs[]` (`{horas,enc,v,obs,motivo}`). Botão "🔁 Nova
-  jogatina" no card; cada run tem horas/status/veredicto próprios. Horas totais, custo/hora e
-  estatísticas somam todas as jogatinas; o hero "jogando agora" e o filtro de status usam o *status
-  efetivo* (jogando se qualquer run estiver em `#`). Helpers: `allRuns/totalHoras/effEnc/playingIdx`.
+- **Jogatinas (playthroughs):** cada jogo pode ter mais de uma jogatina (rejogar/NG+) — guarda-se **só as
+  horas** de cada uma: a 1ª é o campo `horas` base e as demais ficam em `g.runs[]` (`{horas}`). **Veredicto
+  e status são únicos por jogo** (não por jogatina). Botão "🔁 Nova jogatina" no card e no Editar (só pede
+  horas); o card mostra "🔁 W1 Xh · W2 Yh". Horas totais, custo/hora e estatísticas somam todas as
+  jogatinas. Helpers: `runHoras/totalHoras/runsResumo`. (Não há campo Observação.)
 - **Filosofia (respeitar):** veredicto categórico, NUNCA notas numéricas na interface;
   componentes H/G/D/FF discretos como "análise interna". Detalhes em `perfil-gamer-src/README.md`.
 - **EDITÁVEL no app** (igual aos outros): botão "➕ Registrar jogo" + Editar/Excluir em cada card.
