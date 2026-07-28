@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0F1220" />
+<title>Recall — Aprendizado por recall ativo</title>
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" href="./icon-192.png" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<style>
+  :root{
+    --bg:#F4F5FB; --panel:#FFFFFF; --panel2:#F7F8FE; --ink:#141726; --muted:#6A7080;
+    --line:#E4E7F2; --accent:#5B5BF0; --accent-ink:#FFFFFF; --accent-soft:#ECECFE;
+    --ok:#1F9D57; --ok-soft:#E4F6EC; --warn:#B9820B; --warn-soft:#FBF1DC; --bad:#D23B3B; --bad-soft:#FBE6E6;
+    --shadow:0 8px 30px rgba(20,23,38,.08); --shadow-sm:0 2px 10px rgba(20,23,38,.06);
+    --radius:18px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0B0D16; --panel:#141826; --panel2:#0F1220; --ink:#EAECF5; --muted:#9098AD;
+      --line:#242A3D; --accent:#7C7CFF; --accent-ink:#0B0D16; --accent-soft:#1C2038;
+      --ok:#42C77E; --ok-soft:#13291E; --warn:#E4B14E; --warn-soft:#2C2410; --bad:#F0605F; --bad-soft:#2C1717;
+      --shadow:0 10px 34px rgba(0,0,0,.45); --shadow-sm:0 2px 12px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0}
+  body{
+    background:var(--bg);color:var(--ink);min-height:100vh;
+    font-family:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:env(safe-area-inset-top) 14px calc(20px + env(safe-area-inset-bottom));
+  }
+  .wrap{max-width:640px;margin:0 auto}
+  a{color:var(--accent)}
+  button{font-family:inherit}
+
+  /* topo */
+  .top{display:flex;align-items:center;gap:10px;padding:16px 2px 12px}
+  .top .logo{font-size:1.5rem}
+  .top h1{font-size:1.15rem;font-weight:800;margin:0;letter-spacing:-.02em}
+  .top .sub{color:var(--muted);font-size:.72rem;margin-top:1px}
+  .top .spacer{flex:1}
+  .icon-btn{
+    border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    width:40px;height:40px;border-radius:12px;font-size:1.1rem;cursor:pointer;box-shadow:var(--shadow-sm);
+    display:grid;place-items:center;
+  }
+  .icon-btn:active{transform:scale(.95)}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 12px;box-shadow:var(--shadow-sm);text-align:center}
+  .stat .n{font-size:1.6rem;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .stat .l{color:var(--muted);font-size:.7rem;margin-top:6px;text-transform:uppercase;letter-spacing:.04em}
+  .stat.hot .n{color:var(--accent)}
+
+  /* botões principais */
+  .cta{
+    width:100%;border:none;border-radius:var(--radius);padding:17px 18px;font-size:1.02rem;font-weight:800;
+    cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;gap:10px;
+    background:var(--accent);color:var(--accent-ink);letter-spacing:-.01em;transition:transform .08s ease, filter .15s ease;
+  }
+  .cta:active{transform:translateY(1px) scale(.995)}
+  .cta[disabled]{opacity:.5;cursor:default;box-shadow:none}
+  .cta.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+  .cta.sm{padding:13px 16px;font-size:.92rem}
+  .row2{display:flex;gap:10px;margin-top:10px}
+  .row2 .cta{flex:1}
+
+  /* card genérico */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:16px}
+  .section-title{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin:22px 4px 10px}
+
+  /* lista de tópicos */
+  .tlist{display:flex;flex-direction:column;gap:10px}
+  .titem{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);
+    padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:transform .08s ease;
+  }
+  .titem:active{transform:scale(.99)}
+  .titem .body{flex:1;min-width:0}
+  .titem .t{font-weight:800;font-size:.98rem;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .titem .m{color:var(--muted);font-size:.76rem;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .pill{font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+  .pill.due{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+  .pill.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
+  .dot.due{background:var(--accent)}
+  .chev{color:var(--muted);font-size:1.2rem;flex:none}
+
+  .empty{text-align:center;color:var(--muted);padding:40px 16px;font-size:.9rem;line-height:1.5}
+  .empty .big{font-size:2.4rem;margin-bottom:8px}
+
+  /* formulário */
+  label.f{display:block;font-weight:700;font-size:.84rem;margin:14px 2px 6px}
+  label.f .opt{color:var(--muted);font-weight:500;font-size:.76rem}
+  input.t, textarea.t, select.t{
+    width:100%;border:1px solid var(--line);background:var(--panel2);color:var(--ink);
+    border-radius:14px;padding:13px 14px;font-size:1rem;font-family:inherit;resize:vertical;
+  }
+  input.t:focus, textarea.t:focus, select.t:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  textarea.t{min-height:140px;line-height:1.5}
+  textarea.big{min-height:200px}
+  .hint{color:var(--muted);font-size:.76rem;margin:6px 2px 0;line-height:1.45}
+
+  /* teste — tela em branco */
+  .blank-note{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:.76rem;margin:10px 2px 0;justify-content:center}
+  .prompt-box{
+    background:linear-gradient(160deg,var(--accent-soft),transparent);
+    border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:6px;
+  }
+  .prompt-kind{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:800}
+  .prompt-text{font-size:1.18rem;font-weight:800;line-height:1.35;margin-top:8px;letter-spacing:-.01em}
+  .progress{color:var(--muted);font-size:.76rem;text-align:center;margin-bottom:10px}
+
+  /* feedback */
+  .verdict{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius);margin-bottom:12px;border:1px solid transparent}
+  .verdict.travou{background:var(--bad-soft);color:var(--bad);border-color:color-mix(in srgb,var(--bad) 30%,transparent)}
+  .verdict.parcial{background:var(--warn-soft);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 30%,transparent)}
+  .verdict.mandou_bem{background:var(--ok-soft);color:var(--ok);border-color:color-mix(in srgb,var(--ok) 30%,transparent)}
+  .verdict .vi{font-size:1.6rem}
+  .verdict .vt{font-weight:800;font-size:1rem}
+  .verdict .vs{font-size:.78rem;opacity:.85;margin-top:1px}
+  .simscore{margin-left:auto;text-align:right}
+  .simscore .n{font-size:1.5rem;font-weight:800;line-height:1}
+  .simscore .l{font-size:.62rem;text-transform:uppercase;letter-spacing:.04em;opacity:.8}
+
+  .fb-group{margin-top:12px}
+  .fb-h{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.86rem;margin-bottom:6px}
+  .fb-h.ok{color:var(--ok)} .fb-h.warn{color:var(--warn)} .fb-h.bad{color:var(--bad)}
+  .fb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .fb-list li{font-size:.9rem;line-height:1.45;padding:9px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+  .probe{background:var(--accent-soft);border:1px solid transparent;border-radius:var(--radius);padding:14px 16px;margin-top:14px}
+  .probe .ql{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);font-weight:800}
+  .probe .qt{font-size:1rem;font-weight:700;line-height:1.4;margin-top:5px}
+
+  .reveal{margin-top:14px}
+  .reveal summary{cursor:pointer;font-weight:700;font-size:.86rem;color:var(--muted);padding:10px 0;list-style:none;display:flex;align-items:center;gap:8px}
+  .reveal summary::-webkit-details-marker{display:none}
+  .reveal[open] summary{color:var(--ink)}
+  .baseline-box{white-space:pre-wrap;font-size:.92rem;line-height:1.55;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:4px}
+
+  .grade-q{text-align:center;font-weight:700;font-size:.92rem;margin:16px 2px 10px}
+  .grades{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .grade{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:13px 6px;font-weight:800;font-size:.82rem;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .08s ease}
+  .grade:active{transform:scale(.97)}
+  .grade .e{font-size:1.3rem;display:block;margin-bottom:4px}
+  .grade[data-q="travou"].on{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+  .grade[data-q="parcial"].on{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+  .grade[data-q="mandou_bem"].on{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+  .grade .nx{font-size:.66rem;font-weight:600;color:var(--muted);display:block;margin-top:3px}
+
+  /* detalhe do tópico */
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:.88rem}
+  .kv:last-child{border-bottom:none}
+  .kv .k{color:var(--muted)}
+  .cardq{padding:11px 0;border-bottom:1px solid var(--line);font-size:.9rem;line-height:1.4;display:flex;gap:8px}
+  .cardq:last-child{border-bottom:none}
+  .cardq .qn{color:var(--accent);font-weight:800;flex:none}
+  .link-btn{background:none;border:none;color:var(--accent);font-weight:700;font-size:.86rem;cursor:pointer;padding:6px 0}
+  .danger{color:var(--bad)!important}
+
+  /* spinner */
+  .spin{width:18px;height:18px;border:2.5px solid color-mix(in srgb,var(--accent-ink) 40%,transparent);border-top-color:var(--accent-ink);border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
+  .spin.ink{border-color:color-mix(in srgb,var(--accent) 30%,transparent);border-top-color:var(--accent)}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .center{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--muted);padding:34px 10px;text-align:center;font-size:.9rem}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(8,10,18,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:0;backdrop-filter:blur(2px)}
+  .sheet{background:var(--panel);width:100%;max-width:640px;border-radius:22px 22px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:var(--shadow);max-height:88vh;overflow:auto}
+  .sheet h2{margin:2px 2px 4px;font-size:1.05rem}
+  .sheet .hint{margin-bottom:8px}
+  @media (min-width:680px){ .overlay{align-items:center} .sheet{border-radius:22px} }
+
+  /* animação de troca de view */
+  .view{animation:fade .22s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;font-size:.86rem;font-weight:600;box-shadow:var(--shadow);z-index:60;opacity:0;transition:opacity .2s}
+  .toast.on{opacity:1}
+  .backlink{background:none;border:none;color:var(--muted);font-weight:700;font-size:.9rem;cursor:pointer;padding:8px 2px;display:inline-flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Recall — app de aprendizado por recall ativo (Di & Tati)
+   Arquivo único. Sync: RTDB receita 1. IA: chave do usuário
+   (chamada direta no navegador) com fallback autoavaliação.
+   ============================================================ */
+
+/* ---------- Sincronização (Receita 1 — RTDB via REST) ---------- */
+const SYNC_URL = "https://apps-4b887-default-rtdb.firebaseio.com/planos/recall-dt2026";
+let syncStamp = 0;
+
+async function loadKey(key, fallback){
+  try{
+    const r = await fetch(`${SYNC_URL}/${key}.json`, { cache:"no-store" });
+    if(r.ok){ const v = await r.json();
+      if(v != null){ try{localStorage.setItem(key, v);}catch(e){} return JSON.parse(v); } }
+  }catch(e){}
+  try{ const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+  catch{ return fallback; }
+}
+async function saveKey(key, value){
+  const s = JSON.stringify(value);
+  try{ localStorage.setItem(key, s); }catch(e){}
+  try{
+    await fetch(`${SYNC_URL}/${key}.json`, { method:"PUT", body: JSON.stringify(s) });
+    syncStamp = Date.now();
+    fetch(`${SYNC_URL}/_at.json`, { method:"PUT", body: JSON.stringify(syncStamp) }).catch(()=>{});
+  }catch(e){}
+}
+fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" }).then(r=>r.json())
+  .then(v=>{ if(typeof v === "number") syncStamp = v; }).catch(()=>{});
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden) return;
+  fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" }).then(r=>r.json())
+    .then(v=>{ if(typeof v === "number" && v > syncStamp + 1500) location.reload(); })
+    .catch(()=>{});
+});
+
+/* ---------- utilidades ---------- */
+const $ = s => document.querySelector(s);
+const el = id => document.getElementById(id);
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+const DAY = 86400000;
+function now(){ return Date.now(); }
+function toastMsg(m){ const t = el('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('on'), 2200); }
+
+function dayKey(ts){ const d = new Date(ts); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; }
+function relDue(ts){
+  const diff = ts - now();
+  if(diff <= 0) return "vence agora";
+  const d = Math.ceil(diff/DAY);
+  if(d <= 1) return "amanhã";
+  return `em ${d} dias`;
+}
+function fmtDate(ts){ const d = new Date(ts); return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}); }
+
+/* ---------- estado ---------- */
+let DB = null;
+const DEFAULT_MODEL = "claude-sonnet-5";
+function blankDB(){ return { topics:[], settings:{ apiKey:"", model:DEFAULT_MODEL }, streak:{ count:0, last:"" } }; }
+
+let ui = { view:"dashboard", queue:[], qi:0, session:null };
+/* session guarda o estado do teste/feedback atual */
+
+async function persist(){ await saveKey("state", DB); }
+
+/* ---------- agendamento SM-2 simplificado (seção 13 da spec) ---------- */
+function applySchedule(obj, qualidade){
+  const baseInt = obj._baseInterval != null ? obj._baseInterval : (obj.interval || 1);
+  const baseStreak = obj._baseStreak != null ? obj._baseStreak : (obj.streak || 0);
+  const ease = obj.ease || 250;
+  let interval, streak;
+  if(qualidade === "travou"){ interval = 1; streak = 0; }
+  else if(qualidade === "parcial"){ interval = Math.max(1, Math.round(baseInt * 1.6)); streak = baseStreak + 1; }
+  else { interval = Math.round(baseInt * (ease/100)); streak = baseStreak + 1; }
+  obj.interval = Math.max(1, interval);
+  obj.streak = streak;
+  obj.ease = ease;
+  obj.next_review_at = now() + obj.interval * DAY;
+}
+
+/* streak diário de estudo */
+function bumpStreak(){
+  const today = dayKey(now());
+  const yest = dayKey(now() - DAY);
+  const s = DB.streak || (DB.streak = {count:0,last:""});
+  if(s.last === today) return;
+  if(s.last === yest) s.count = (s.count||0) + 1;
+  else s.count = 1;
+  s.last = today;
+}
+
+/* ---------- similaridade local (cosseno de bag-of-words) ---------- */
+const STOP = new Set("a o e de da do das dos que em um uma para por com no na nos nas se ao aos as os é ser são como mais mas ou seu sua seus suas isso este esta esse essa the of to and in is it".split(" "));
+function tokenize(t){
+  return String(t||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
+    .replace(/[^a-z0-9\s]/g," ").split(/\s+/).filter(w => w.length>2 && !STOP.has(w));
+}
+function vecOf(t){ const v={}; for(const w of tokenize(t)) v[w]=(v[w]||0)+1; return v; }
+function cosine(a,b){
+  const va=vecOf(a), vb=vecOf(b); let dot=0,na=0,nb=0;
+  for(const k in va){ na += va[k]*va[k]; if(vb[k]) dot += va[k]*vb[k]; }
+  for(const k in vb) nb += vb[k]*vb[k];
+  if(!na || !nb) return 0;
+  return dot/Math.sqrt(na*nb);
+}
+function localSim(baseline, resposta){ return Math.round(cosine(baseline, resposta) * 100); }
+
+/* ---------- IA (chave do usuário, chamada direta no navegador) ---------- */
+function hasAI(){ return !!(DB.settings && DB.settings.apiKey && DB.settings.apiKey.trim()); }
+function extractJSON(text){
+  if(!text) return null;
+  let t = text.trim().replace(/^```(?:json)?/i,"").replace(/```$/,"").trim();
+  const i = t.indexOf("{"), j = t.lastIndexOf("}");
+  if(i>=0 && j>i){ try{ return JSON.parse(t.slice(i,j+1)); }catch(e){} }
+  const a = t.indexOf("["), b = t.lastIndexOf("]");
+  if(a>=0 && b>a){ try{ return JSON.parse(t.slice(a,b+1)); }catch(e){} }
+  return null;
+}
+async function callClaude(system, user, maxTokens){
+  const key = DB.settings.apiKey.trim();
+  const model = (DB.settings.model || DEFAULT_MODEL).trim();
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{
+      "content-type":"application/json",
+      "x-api-key": key,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"
+    },
+    body: JSON.stringify({
+      model, max_tokens: maxTokens||1024,
+      system, messages:[{ role:"user", content:user }]
+    })
+  });
+  if(!r.ok){
+    let msg = `Erro ${r.status}`;
+    try{ const e = await r.json(); if(e && e.error && e.error.message) msg = e.error.message; }catch(_){}
+    throw new Error(msg);
+  }
+  const data = await r.json();
+  const text = (data.content||[]).map(b => b.text||"").join("");
+  return text;
+}
+
+const CORRETOR_SYS = `Você é um avaliador de aprendizado por recall ativo.
+Recebe: BASELINE (o que o usuário registrou ao estudar) e RECALL (o que ele lembrou hoje, de memória).
+Sua tarefa NÃO é dizer só "certo/errado". Compare os dois e produza:
+- acertos: pontos do baseline que ele resgatou corretamente
+- lacunas: pontos importantes que ele NÃO citou
+- erros: coisas que ele afirmou de forma incorreta ou confusa
+- pergunta: UMA pergunta curta que force ele a puxar da memória a maior lacuna (não entregue a resposta)
+- qualidade: 'travou' | 'parcial' | 'mandou_bem'
+Seja direto e honesto sobre as lacunas. O objetivo é ele treinar o que falhou, não se sentir bem. Responda em português.
+Responda APENAS com JSON: {"acertos":[],"lacunas":[],"erros":[],"pergunta":"","qualidade":""}`;
+
+const CARD_CORRETOR_SYS = `Você é um avaliador de aprendizado por recall ativo corrigindo a resposta a UMA pergunta.
+Recebe: PERGUNTA, GABARITO (o texto de estudo que contém a resposta) e RESPOSTA (o que o usuário respondeu de memória).
+Compare a resposta ao gabarito e produza:
+- acertos: o que ele acertou
+- lacunas: o que faltou na resposta
+- erros: o que ele afirmou de forma incorreta
+- pergunta: se ele travou, UMA dica curta que puxa a memória (NÃO entregue a resposta); senão uma pergunta que aprofunda
+- qualidade: 'travou' | 'parcial' | 'mandou_bem'
+Seja direto e honesto. Responda em português.
+Responda APENAS com JSON: {"acertos":[],"lacunas":[],"erros":[],"pergunta":"","qualidade":""}`;
+
+const GERAR_CARDS_SYS = `A partir do texto abaixo, gere de 4 a 6 perguntas para testar se a pessoa REALMENTE entendeu o tema.
+Regras:
+- Perguntas ABERTAS. Nunca múltipla escolha, nunca sim/não.
+- Priorize "por que" e "como" (explicação/relação), não só "o que é".
+- Nada de trivia ou detalhe decorativo; foque no que importa entender.
+- Cada pergunta deve ter resposta contida ou inferível no texto.
+Responda APENAS com JSON: {"perguntas": ["...", "..."]}`;
+
+async function corrigirRecall(baseline, resposta){
+  const user = `BASELINE:\n${baseline}\n\nRECALL:\n${resposta}`;
+  const text = await callClaude(CORRETOR_SYS, user, 1024);
+  return normalizeFeedback(extractJSON(text));
+}
+async function corrigirCard(pergunta, gabarito, resposta){
+  const user = `PERGUNTA:\n${pergunta}\n\nGABARITO:\n${gabarito}\n\nRESPOSTA:\n${resposta}`;
+  const text = await callClaude(CARD_CORRETOR_SYS, user, 1024);
+  return normalizeFeedback(extractJSON(text));
+}
+async function gerarCards(baseline){
+  const text = await callClaude(GERAR_CARDS_SYS, baseline, 1024);
+  const j = extractJSON(text);
+  let arr = Array.isArray(j) ? j : (j && j.perguntas) || [];
+  return arr.filter(x => typeof x === "string" && x.trim()).map(s => s.trim());
+}
+function normalizeFeedback(j){
+  if(!j) return null;
+  const arr = x => Array.isArray(x) ? x.filter(s=>typeof s==="string"&&s.trim()) : [];
+  let q = (j.qualidade||"").toLowerCase().replace(/\s+/g,"_");
+  if(!["travou","parcial","mandou_bem"].includes(q)) q = "parcial";
+  return { acertos:arr(j.acertos), lacunas:arr(j.lacunas), erros:arr(j.erros), pergunta:(j.pergunta||"").trim(), qualidade:q };
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function go(view){ ui.view = view; render(); window.scrollTo(0,0); }
+
+function dueTopics(){ return DB.topics.filter(t => (t.next_review_at||0) <= now()); }
+function dueCards(){
+  const out = [];
+  for(const t of DB.topics) for(const c of (t.cards||[])) if((c.next_review_at||0) <= now()) out.push({t,c});
+  return out;
+}
+function totalDue(){ return dueTopics().length + dueCards().length; }
+
+function render(){
+  const app = el('app');
+  let html = "";
+  if(ui.view === "dashboard") html = viewDashboard();
+  else if(ui.view === "novo") html = viewNovo();
+  else if(ui.view === "teste") html = viewTeste();
+  else if(ui.view === "feedback") html = viewFeedback();
+  else if(ui.view === "topico") html = viewTopico();
+  app.innerHTML = `<div class="view">${html}</div>`;
+  wire();
+}
+
+/* ---------- Dashboard ---------- */
+function topHTML(){
+  return `<div class="top">
+    <span class="logo">🧠</span>
+    <div>
+      <h1>Recall</h1>
+      <div class="sub">aprender testando a memória</div>
+    </div>
+    <span class="spacer"></span>
+    <button class="icon-btn" id="btnSettings" title="Ajustes">⚙️</button>
+  </div>`;
+}
+function viewDashboard(){
+  const due = totalDue();
+  const streak = (DB.streak && DB.streak.count) || 0;
+  const total = DB.topics.length;
+  let list;
+  if(!total){
+    list = `<div class="empty"><div class="big">🌱</div>Nenhum tópico ainda.<br>Crie o primeiro com o que você acabou de aprender.</div>`;
+  }else{
+    const sorted = [...DB.topics].sort((a,b)=>(a.next_review_at||0)-(b.next_review_at||0));
+    list = `<div class="section-title">Seus tópicos</div><div class="tlist">` + sorted.map(t=>{
+      const isDue = (t.next_review_at||0) <= now();
+      const nCards = (t.cards||[]).length;
+      const cardsDue = (t.cards||[]).filter(c=>(c.next_review_at||0)<=now()).length;
+      const meta = [];
+      if(isDue) meta.push(`<span class="pill due">revisar</span>`);
+      else meta.push(`<span class="pill">${esc(relDue(t.next_review_at||now()))}</span>`);
+      if(t.streak>0) meta.push(`<span>🔥 ${t.streak}</span>`);
+      if(nCards) meta.push(`<span>${cardsDue?`${cardsDue}/`:""}${nCards} card${nCards>1?"s":""}</span>`);
+      return `<div class="titem" data-topic="${esc(t.id)}">
+        <span class="dot ${isDue?'due':''}"></span>
+        <div class="body"><div class="t">${esc(t.titulo)}</div>
+        <div class="m">${meta.join(" ")}</div></div>
+        <span class="chev">›</span>
+      </div>`;
+    }).join("") + `</div>`;
+  }
+  return topHTML() + `
+    <div class="stats">
+      <div class="stat ${due?'hot':''}"><div class="n">${due}</div><div class="l">Para revisar</div></div>
+      <div class="stat"><div class="n">${streak}</div><div class="l">Streak 🔥</div></div>
+      <div class="stat"><div class="n">${total}</div><div class="l">Tópicos</div></div>
+    </div>
+    <button class="cta" id="btnRevisar" ${due?"":"disabled"}>
+      ${due ? `▶️ Revisar agora · ${due}` : "✓ Nada vence agora"}
+    </button>
+    <div class="row2">
+      <button class="cta ghost sm" id="btnNovo">＋ Novo tópico</button>
+    </div>
+    ${list}
+    <div style="height:20px"></div>`;
+}
+
+/* ---------- Novo tópico ---------- */
+function viewNovo(){
+  return `<button class="backlink" id="back">‹ voltar</button>
+    <div class="section-title" style="margin-top:6px">Novo tópico</div>
+    <div class="card">
+      <label class="f" for="nTitulo">Título</label>
+      <input class="t" id="nTitulo" placeholder="Ex.: Como o RAG funciona" autocomplete="off" />
+      <label class="f" for="nFonte">Fonte <span class="opt">(opcional)</span></label>
+      <input class="t" id="nFonte" placeholder="podcast, artigo, vídeo…" autocomplete="off" />
+      <label class="f" for="nBaseline">O que você entendeu</label>
+      <textarea class="t big" id="nBaseline" placeholder="Escreva com suas palavras tudo que entendeu do tema. Isto vira seu gabarito — daqui a 1 dia você vai tentar lembrar disso de cabeça."></textarea>
+      <div class="hint">Este texto é o <b>baseline</b>. Nas revisões ele fica escondido até você enviar sua resposta.</div>
+    </div>
+    ${hasAI() ? `<label style="display:flex;gap:10px;align-items:center;margin:14px 4px;font-size:.9rem;font-weight:600">
+      <input type="checkbox" id="nGerar" checked style="width:20px;height:20px" /> Gerar cards de pergunta com IA
+    </label>` : ""}
+    <button class="cta" id="salvarTopico" style="margin-top:14px">Salvar e agendar +1 dia</button>
+    <div style="height:20px"></div>`;
+}
+
+/* ---------- Teste (tela em branco) ---------- */
+function viewTeste(){
+  const s = ui.session;
+  const isCard = s.kind === "card";
+  const prog = ui.queue.length > 1 ? `<div class="progress">${ui.qi+1} de ${ui.queue.length} · a fila mistura temas</div>` : "";
+  return `${prog}
+    <div class="prompt-box">
+      <div class="prompt-kind">${isCard ? "❓ Pergunta" : "🧠 Recall livre"}</div>
+      <div class="prompt-text">${esc(isCard ? s.pergunta : s.titulo)}</div>
+    </div>
+    <div class="blank-note">🙈 baseline escondido — responda de memória</div>
+    <textarea class="t big" id="respostaTxt" style="margin-top:12px" placeholder="${isCard ? "Responda de cabeça, com suas palavras…" : "Despeje tudo que você lembra do tema, de cabeça. Não olhe nada."}"></textarea>
+    <button class="cta" id="enviarResposta" style="margin-top:12px">Enviar resposta ⏎</button>
+    <button class="backlink" id="pular" style="margin-top:4px">pular por agora</button>
+    <div style="height:20px"></div>`;
+}
+
+/* ---------- Feedback ---------- */
+function viewFeedback(){
+  const s = ui.session;
+  const fb = s.feedback;   // pode ser null (sem IA / falhou)
+  const q = s.qualidade;   // qualidade selecionada
+  const sim = s.similaridade;
+
+  let head = "";
+  if(fb){
+    const info = { travou:{i:"😵",t:"Travou",s:"você não puxou o essencial"}, parcial:{i:"🤔",t:"Parcial",s:"lembrou parte, faltou pedaço"}, mandou_bem:{i:"🎯",t:"Mandou bem",s:"resgatou o núcleo do tema"} }[q||"parcial"];
+    head = `<div class="verdict ${q||'parcial'}">
+      <span class="vi">${info.i}</span>
+      <div><div class="vt">${info.t}</div><div class="vs">${info.s}</div></div>
+      <div class="simscore"><div class="n">${sim}</div><div class="l">proximidade</div></div>
+    </div>`;
+  }else{
+    head = `<div class="verdict parcial" style="background:var(--panel2);color:var(--ink);border-color:var(--line)">
+      <span class="vi">📊</span>
+      <div><div class="vt">Compare com seu baseline</div><div class="vs">avalie você mesmo como foi</div></div>
+      <div class="simscore"><div class="n">${sim}</div><div class="l">proximidade</div></div>
+    </div>`;
+  }
+
+  let groups = "";
+  if(fb){
+    const grp = (cls, icon, title, items) => items.length ? `<div class="fb-group">
+      <div class="fb-h ${cls}">${icon} ${title}</div>
+      <ul class="fb-list">${items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>` : "";
+    groups = grp("ok","✅","Resgatou", fb.acertos) + grp("warn","⚠️","Faltou", fb.lacunas) + grp("bad","❌","Errou / confuso", fb.erros);
+    if(fb.pergunta) groups += `<div class="probe"><div class="ql">Puxe da memória</div><div class="qt">${esc(fb.pergunta)}</div></div>`;
+  }
+
+  const reveal = `<details class="reveal"><summary>👁 Ver seu baseline (agora pode)</summary>
+    <div class="baseline-box">${esc(s.baselineFull)}</div></details>`;
+
+  const grades = `
+    <div class="grade-q">${fb ? "A IA sugeriu — confirme ou ajuste:" : "Como foi?"}</div>
+    <div class="grades">
+      <div class="grade ${q==='travou'?'on':''}" data-q="travou"><span class="e">😵</span>Travou<span class="nx">+1 dia</span></div>
+      <div class="grade ${q==='parcial'?'on':''}" data-q="parcial"><span class="e">🤔</span>Parcial<span class="nx">${nextIntPreview('parcial')}</span></div>
+      <div class="grade ${q==='mandou_bem'?'on':''}" data-q="mandou_bem"><span class="e">🎯</span>Mandei bem<span class="nx">${nextIntPreview('mandou_bem')}</span></div>
+    </div>`;
+
+  const last = ui.qi >= ui.queue.length - 1;
+  return `${head}${groups}${reveal}${grades}
+    <button class="cta" id="proximo" style="margin-top:16px" ${q?"":"disabled"}>${last ? "Concluir revisão ✓" : "Próximo ›"}</button>
+    <div style="height:20px"></div>`;
+}
+function nextIntPreview(qual){
+  const obj = ui.session.obj;
+  const base = obj._baseInterval != null ? obj._baseInterval : (obj.interval||1);
+  const ease = obj.ease||250;
+  let n = qual==="parcial" ? Math.max(1,Math.round(base*1.6)) : Math.round(base*(ease/100));
+  n = Math.max(1,n);
+  return `+${n} dia${n>1?"s":""}`;
+}
+
+/* ---------- Detalhe do tópico ---------- */
+function viewTopico(){
+  const t = DB.topics.find(x=>x.id===ui.session);
+  if(!t){ go("dashboard"); return ""; }
+  const cards = t.cards||[];
+  const reviews = t.reviews||[];
+  const cardsHTML = cards.length
+    ? cards.map((c,i)=>`<div class="cardq"><span class="qn">${i+1}</span><span>${esc(c.pergunta)}</span></div>`).join("")
+    : `<div class="hint" style="margin:0">Nenhum card ainda.</div>`;
+  return `<button class="backlink" id="back">‹ voltar</button>
+    <div class="section-title" style="margin-top:6px">Tópico</div>
+    <div class="card">
+      <div style="font-weight:800;font-size:1.1rem;letter-spacing:-.01em">${esc(t.titulo)}</div>
+      ${t.fonte?`<div class="hint" style="margin-top:4px">Fonte: ${esc(t.fonte)}</div>`:""}
+      <div style="height:8px"></div>
+      <div class="kv"><span class="k">Próxima revisão</span><span>${esc(relDue(t.next_review_at||now()))} · ${esc(fmtDate(t.next_review_at||now()))}</span></div>
+      <div class="kv"><span class="k">Intervalo atual</span><span>${t.interval||1} dia${(t.interval||1)>1?"s":""}</span></div>
+      <div class="kv"><span class="k">Streak</span><span>🔥 ${t.streak||0}</span></div>
+      <div class="kv"><span class="k">Facilidade (ease)</span><span>${t.ease||250}</span></div>
+      <div class="kv"><span class="k">Revisões feitas</span><span>${reviews.length}</span></div>
+    </div>
+
+    <div class="section-title">Baseline</div>
+    <div class="card"><div class="baseline-box" style="margin:0;border:none;background:transparent;padding:0">${esc(t.baseline)}</div></div>
+
+    <div class="section-title">Cards de pergunta (${cards.length})</div>
+    <div class="card">${cardsHTML}
+      <div style="height:10px"></div>
+      <button class="cta ghost sm" id="btnGerarCards">${cards.length?"Regerar cards com IA":"Gerar cards com IA"}</button>
+      ${!hasAI()?`<div class="hint">Configure sua chave da Anthropic em ⚙️ para gerar cards.</div>`:""}
+    </div>
+
+    <div class="card" style="margin-top:16px;text-align:center">
+      <button class="link-btn danger" id="btnExcluir">Excluir tópico</button>
+    </div>
+    <div style="height:20px"></div>`;
+}
+
+/* ============================================================
+   FILA DE REVISÃO (interleaving)
+   ============================================================ */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function buildQueue(){
+  const items = [];
+  for(const t of dueTopics()) items.push({ type:"topic", topicId:t.id });
+  for(const {t,c} of dueCards()) items.push({ type:"card", topicId:t.id, cardId:c.id });
+  return shuffle(items);
+}
+function startReview(){
+  ui.queue = buildQueue();
+  ui.qi = 0;
+  if(!ui.queue.length){ go("dashboard"); return; }
+  loadSession();
+  go("teste");
+}
+function loadSession(){
+  const item = ui.queue[ui.qi];
+  const t = DB.topics.find(x=>x.id===item.topicId);
+  if(!t){ nextInQueue(); return; }
+  if(item.type === "card"){
+    const c = (t.cards||[]).find(x=>x.id===item.cardId);
+    if(!c){ nextInQueue(); return; }
+    ui.session = { kind:"card", topic:t, obj:c, pergunta:c.pergunta, baselineFull:t.baseline };
+  }else{
+    ui.session = { kind:"topic", topic:t, obj:t, titulo:t.titulo, baselineFull:t.baseline };
+  }
+  // snapshot para o SM-2 (permite reescolher a qualidade)
+  ui.session.obj._baseInterval = ui.session.obj.interval || 1;
+  ui.session.obj._baseStreak = ui.session.obj.streak || 0;
+}
+function nextInQueue(){
+  ui.qi++;
+  if(ui.qi >= ui.queue.length){ go("dashboard"); toastMsg("Revisão concluída 🎉"); return; }
+  loadSession();
+  go("teste");
+}
+
+/* ============================================================
+   AÇÕES
+   ============================================================ */
+async function submitResposta(){
+  const s = ui.session;
+  const texto = (el('respostaTxt').value || "").trim();
+  if(!texto){ toastMsg("Escreva o que você lembra primeiro"); return; }
+  const btn = el('enviarResposta');
+  btn.disabled = true;
+
+  const sim = localSim(s.baselineFull, texto);
+  s.texto = texto;
+  s.similaridade = sim;
+  s.feedback = null;
+  s.qualidade = null;
+
+  if(hasAI()){
+    btn.innerHTML = `<span class="spin"></span> Corrigindo…`;
+    try{
+      const fb = s.kind === "card"
+        ? await corrigirCard(s.pergunta, s.baselineFull, texto)
+        : await corrigirRecall(s.baselineFull, texto);
+      if(fb){ s.feedback = fb; s.qualidade = fb.qualidade; }
+    }catch(e){
+      toastMsg("IA falhou: " + e.message + " — avalie manual");
+    }
+  }
+  // aplica agendamento se já temos qualidade (da IA); senão espera o usuário escolher
+  if(s.qualidade) applySchedule(s.obj, s.qualidade);
+  saveReview();
+  go("feedback");
+}
+function saveReview(){
+  const s = ui.session;
+  const t = s.topic;
+  (t.reviews || (t.reviews = [])).push({
+    id: uid(),
+    card_id: s.kind==="card" ? s.obj.id : null,
+    texto: s.texto,
+    similaridade: s.similaridade,
+    feedback_json: s.feedback || null,
+    qualidade: s.qualidade || null,
+    created_at: now()
+  });
+}
+function chooseQualidade(q){
+  const s = ui.session;
+  s.qualidade = q;
+  applySchedule(s.obj, q);
+  // atualiza a última review com a qualidade escolhida
+  const t = s.topic; const rev = (t.reviews||[])[t.reviews.length-1];
+  if(rev){ rev.qualidade = q; }
+  bumpStreak();
+  render();
+}
+async function finishCurrent(){
+  const s = ui.session;
+  if(!s.qualidade){ toastMsg("Escolha como foi"); return; }
+  // limpa snapshots
+  delete s.obj._baseInterval; delete s.obj._baseStreak;
+  await persist();
+  nextInQueue();
+}
+
+async function salvarTopico(){
+  const titulo = (el('nTitulo').value||"").trim();
+  const fonte = (el('nFonte').value||"").trim();
+  const baseline = (el('nBaseline').value||"").trim();
+  if(!titulo){ toastMsg("Dê um título ao tópico"); return; }
+  if(!baseline){ toastMsg("Escreva o que você entendeu"); return; }
+  const t = {
+    id: uid(), titulo, fonte, baseline,
+    interval:1, ease:250, streak:0,
+    next_review_at: now() + DAY, created_at: now(),
+    cards:[], reviews:[]
+  };
+  DB.topics.push(t);
+  const gerar = hasAI() && el('nGerar') && el('nGerar').checked;
+  await persist();
+  toastMsg("Tópico criado · revisa amanhã");
+  if(gerar){
+    ui.session = t.id; go("topico");
+    doGerarCards(t, true);
+  }else{
+    go("dashboard");
+  }
+}
+
+async function doGerarCards(t, silent){
+  if(!hasAI()){ openSettings(); return; }
+  const btn = el('btnGerarCards');
+  if(btn){ btn.disabled = true; btn.innerHTML = `<span class="spin ink"></span> Gerando…`; }
+  try{
+    const perguntas = await gerarCards(t.baseline);
+    if(!perguntas.length){ toastMsg("A IA não retornou cards"); }
+    else{
+      t.cards = perguntas.map(p => ({ id:uid(), pergunta:p, interval:1, ease:250, streak:0, next_review_at: now()+DAY, created_at: now() }));
+      await persist();
+      toastMsg(`${perguntas.length} cards gerados`);
+    }
+  }catch(e){
+    toastMsg("Falha ao gerar: " + e.message);
+  }
+  if(ui.view==="topico") render();
+}
+
+function excluirTopico(){
+  const t = DB.topics.find(x=>x.id===ui.session);
+  if(!t) return;
+  openConfirm(`Excluir "${t.titulo}"?`, "Isso apaga o baseline, os cards e o histórico deste tópico.", async ()=>{
+    DB.topics = DB.topics.filter(x=>x.id!==t.id);
+    await persist();
+    closeModal(); go("dashboard"); toastMsg("Tópico excluído");
+  });
+}
+
+/* ============================================================
+   MODAIS
+   ============================================================ */
+function closeModal(){ el('modal').innerHTML = ""; }
+function openSettings(){
+  const s = DB.settings || {};
+  el('modal').innerHTML = `<div class="overlay" id="ov">
+    <div class="sheet">
+      <h2>⚙️ Ajustes</h2>
+      <div class="hint">O corretor de IA é opcional. Sem chave, o app funciona no modo autoavaliação (você mesmo diz como foi). A chave fica só neste aparelho.</div>
+      <label class="f" for="sKey">Chave da API Anthropic <span class="opt">(sk-ant-…)</span></label>
+      <input class="t" id="sKey" type="password" placeholder="cole aqui sua chave" value="${esc(s.apiKey||"")}" autocomplete="off" />
+      <div class="hint">Pegue em console.anthropic.com. A chamada vai direto do navegador para a Anthropic.</div>
+      <label class="f" for="sModel">Modelo</label>
+      <select class="t" id="sModel">
+        ${["claude-sonnet-5","claude-opus-5","claude-haiku-4-5-20251001"].map(m=>`<option value="${m}" ${((s.model||DEFAULT_MODEL)===m)?"selected":""}>${m}</option>`).join("")}
+      </select>
+      <div class="hint">Sonnet: bom equilíbrio. Haiku: mais barato. Opus: mais fundo.</div>
+      <button class="cta" id="sSalvar" style="margin-top:16px">Salvar</button>
+      <button class="cta ghost sm" id="sFechar" style="margin-top:8px">Fechar</button>
+      <div class="hint" style="text-align:center;margin-top:14px">Sincroniza no nó <code>planos/recall-dt2026</code> · Di &amp; Tati</div>
+    </div>
+  </div>`;
+  el('ov').addEventListener('click', e=>{ if(e.target.id==="ov") closeModal(); });
+  el('sSalvar').addEventListener('click', async ()=>{
+    DB.settings.apiKey = (el('sKey').value||"").trim();
+    DB.settings.model = el('sModel').value || DEFAULT_MODEL;
+    await persist();
+    closeModal(); render(); toastMsg("Ajustes salvos");
+  });
+  el('sFechar').addEventListener('click', closeModal);
+}
+function openConfirm(title, body, onYes){
+  el('modal').innerHTML = `<div class="overlay" id="ov">
+    <div class="sheet">
+      <h2>${esc(title)}</h2>
+      <div class="hint">${esc(body)}</div>
+      <button class="cta" id="cYes" style="margin-top:14px;background:var(--bad)">Excluir</button>
+      <button class="cta ghost sm" id="cNo" style="margin-top:8px">Cancelar</button>
+    </div></div>`;
+  el('ov').addEventListener('click', e=>{ if(e.target.id==="ov") closeModal(); });
+  el('cNo').addEventListener('click', closeModal);
+  el('cYes').addEventListener('click', onYes);
+}
+
+/* ============================================================
+   WIRING (eventos por view)
+   ============================================================ */
+function wire(){
+  const bs = el('btnSettings'); if(bs) bs.addEventListener('click', openSettings);
+
+  if(ui.view === "dashboard"){
+    el('btnRevisar')?.addEventListener('click', startReview);
+    el('btnNovo')?.addEventListener('click', ()=>go('novo'));
+    document.querySelectorAll('.titem').forEach(x=>x.addEventListener('click', ()=>{ ui.session = x.dataset.topic; go('topico'); }));
+  }
+  else if(ui.view === "novo"){
+    el('back')?.addEventListener('click', ()=>go('dashboard'));
+    el('salvarTopico')?.addEventListener('click', salvarTopico);
+  }
+  else if(ui.view === "teste"){
+    const ta = el('respostaTxt'); ta?.focus();
+    el('enviarResposta')?.addEventListener('click', submitResposta);
+    el('pular')?.addEventListener('click', nextInQueue);
+    // Ctrl/Cmd+Enter envia
+    ta?.addEventListener('keydown', e=>{ if((e.ctrlKey||e.metaKey) && e.key==="Enter") submitResposta(); });
+  }
+  else if(ui.view === "feedback"){
+    document.querySelectorAll('.grade').forEach(g=>g.addEventListener('click', ()=>chooseQualidade(g.dataset.q)));
+    el('proximo')?.addEventListener('click', finishCurrent);
+  }
+  else if(ui.view === "topico"){
+    el('back')?.addEventListener('click', ()=>go('dashboard'));
+    el('btnGerarCards')?.addEventListener('click', ()=>{ const t = DB.topics.find(x=>x.id===ui.session); if(t) doGerarCards(t,false); });
+    el('btnExcluir')?.addEventListener('click', excluirTopico);
+  }
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+(async function boot(){
+  el('app').innerHTML = `<div class="center"><span class="spin ink"></span>carregando…</div>`;
+  const loaded = await loadKey("state", null);
+  DB = loaded && typeof loaded === "object" ? loaded : blankDB();
+  // migração/saneamento defensivo
+  if(!DB.topics) DB.topics = [];
+  if(!DB.settings) DB.settings = { apiKey:"", model:DEFAULT_MODEL };
+  if(!DB.streak) DB.streak = { count:0, last:"" };
+  for(const t of DB.topics){ if(!t.cards) t.cards=[]; if(!t.reviews) t.reviews=[]; if(!t.ease) t.ease=250; if(!t.interval) t.interval=1; }
+  render();
+})();
+
+/* service worker */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
