@@ -4,10 +4,12 @@ Este repositório hospeda **5 apps** do casal Di (Diogo) & Tati, publicados junt
 Este arquivo é o contexto completo para qualquer sessão nova do Claude: estrutura, Firebase,
 como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 
-> 📋 **`RECEITA-APPS.md`** (raiz) = **arquivo único** com o catálogo de todos os apps + a receita
-> completa de criar um app novo (pasta → deploy no Pages → sincronização no Firebase, com código
-> pronto e checklist). É o que o Diogo anexa em chats novos. **Manter a tabela do catálogo
-> atualizada ao criar/alterar apps.** (Não há mais `docs/NOVO-APP.md` — tudo ficou aqui.)
+> 🧱 **APP NOVO — instrução para o Claude:** quando o Diogo pedir para criar um app novo (ou mexer no
+> deploy/sincronização de um app), **LEIA o arquivo `RECEITA-APPS.md` (raiz) e siga a receita de lá** —
+> não pergunte onde está a receita nem peça pra ele anexar nada; o arquivo já está no repositório.
+> `RECEITA-APPS.md` = **arquivo único** com o catálogo de todos os apps + a receita completa (pasta →
+> deploy no Pages → sincronização no Firebase, com código pronto e checklist). **Manter a tabela do
+> catálogo atualizada ao criar/alterar apps.** (Não há mais `docs/NOVO-APP.md` — tudo ficou aqui.)
 
 ---
 
