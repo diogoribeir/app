@@ -61,17 +61,21 @@ Editar `.github/workflows/deploy-pages.yml` em **2 lugares**:
       - "meu-app/**"
 ```
 
-**(2)** no passo "Montar o site" (a raiz recebe a página inicial `home/`; cada app tem sua pasta):
+**(2)** no passo "Montar o site" (a raiz recebe a página inicial `home/`; cada app tem sua pasta).
+Espelho do workflow atual — acrescente só a linha do `meu-app`:
 ```yaml
-      - name: Montar o site
+      - name: Montar o site (home na raiz + um caminho por app)
         run: |
-          mkdir -p _site/dias-sem-doenca _site/roteiro-paris _site/paris-planner _site/meu-app
+          mkdir -p _site/dias-sem-doenca _site/roteiro-paris _site/paris-planner _site/perfil-gamer _site/decoracao _site/meu-app
           cp -r home/. _site/
           cp -r dias-sem-doenca/. _site/dias-sem-doenca/
           cp -r roteiro-paris/. _site/roteiro-paris/
           cp -r paris-planner/. _site/paris-planner/
+          cp -r perfil-gamer/. _site/perfil-gamer/
+          cp -r decoracao/. _site/decoracao/
           cp -r meu-app/. _site/meu-app/
 ```
+(o **Lingo** não entra aqui — fica no Vercel.)
 **(3)** adicionar o card do app novo na página inicial `home/index.html`.
 
 Depois do merge no `master`, o workflow publica sozinho. Conferir na aba Actions que o run
