@@ -122,12 +122,12 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
 .addbtn:active{transform:scale(.99)}
 
 /* ---------- card de jogo ---------- */
-details.game{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+.game{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
   margin-bottom:8px;overflow:hidden;position:relative}
-details.game::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--vc,var(--line))}
-details.game summary{cursor:pointer;list-style:none;padding:12px 14px 12px 16px}
-details.game summary::-webkit-details-marker{display:none}
-details.game summary:active{background:var(--surface2)}
+.game::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--vc,var(--line));z-index:1}
+.game.open{border-color:var(--vc,var(--accent))}
+.gsum{cursor:pointer;padding:12px 14px 12px 16px}
+.gsum:active{background:var(--surface2)}
 .grow{display:flex;align-items:center;gap:10px}
 .gname{flex:1;min-width:0;font-weight:750;font-size:.94rem;line-height:1.3}
 .vpill{flex:0 0 auto;font-size:.63rem;font-weight:800;letter-spacing:.04em;padding:5px 10px;border-radius:8px;
@@ -146,6 +146,27 @@ details.game summary:active{background:var(--surface2)}
   font-size:.78rem;font-weight:700;padding:10px;border-radius:11px;cursor:pointer}
 .cbtn:active{transform:scale(.98)}
 .cbtn.del{color:var(--mr)}
+/* editor inline dentro do card */
+.gedit{padding:0 14px 14px 16px;border-top:1px solid var(--line);animation:fadeUp .18s ease}
+.gedit .el{display:block;font-size:.6rem;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin:11px 0 0}
+.gedit .el2{display:block;font-size:.58rem;color:var(--muted);font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin:0 0 4px}
+.gedit input,.gedit select,.gedit textarea{width:100%;margin-top:4px;padding:10px 11px;border:1.5px solid var(--line);
+  border-radius:11px;background:var(--bg);color:var(--ink);font:inherit;font-size:.92rem;font-weight:600}
+.gedit .mrow4 input{margin-top:0}
+.gedit textarea{min-height:50px;resize:vertical}
+.gedit input:focus-visible,.gedit select:focus-visible,.gedit textarea:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
+.gedit .erow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gedit .mrow4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.gedit .checkline{display:flex;align-items:center;gap:9px;font-size:.82rem;color:var(--ink);text-transform:none;letter-spacing:0;font-weight:700;margin:13px 0 0;cursor:pointer}
+.gedit .checkline input{width:18px;height:18px;margin:0;flex:0 0 auto}
+.gedit .internal-fields{margin-top:12px;border:1px dashed var(--line);border-radius:12px;padding:9px 12px}
+.gedit .internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--muted);font-weight:700;list-style:none}
+.gedit .internal-fields summary::-webkit-details-marker{display:none}
+.grunrow{display:flex;align-items:center;gap:8px;margin-top:6px}
+.grunrow .rlbl{flex:0 0 auto;background:var(--surface2);color:var(--muted);border-radius:7px;padding:4px 8px;font-size:.66rem;font-weight:800}
+.grunrow .runh{flex:1;margin-top:0}
+.grunrow .hh{color:var(--muted);font-size:.72rem}
+.grunrow .pbtn{width:30px;height:30px;flex:0 0 auto}
 
 /* ---------- estatísticas ---------- */
 h2{font-size:.78rem;margin:20px 4px 9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -367,6 +388,34 @@ function saveJogos(){
       render(); })
     .catch(()=>{ cloudOK = false; render(); });
 }
+// salva sem re-renderizar (edição inline do card — não perde foco enquanto digita)
+function saveJogosQuiet(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(J)); } catch(e){}
+  fetch(`${SYNC_URL}/jogos.json`, { method:"PUT", body: JSON.stringify(J) })
+    .then(()=>{ cloudOK = true; syncStamp = Date.now();
+      fetch(`${SYNC_URL}/_at.json`, { method:"PUT", body: JSON.stringify(syncStamp) }).catch(()=>{}); })
+    .catch(()=>{ cloudOK = false; });
+}
+// edição inline: commit dos campos do card ao sair de cada campo
+document.addEventListener("change", e=>{
+  const card = e.target.closest(".game"); if (!card) return;
+  const g = J.find(x=>x.id===Number(card.dataset.gid)); if (!g) return;
+  const fld = e.target.closest("[data-f]");
+  if (fld){
+    const f = fld.dataset.f;
+    if (f==="gratis") g.gratis = fld.checked;
+    else if (f==="horas") g.horas = fld.value===""?0:Number(fld.value);
+    else if (["h","g","d","ff"].includes(f)) g[f] = fld.value===""?null:Number(fld.value);
+    else if (f==="v"||f==="enc") g[f] = fld.value;
+    else if (f==="nome"){ const v=fld.value.trim(); if (v) g.nome=v; else fld.value=g.nome; }
+    else g[f] = fld.value.trim();
+    saveJogosQuiet();
+    if (f==="v"||f==="enc"||f==="gratis"||f==="nome") render();  // atualiza pill/cor/summary (foco já saiu)
+    return;
+  }
+  const rh = e.target.closest("[data-runh]");
+  if (rh && g.runs){ const i=Number(rh.dataset.runh); if (g.runs[i]) { g.runs[i].horas=Number(rh.value)||0; saveJogosQuiet(); } }
+});
 /* ---------- plano 2026 (editável, sincronizado) ---------- */
 const LS_PLANO = "perfil-gamer:plano";
 let P = [];              // itens do plano [{jogo,est,data,iniciado,jid}]
@@ -452,6 +501,7 @@ const fVer = new Set();      // multi: veredictos
 let busca = "";
 let ordem = "horas";
 let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
+let openGame = null;     // id do card expandido (edição inline, sem modal)
 const secOpen = new Set(["ver"]);  // seções abertas nas Estatísticas
 const STATUS_LABEL = {"S":"✅ Zerados","N":"❌ Dropados","#":"🔄 Jogando"};
 function aplicarFiltros(lst){
@@ -476,15 +526,59 @@ function fmtCusto(g){ return g.gratis ? "🎁 grátis" : fmtCH(custoHora(g)); }
 function horasOcultas(g){ return /FINAL FANTASY XIV/i.test(g.nome||""); }
 function fmtCH(c){ return c==null?"—":("R$ "+c.toFixed(2).replace(".",",")+"/h"); }
 
-/* ---------- aba Jogos ---------- */
+/* ---------- aba Jogos: card = editor inline (sem modal) ---------- */
+const VOPTS = ["N/A","Masterpiece","Muito Bom","Bom","Mediano","Ruim","Muito Ruim"];
+function gedRuns(g){
+  return (g.runs||[]).map((r,i)=>`<div class="grunrow">
+      <span class="rlbl">W${i+2}</span>
+      <input class="runh" type="number" min="0" step="0.5" inputmode="decimal" data-runh="${i}" value="${r.horas??0}" />
+      <span class="hh">h</span>
+      <button type="button" class="pbtn del" data-grundel="${i}" title="Remover">✕</button>
+    </div>`).join("");
+}
+function gameEditor(g){
+  const iv = x => (x==null||x==="N/A") ? "" : x;
+  return `<div class="gedit">
+    <div class="row" style="margin-top:10px">
+      ${horasOcultas(g)?"":`<span class="stat"><b class="num">${fmtCusto(g)}</b>custo/hora</span>
+      <span class="stat"><b class="num">${totalHoras(g)}h</b>tempo total</span>`}
+    </div>
+    <label class="el">Nome<input data-f="nome" type="text" value="${esc(g.nome)}" /></label>
+    <div class="erow">
+      <label class="el">Horas (W1)<input data-f="horas" type="number" min="0" step="0.5" inputmode="decimal" value="${g.horas??0}" /></label>
+      <label class="el">Status<select data-f="enc">
+        <option value="#" ${g.enc==="#"?"selected":""}>🔄 Jogando</option>
+        <option value="S" ${g.enc==="S"?"selected":""}>✅ Zerado</option>
+        <option value="N" ${g.enc==="N"?"selected":""}>❌ Dropado</option></select></label>
+    </div>
+    <label class="el">Veredicto<select data-f="v">
+      ${VOPTS.map(v=>`<option ${g.v===v||(!ORD.includes(g.v)&&v==="N/A")?"selected":""}>${v==="N/A"?"— sem veredicto —":v}</option>`).join("")}</select></label>
+    <label class="checkline"><input type="checkbox" data-f="gratis" ${g.gratis?"checked":""} /> 🎁 Veio grátis (PSN Plus) — sem custo/hora</label>
+    <label class="el">Gêneros (1º = principal)<input data-f="genres" type="text" value="${esc(g.genres||"")}" /></label>
+    <label class="el">Motivo do drop<textarea data-f="motivo">${esc(g.motivo||"")}</textarea></label>
+    <div class="el" style="margin-top:12px">Outras jogatinas (horas)
+      <div class="gruns">${gedRuns(g)}</div>
+      <button type="button" class="cbtn" data-addrun="${g.id}" style="width:100%;margin-top:6px">➕ Adicionar jogatina (NG+/rejogar)</button>
+    </div>
+    <details class="internal-fields"><summary>análise interna (opcional) — H · G · D · FF</summary>
+      <div class="mrow4">
+        <div><label class="el2">História 1-4</label><input data-f="h" type="number" min="1" max="4" value="${iv(g.h)}" /></div>
+        <div><label class="el2">Gameplay 1-4</label><input data-f="g" type="number" min="1" max="4" value="${iv(g.g)}" /></div>
+        <div><label class="el2">Dific. 1-3</label><input data-f="d" type="number" min="1" max="3" value="${iv(g.d)}" /></div>
+        <div><label class="el2">Fun 1-4</label><input data-f="ff" type="number" min="1" max="4" value="${iv(g.ff)}" /></div>
+      </div>
+    </details>
+    <div class="cardbtns">
+      <button type="button" class="cbtn del" data-excluir="${g.id}">🗑 Excluir jogo</button>
+      <button type="button" class="cbtn" data-cardtoggle="${g.id}">✓ Pronto</button>
+    </div>
+  </div>`;
+}
 function gameCard(g){
-  const ch = custoHora(g);
   const c = VC[g.v];
-  const th = totalHoras(g), multi = nRuns(g)>1;
-  const comp = [g.h!=null&&g.h!=="N/A"?`H ${g.h}`:null, g.g!=null&&g.g!=="N/A"?`G ${g.g}`:null,
-                g.d!=null?`D ${g.d}`:null, g.ff!=null?`FF ${g.ff}`:null].filter(Boolean).join(" · ");
-  return `<details class="game" style="--vc:${c?c[0]:"var(--line)"};--vs:${c?c[1]:"var(--surface2)"}">
-    <summary>
+  const th = totalHoras(g), multi = nRuns(g)>1, open = openGame===g.id;
+  return `<div class="game${open?" open":""}" data-gid="${g.id}" style="--vc:${c?c[0]:"var(--line)"};--vs:${c?c[1]:"var(--surface2)"}">
+    <div class="gsum" data-cardtoggle="${g.id}">
       <div class="grow"><div class="gname">${esc(g.nome)}</div>${vpill(g.v)}</div>
       <div class="gmeta">
         ${horasOcultas(g)?"":`<span class="hrs num">⏱ ${th}h</span>`}
@@ -493,22 +587,9 @@ function gameCard(g){
         <span>${esc((g.genres||"").split(",")[0].trim())}</span>
         ${multi&&!horasOcultas(g)?`<span class="num">🔁 ${runsResumo(g)}</span>`:""}
       </div>
-    </summary>
-    <div class="gbody">
-      <div class="row">
-        ${horasOcultas(g)?"":`<span class="stat"><b class="num">${fmtCusto(g)}</b>custo/hora</span>
-        <span class="stat"><b class="num">${th}h</b>tempo total</span>`}
-        <span class="stat"><b>${esc(g.genres||"—")}</b>gêneros</span>
-      </div>
-      ${g.motivo?`<div class="gnote"><b>Motivo do drop:</b> ${esc(g.motivo)}</div>`:""}
-      ${comp?`<div class="internal">análise interna · ${esc(comp)}</div>`:""}
-      <div class="cardbtns">
-        <button type="button" class="cbtn" data-editar="${g.id}">✏️ Editar</button>
-        <button type="button" class="cbtn" data-novarun="${g.id}">🔁 Nova jogatina</button>
-        <button type="button" class="cbtn del" data-excluir="${g.id}">🗑 Excluir</button>
-      </div>
     </div>
-  </details>`;
+    ${open ? gameEditor(g) : ""}
+  </div>`;
 }
 function viewJogos(){
   let lst = J.slice();
@@ -866,18 +947,22 @@ document.addEventListener("click", e=>{
                  w:1, v:"N/A", genres:"", motivo:"" }; J.push(g); }
     p.iniciado = true; p.jid = g.id;
     saveJogos(); savePlano(); tab="jogos"; render(); window.scrollTo({top:0}); return; }
-  // ---- jogatinas (playthroughs): "nova jogatina" do card abre o Editar (jogatinas inline lá) ----
-  const nr = e.target.closest("[data-novarun]");
-  if (nr){ const g=J.find(x=>String(x.id)===nr.dataset.novarun); if (g){ openModal(g); setTimeout(()=>$("#mAddRun")&&$("#mAddRun").click(),80); } return; }
-  const dr = e.target.closest("[data-rundelrow]");
-  if (dr){ dr.closest(".runrow").remove(); renumberRuns(); return; }
+  // ---- card = editor inline ----
+  const ct = e.target.closest("[data-cardtoggle]");
+  if (ct){ const id=Number(ct.dataset.cardtoggle); openGame = (openGame===id)?null:id; render();
+    if (openGame!=null){ const el=document.querySelector(`.game[data-gid="${id}"]`); if (el) el.scrollIntoView({block:"nearest",behavior:"smooth"}); } return; }
   const hh = e.target.closest("[data-editar-hero]");
-  if (hh){ const g = J.find(x=>String(x.id)===hh.dataset.editarHero); if (g) openModal(g); return; }
-  const ed = e.target.closest("[data-editar]");
-  if (ed){ const g = J.find(x=>String(x.id)===ed.dataset.editar); if (g) openModal(g); return; }
+  if (hh){ openGame = Number(hh.dataset.editarHero); render();
+    const el=document.querySelector(`.game[data-gid="${openGame}"]`); if (el) el.scrollIntoView({block:"center",behavior:"smooth"}); return; }
+  const ar = e.target.closest("[data-addrun]");
+  if (ar){ const g=J.find(x=>x.id===Number(ar.dataset.addrun)); if (g){ (g.runs=g.runs||[]).push({horas:0}); saveJogosQuiet(); render();
+    const ins=document.querySelectorAll(`.game[data-gid="${g.id}"] .runh`); if(ins.length) ins[ins.length-1].focus(); } return; }
+  const gd = e.target.closest("[data-grundel]");
+  if (gd){ const card=gd.closest(".game"); const g=J.find(x=>x.id===Number(card.dataset.gid));
+    if (g && g.runs){ g.runs.splice(Number(gd.dataset.grundel),1); if(!g.runs.length) delete g.runs; saveJogosQuiet(); render(); } return; }
   const ex = e.target.closest("[data-excluir]");
   if (ex){ const g = J.find(x=>String(x.id)===ex.dataset.excluir);
-    if (g && confirm(`Excluir "${g.nome}" da biblioteca?`)){ J = J.filter(x=>x.id!==g.id); saveJogos(); render(); }
+    if (g && confirm(`Excluir "${g.nome}" da biblioteca?`)){ J = J.filter(x=>x.id!==g.id); if(openGame===g.id) openGame=null; saveJogos(); render(); }
     return; }
 });
 boot();
