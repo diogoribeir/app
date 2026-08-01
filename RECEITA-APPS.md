@@ -18,7 +18,6 @@
 | 📊 Roteiro Paris (Diogo) | https://diogoribeir.github.io/app/roteiro-paris/ | `roteiro-paris/` | RTDB `planos/<código-da-viagem>` (código no app) |
 | ✈️ Paris Trip Planner (Tati) | https://diogoribeir.github.io/app/paris-planner/ | `paris-planner/` (build) + `paris-planner-src/` (fonte) | RTDB `planos/paris-planner-dt2026` |
 | 🎮 Perfil Gamer | https://diogoribeir.github.io/app/perfil-gamer/ | `perfil-gamer/` (app) + `perfil-gamer-src/` (dados) | RTDB `planos/perfil-gamer-dt2026` (nuvem = fonte da verdade; `dados.js` = seed) |
-| 🛋️ Decora (decoração + orçamento) | https://diogoribeir.github.io/app/decoracao/ | `decoracao/` | RTDB `planos/decoracao-dt2026` (sem login; catálogo curado no próprio arquivo) |
 | 🧠 Recall (aprendizado ativo) | https://diogoribeir.github.io/app/recall/ | `recall/` | RTDB `planos/recall-dt2026` (sem login) · IA opcional pela chave do usuário (chamada direta no navegador) |
 | 🇫🇷 Lingo (francês) | https://lingo-liard-kappa.vercel.app | `lingo-src/` (fonte Next.js) | Sem nuvem de dados (progresso local) · **Hospedado no VERCEL** (tem servidor: tutor + senha) — NÃO deletar o projeto `lingo` no Vercel |
 
@@ -99,13 +98,12 @@ Espelho do workflow atual — acrescente só a linha do `meu-app`:
 ```yaml
       - name: Montar o site (home na raiz + um caminho por app)
         run: |
-          mkdir -p _site/dias-sem-doenca _site/roteiro-paris _site/paris-planner _site/perfil-gamer _site/decoracao _site/meu-app
+          mkdir -p _site/dias-sem-doenca _site/roteiro-paris _site/paris-planner _site/perfil-gamer _site/meu-app
           cp -r home/. _site/
           cp -r dias-sem-doenca/. _site/dias-sem-doenca/
           cp -r roteiro-paris/. _site/roteiro-paris/
           cp -r paris-planner/. _site/paris-planner/
           cp -r perfil-gamer/. _site/perfil-gamer/
-          cp -r decoracao/. _site/decoracao/
           cp -r meu-app/. _site/meu-app/
 ```
 (o **Lingo** não entra aqui — fica no Vercel.)
