@@ -27,7 +27,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   aba **Actions → "Publicar apps no GitHub Pages" → Run workflow**).
 - Ele monta o site assim: raiz → `home/` (página inicial com a lista de apps) · `/dias-sem-doenca/` →
   `dias-sem-doenca/` · `/roteiro-paris/` → `roteiro-paris/` · `/paris-planner/` → `paris-planner/` ·
-  `/perfil-gamer/` → `perfil-gamer/` · `/decoracao/` → `decoracao/`.
+  `/perfil-gamer/` → `perfil-gamer/`.
 - Fluxo de trabalho do Claude: **branch → commit → push → PR → merge no `master`** (o Diogo autoriza o
   Claude a mergear via ferramentas do GitHub). Depois do merge, verificar que o run terminou `success`.
 - O site atualiza ~1 min após o deploy (o cache do celular pode segurar alguns minutos).
@@ -144,57 +144,6 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Atualização:** editar `lingo-src/`, e o deploy é pelo Vercel (projeto do Diogo). O card na
   página inicial (`home/index.html`) aponta pro link do Vercel.
 
-## App 6 — 🛋️ Decora (planejador de decoração + orçamento)
-- **URL:** https://diogoribeir.github.io/app/decoracao/
-- **Pasta:** `decoracao/` — **arquivo único** `index.html` (HTML/CSS/JS puro, mobile-first).
-- **O que faz:** a pessoa sobe a **foto (ou planta) do ambiente**, arrasta **móveis de lojas reais**
-  por cima (mover / redimensionar / girar / camadas), e vê o **orçamento somando em tempo real**.
-  4 abas: 🛋️ **Montar** (editor de colagem 2D sobre a foto) · 🛒 **Catálogo** (30 itens com faixa de
-  preço aproximada, loja e link de busca; filtros por categoria/estilo/preço) · 💰 **Orçamento**
-  (teto por ambiente, gasto x meta, gasto por categoria, lista de compras, **recomendações
-  determinísticas** do que falta e cabe no orçamento) · 🗂️ **Projetos** (um ambiente por cômodo).
-- **Biblioteca real (`LIBRARY`):** ~46 produtos reais lidos da **Mobly** (nome, preço de referência,
-  link do produto, medidas), com **fotos recortadas** (fundo removido → PNG transparente em
-  `decoracao/lib/lib*.png`). Assim os móveis entram na cena como **objeto recortado**, não foto com
-  fundo branco. Gerado por script (jimp) — reprocessar baixando as imagens e removendo o fundo branco
-  por flood-fill das bordas. Preços vão como referência (`min===max` mostra valor único) — confira na loja.
-- **Layout desktop (notebook, não mobile):** em `min-width:900px` o Montar vira **2 colunas** —
-  canvas grande (16/10) à esquerda + **painel lateral "Adicionar móveis"** (rail de miniaturas que
-  adicionam à cena) à direita; nav no topo; `.wrap` até 1240px; catálogo em grade multi-coluna.
-  No mobile continua em coluna única com nav embaixo. Fundo padrão da cena = **ambiente vazio
-  desenhado em perspectiva** (`roomBackdrop()`, SVG com cores em `--rm-*`), pra compor os objetos.
-- **Produtos do usuário (`state.custom`):** botão "➕ Adicionar produto de uma loja" no Catálogo — a
-  pessoa cadastra um produto real (nome, faixa/preço, loja, link, categoria, estilo, dimensões e
-  **foto**). Ele entra no catálogo com selo "meu" e pode ser **colado na foto com a imagem real**
-  (não só a silhueta). Fotos de produto são reduzidas a ~700px/PNG (preserva recorte transparente).
-  Tudo passa pelo resolvedor `def(id)` (catálogo embutido + custom) — orçamento, lista e recomendações
-  já contam os produtos do usuário. É a ponte para um futuro **feed de afiliados** (quando houver contas).
-- **Filosofia (respeitar):** **preços são faixas aproximadas** (referência), nunca valor exato
-  fingindo precisão — o botão "Buscar" leva à busca na loja para conferir o preço atual. Nada de
-  inventar produto/preço. O catálogo é curado em `CAT` (loja + faixa BRL + estilo + dimensões cm).
-- **Planta 2D (vista de cima, à escala):** no Montar há o alternador **📷 Foto / 📐 Planta**. Na planta,
-  o cômodo é desenhado à escala real (`roomW`×`roomL` em metros, com grade de 1 m) e cada móvel vira uma
-  **pegada** largura×profundidade (`CAT_DEPTH` por categoria, ou `dcm` do produto). Arrasta para mover,
-  **⟳ 90°** para girar; peça que passa das paredes fica **vermelha** ("não cabe assim") e mostra o
-  **% de piso ocupado**. Reaproveita `p.items` (campos `px,py,prot`) — orçamento/lista não mudam.
-- **Remoção de fundo (beta):** ao cadastrar um produto com foto, o botão **✂️ Remover fundo** faz um
-  flood-fill por tolerância a partir das bordas (`removeBgFromDataURL`) — bom para foto de produto em
-  fundo branco/liso; gera PNG transparente para colar limpo na cena.
-- **Vista 3D (🧊, Three.js):** terceira opção do alternador. Renderiza o cômodo à escala real (piso +
-  2 paredes, luz e sombra) e cada móvel como uma **representação 3D paramétrica** (por categoria).
-  Órbita arrastando o vazio, **arrasta o móvel para mover** pelo chão (raycast), pinça/rolar para zoom,
-  **⟳ 90°** para girar. Reaproveita `px,py,prot` da planta. Three.js r128 **embutido** em
-  `decoracao/vendor/three.min.js` (carregado sob demanda só ao abrir o 3D); nenhuma dependência de CDN.
-  Controles e materiais são próprios (sem OrbitControls externo). É uma prévia estilizada — não é
-  render fotorrealista do produto real (isso exigiria modelos 3D que as lojas não fornecem).
-- **Dados 3D-ready:** cada peça guarda dimensões (largura/altura/profundidade em cm), posição (fração),
-  escala e rotação — planta 2D e 3D usam o mesmo modelo.
-- **Sincronização:** Realtime Database via REST, nó **`planos/decoracao-dt2026`** (receita 1) — a
-  nuvem é a fonte; localStorage é a cópia offline; recarrega ao voltar se houver gravação mais nova.
-  As fotos do ambiente entram no `state` como dataURL (reduzidas a ~1400px/JPEG antes de salvar).
-- **Edição:** direto em `decoracao/index.html` (constantes `CAT`, `STORES`, `ICONS`, `ROOMS`;
-  lojas com busca em `STORES[...].url(q)`). Para novos móveis, adicionar item em `CAT` e, se for um
-  tipo visual novo, uma silhueta em `ICONS`.
 
 ## App 7 — 🧠 Recall (aprendizado por recall ativo)
 - **URL:** https://diogoribeir.github.io/app/recall/
