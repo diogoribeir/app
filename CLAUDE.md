@@ -144,44 +144,6 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Atualização:** editar `lingo-src/`, e o deploy é pelo Vercel (projeto do Diogo). O card na
   página inicial (`home/index.html`) aponta pro link do Vercel.
 
-
-## App 7 — 🧠 Recall (aprendizado por recall ativo)
-- **URL:** https://diogoribeir.github.io/app/recall/
-- **Pasta:** `recall/` — **arquivo único** `index.html` (HTML/CSS/JS puro, mobile-first) + PWA
-  (`manifest.webmanifest`, `sw.js` network-first, `icon-192/512.png`).
-- **O que faz:** app pra reter o que se aprende (podcast, artigo…) testando a memória. O usuário cria um
-  **tópico** com um **baseline** ("o que entendeu"); dias depois o app testa **de memória** e um corretor
-  de IA aponta lacunas/erros e faz uma pergunta de sondagem; o espaçamento reagenda a próxima revisão.
-  Baseado em Dunlosky et al. (2013): practice testing + distributed practice.
-- **Dois modos, mesmo motor:** **recall livre** (escreve tudo que lembra do tópico) e **cards de
-  pergunta** (a IA gera 4–6 perguntas abertas do baseline; responde de memória). Ambos entram na mesma
-  fila e no mesmo espaçamento.
-- **Princípios inquebráveis (respeitar):** (1) **tela em branco** — o baseline NUNCA aparece antes do
-  submit; (2) **resposta aberta**, nunca múltipla escolha; (3) a IA **acha lacuna**, não dá só nota, e
-  não entrega a resposta; (4) **espaçamento crescente** (SM-2), nunca diária fixa; (5) **interleaving** —
-  a fila "revisar agora" mistura temas (`shuffle`).
-- **Espaçamento (SM-2 simplificado, `applySchedule`):** `travou`→interval=1, streak=0; `parcial`→
-  interval=max(1,round(interval·1.6)), streak+1; `mandou_bem`→interval=round(interval·ease/100), streak+1
-  (ease começa 250). Primeira revisão sempre +1 dia. Snapshot `_baseInterval/_baseStreak` permite
-  reescolher a qualidade no feedback antes de confirmar.
-- **Corretor de IA:** como o Pages é estático (sem servidor), a IA usa a **chave Anthropic do próprio
-  usuário**, guardada só no aparelho (⚙️ Ajustes) e chamada **direto do navegador**
-  (`anthropic-dangerous-direct-browser-access`). **Sem chave, o app cai no modo autoavaliação manual**
-  (o usuário mesmo diz travou/parcial/mandou_bem) — continua 100% funcional. Prompts do corretor e do
-  gerador de cards embutidos no arquivo (`CORRETOR_SYS`, `CARD_CORRETOR_SYS`, `GERAR_CARDS_SYS`); modelo
-  padrão `claude-sonnet-5` (trocável). Diferente do Lingo, **não** precisa de servidor/Vercel.
-- **Similaridade (proximidade):** métrica **local** de cosseno sobre bag-of-words (`localSim`) — número
-  frio de progresso sem depender de outra API (o embedding "de verdade" fica pra fase 2).
-- **Sincronização:** Realtime Database via REST, nó **`planos/recall-dt2026`** (receita 1) — a nuvem é a
-  fonte; localStorage é a cópia offline; recarrega ao voltar se houver gravação mais nova. Estado único
-  na chave `state` (`{topics[], settings{apiKey,model}, streak}`). ⚠️ A `apiKey` fica no `state` e
-  sincroniza — é a chave pessoal do casal no nó (nome do nó funciona como senha; não é dado sensível de
-  terceiros).
-- **Estados do front:** `dashboard` (vencidos + streak + "revisar agora" + "novo tópico"), `novo`,
-  `teste` (tela em branco), `feedback` (correção colorida + baseline revelável), `topico` (detalhe/cards).
-- **Edição:** direto em `recall/index.html`. Ao mexer, **subir a versão do cache** no `sw.js`
-  (`CACHE = "recall-vN"`), senão o celular segura a versão antiga.
-
 ---
 
 ## Firebase — projeto `apps-4b887` (tudo num projeto só)
