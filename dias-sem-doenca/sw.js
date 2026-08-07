@@ -1,6 +1,6 @@
 /* Service worker: faz o app funcionar 100% offline.
    Guarda os arquivos no cache na instalação e serve do cache depois. */
-var CACHE = "dias-sem-doenca-v5";
+var CACHE = "dias-sem-doenca-v6";
 var ASSETS = [
   "./",
   "./index.html",
@@ -31,6 +31,10 @@ self.addEventListener("activate", function (e) {
 // cache-first: tenta o cache, cai para a rede só se precisar
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET") return;
+  // IMPORTANTE: só cacheamos o próprio app (mesma origem). As requisições de
+  // sincronização com o Firebase (outra origem) NUNCA podem passar pelo cache —
+  // senão o app lê uma cópia velha e os dados "voltam" ao atualizar.
+  if (new URL(e.request.url).origin !== self.location.origin) return;
   e.respondWith(
     caches.match(e.request).then(function (hit) {
       return hit || fetch(e.request).then(function (res) {
