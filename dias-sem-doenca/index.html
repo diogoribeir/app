@@ -90,6 +90,28 @@
     </div>
   </div>
 
+  <!-- Modal: adicionar período saudável (passado) -->
+  <div id="wellAddModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Adicionar período saudável</h2>
+      <label for="waPerson">Quem?</label>
+      <select id="waPerson">
+        <option value="di">Di</option>
+        <option value="tati">Tati</option>
+      </select>
+      <label for="waDays">Quantos dias sem doença?</label>
+      <input id="waDays" type="number" min="1" step="1" inputmode="numeric" placeholder="Ex.: 32" />
+      <label for="waEnd">Terminou em (dia que adoeceu)</label>
+      <input id="waEnd" type="date" />
+      <label for="waIllness">Doença que encerrou (opcional)</label>
+      <input id="waIllness" type="text" placeholder="Ex.: Gripe ou Resfriado" autocomplete="off" />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="waSave" class="btn ok">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal: menu / backup -->
   <div id="menuModal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-box">

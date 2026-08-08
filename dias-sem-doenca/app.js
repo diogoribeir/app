@@ -136,18 +136,23 @@
         items.push({ id: pair[0], idx: i, name: p.name, from: r.from, to: r.to, illness: r.illness, days: daysBetween(r.from, r.to) });
       });
     });
-    if (!items.length) { el.hidden = true; el.innerHTML = ""; return; }
     items.sort(function (a, b) { return b.to - a.to; });
     el.hidden = false;
+    var body = items.length
+      ? '<ul class="log wlog">' + items.map(function (it) {
+          var end = it.illness ? ' · até pegar ' + esc(it.illness) : "";
+          return '<li><div class="info"><b>' + esc(it.name) + '</b> — ' + it.days + ' ' + dias(it.days) + ' sem doença' +
+            '<div class="d">' + fmtDate(it.from) + " → " + fmtDate(it.to) + end + '</div></div>' +
+            '<button class="del" data-wellid="' + it.id + '" data-wellidx="' + it.idx + '" aria-label="Excluir">✕</button></li>';
+        }).join("") + '</ul>'
+      : '<p class="wellhist-empty">Nenhum período registrado ainda. Quando o contador zerar ele entra aqui — ou toque em “Adicionar” para registrar um período antigo.</p>';
     el.innerHTML =
-      '<div class="wellhist-title">🌿 Períodos saudáveis</div>' +
+      '<div class="wellhist-head">' +
+        '<div class="wellhist-title">🌿 Períodos saudáveis</div>' +
+        '<button class="wellhist-add" data-act="addwell">➕ Adicionar</button>' +
+      '</div>' +
       '<p class="wellhist-sub">Cada vez que o contador zera, o tempo sem doença fica guardado aqui.</p>' +
-      '<ul class="log wlog">' + items.map(function (it) {
-        var end = it.illness ? ' · até pegar ' + esc(it.illness) : "";
-        return '<li><div class="info"><b>' + esc(it.name) + '</b> — ' + it.days + ' ' + dias(it.days) + ' sem doença' +
-          '<div class="d">' + fmtDate(it.from) + " → " + fmtDate(it.to) + end + '</div></div>' +
-          '<button class="del" data-wellid="' + it.id + '" data-wellidx="' + it.idx + '" aria-label="Excluir">✕</button></li>';
-      }).join("") + '</ul>';
+      body;
   }
 
   function renderPerson(id, p, now) {
@@ -181,6 +186,7 @@
   var histModal = document.getElementById("histModal");
   var menuModal = document.getElementById("menuModal");
   var histEditModal = document.getElementById("histEditModal");
+  var wellAddModal = document.getElementById("wellAddModal");
   var pendingId = null;
   var fixingIllness = false;   // sickModal em modo correção (não zera nada)
   var editRecIdx = null;       // índice do registro do histórico em edição
@@ -295,8 +301,17 @@
     }
   });
 
-  // histórico de períodos saudáveis: excluir
+  // histórico de períodos saudáveis: adicionar (período antigo) / excluir
+  function openWellAdd() {
+    document.getElementById("waPerson").value = "di";
+    document.getElementById("waDays").value = "";
+    document.getElementById("waEnd").value = tsToDateInput(Date.now());
+    document.getElementById("waIllness").value = "";
+    wellAddModal.classList.remove("hidden");
+    setTimeout(function () { document.getElementById("waDays").focus(); }, 50);
+  }
   document.getElementById("wellHistory").addEventListener("click", function (e) {
+    if (e.target.closest('[data-act="addwell"]')) { openWellAdd(); return; }
     var del = e.target.closest("[data-wellid]"); if (!del) return;
     var id = del.getAttribute("data-wellid"), i = +del.getAttribute("data-wellidx");
     var p = state.people[id]; if (!p || !Array.isArray(p.wellRecords)) return;
@@ -304,6 +319,19 @@
     if (confirm("Excluir este período de " + daysBetween(r.from, r.to) + " dias saudáveis de " + p.name + "?")) {
       p.wellRecords.splice(i, 1); render(); commit();
     }
+  });
+  document.getElementById("waSave").addEventListener("click", function () {
+    var id = document.getElementById("waPerson").value;
+    var p = state.people[id]; if (!p) return;
+    var days = parseInt(document.getElementById("waDays").value, 10);
+    if (!(days >= 1)) { document.getElementById("waDays").focus(); return; }
+    var to = dateInputToTs(document.getElementById("waEnd").value);
+    // início = "days" dias antes do fim, ao meio-dia (para bater com daysBetween)
+    var from = startOfDay(to) - days * DAY + 12 * 3600 * 1000;
+    var illness = document.getElementById("waIllness").value.trim();
+    if (!Array.isArray(p.wellRecords)) p.wellRecords = [];
+    p.wellRecords.push({ from: from, to: to, illness: illness });
+    closeModals(); render(); commit();
   });
 
   document.getElementById("heSave").addEventListener("click", function () {

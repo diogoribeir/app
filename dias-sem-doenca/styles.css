@@ -127,7 +127,7 @@ body{
 @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
 .modal-box h2{margin:0 0 12px;font-size:1.2rem;font-weight:800}
 .modal-box label{display:block;font-size:.78rem;color:var(--muted);margin:12px 0 5px;font-weight:700;letter-spacing:.02em}
-.modal-box input[type=text],.modal-box input[type=date]{
+.modal-box input[type=text],.modal-box input[type=date],.modal-box input[type=number],.modal-box select{
   width:100%;padding:13px;border:1.5px solid var(--line);border-radius:12px;font-size:1rem;
   background:var(--paper);color:var(--ink);font-family:inherit
 }
@@ -148,8 +148,12 @@ body{
 /* histórico de períodos saudáveis (embaixo dos cards) */
 .wellhist{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 14px 8px;box-shadow:var(--shadow)}
 .wellhist[hidden]{display:none}
+.wellhist-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .wellhist-title{margin:0;font-size:.95rem;font-weight:800;display:flex;align-items:center;gap:6px}
+.wellhist-add{background:var(--good-soft);color:var(--good);border:0;border-radius:10px;padding:6px 11px;font-weight:800;font-size:.76rem;cursor:pointer;font-family:inherit;flex-shrink:0}
+.wellhist-add:active{filter:brightness(.94)}
 .wellhist-sub{color:var(--muted);font-size:.72rem;margin:2px 0 0}
+.wellhist-empty{color:var(--muted);font-size:.8rem;margin:8px 0 4px;line-height:1.4}
 .wlog li{border-left-color:var(--good)}
 
 .log{list-style:none;padding:0;margin:6px 0 0}
