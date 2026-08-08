@@ -46,6 +46,8 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Períodos saudáveis:** ao registrar uma doença que zera o contador, o tempo sem doença que acabou de
   encerrar (ex.: 32 dias) é guardado em `people.<id>.wellRecords[]` (`{from,to,illness}`) e listado numa
   seção `#wellHistory` embaixo dos cards (por pessoa, ordenado do mais recente, com ✕ para excluir).
+  A seção fica sempre visível e tem **➕ Adicionar** (modal `#wellAddModal`: pessoa + nº de dias + data
+  fim + doença) para registrar períodos antigos manualmente — calcula `from = fim − dias`.
 - **Migração jul/2026:** antes usava Firestore + login; os dados antigos seguem no Firestore
   (`casal/estado`) como backup. Authentication/Firestore podem ser desativados no console se quiser.
 - **Edição:** direto nos arquivos da pasta. Ao mexer no `app.js`/`styles.css`/`index.html`, regenerar o
