@@ -145,6 +145,13 @@ body{
 .share-text{width:100%;margin-top:10px;padding:12px;border:1.5px solid var(--line);border-radius:12px;
   font-size:.95rem;background:var(--paper);color:var(--ink);font-family:inherit;resize:none;line-height:1.5}
 
+/* histórico de períodos saudáveis (embaixo dos cards) */
+.wellhist{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 14px 8px;box-shadow:var(--shadow)}
+.wellhist[hidden]{display:none}
+.wellhist-title{margin:0;font-size:.95rem;font-weight:800;display:flex;align-items:center;gap:6px}
+.wellhist-sub{color:var(--muted);font-size:.72rem;margin:2px 0 0}
+.wlog li{border-left-color:var(--good)}
+
 .log{list-style:none;padding:0;margin:6px 0 0}
 .log li{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-left:4px solid var(--good);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:.9rem}
 .log .info{flex:1;min-width:0}
