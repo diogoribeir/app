@@ -43,6 +43,9 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   (mesma receita 1 dos outros). localStorage é a cópia offline; recarrega ao voltar se houver gravação nova.
 - **Edição de registros:** histórico com ✏️ (corrigir nome/observação/datas) e link "corrigir" na doença
   atual (ajusta sem zerar contador).
+- **Períodos saudáveis:** ao registrar uma doença que zera o contador, o tempo sem doença que acabou de
+  encerrar (ex.: 32 dias) é guardado em `people.<id>.wellRecords[]` (`{from,to,illness}`) e listado numa
+  seção `#wellHistory` embaixo dos cards (por pessoa, ordenado do mais recente, com ✕ para excluir).
 - **Migração jul/2026:** antes usava Firestore + login; os dados antigos seguem no Firestore
   (`casal/estado`) como backup. Authentication/Firestore podem ser desativados no console se quiser.
 - **Edição:** direto nos arquivos da pasta. Ao mexer no `app.js`/`styles.css`/`index.html`, regenerar o

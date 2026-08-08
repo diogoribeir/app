@@ -14,19 +14,28 @@
   function defaultState() {
     var now = Date.now();
     function person(name) {
-      return { name: name, status: "healthy", streakStart: now, illness: null, records: [], best: 0 };
+      return { name: name, status: "healthy", streakStart: now, illness: null, records: [], wellRecords: [], best: 0 };
     }
     return { people: { di: person("Di"), tati: person("Tati") }, coupleBest: 0 };
   }
   function valid(s) { return s && s.people && s.people.di && s.people.tati; }
+  // garante campos novos em estados antigos (backup/nuvem sem wellRecords)
+  function migrate(s) {
+    ["di", "tati"].forEach(function (k) {
+      var p = s.people[k];
+      if (!Array.isArray(p.records)) p.records = [];
+      if (!Array.isArray(p.wellRecords)) p.wellRecords = [];
+    });
+    if (typeof s.coupleBest !== "number") s.coupleBest = 0;
+    return s;
+  }
   function readLocal() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("ddsd_v1");
       if (!raw) return defaultState();
       var s = JSON.parse(raw);
       if (!valid(s)) return defaultState();
-      if (typeof s.coupleBest !== "number") s.coupleBest = 0;
-      return s;
+      return migrate(s);
     } catch (e) { return defaultState(); }
   }
   function writeLocal() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {} }
@@ -52,8 +61,7 @@
       .then(function (v) {
         cloudOK = true;
         if (valid(v)) {
-          state = v;
-          if (typeof state.coupleBest !== "number") state.coupleBest = 0;
+          state = migrate(v);
           writeLocal();
         } else {
           commit();                      // 1ª vez: sobe os dados deste aparelho
@@ -113,8 +121,33 @@
         '<div class="label">' + who.join(" e ") + (who.length > 1 ? " estão doentes 🤒" : " está doente 🤒") + '</div>' +
         '<div class="record">🏆 recorde do casal: ' + (state.coupleBest || 0) + ' ' + dias(state.coupleBest || 0) + '</div>';
     }
+    renderWellHistory();
     writeLocal();
     setStatus();
+  }
+
+  function renderWellHistory() {
+    var el = document.getElementById("wellHistory");
+    if (!el) return;
+    var items = [];
+    [["di", state.people.di], ["tati", state.people.tati]].forEach(function (pair) {
+      var p = pair[1];
+      (p.wellRecords || []).forEach(function (r, i) {
+        items.push({ id: pair[0], idx: i, name: p.name, from: r.from, to: r.to, illness: r.illness, days: daysBetween(r.from, r.to) });
+      });
+    });
+    if (!items.length) { el.hidden = true; el.innerHTML = ""; return; }
+    items.sort(function (a, b) { return b.to - a.to; });
+    el.hidden = false;
+    el.innerHTML =
+      '<div class="wellhist-title">🌿 Períodos saudáveis</div>' +
+      '<p class="wellhist-sub">Cada vez que o contador zera, o tempo sem doença fica guardado aqui.</p>' +
+      '<ul class="log wlog">' + items.map(function (it) {
+        var end = it.illness ? ' · até pegar ' + esc(it.illness) : "";
+        return '<li><div class="info"><b>' + esc(it.name) + '</b> — ' + it.days + ' ' + dias(it.days) + ' sem doença' +
+          '<div class="d">' + fmtDate(it.from) + " → " + fmtDate(it.to) + end + '</div></div>' +
+          '<button class="del" data-wellid="' + it.id + '" data-wellidx="' + it.idx + '" aria-label="Excluir">✕</button></li>';
+      }).join("") + '</ul>';
   }
 
   function renderPerson(id, p, now) {
@@ -230,6 +263,11 @@
     } else {
       var streak = daysBetween(p.streakStart, startedAt);
       if (streak > (p.best || 0)) p.best = streak;
+      // guarda o período saudável que acabou de encerrar (aparece no histórico embaixo)
+      if (streak >= 1) {
+        if (!Array.isArray(p.wellRecords)) p.wellRecords = [];
+        p.wellRecords.push({ from: p.streakStart, to: startedAt, illness: name });
+      }
       p.status = "sick";
       p.illness = { name: name, note: document.getElementById("sickNote").value.trim(), startedAt: startedAt };
     }
@@ -254,6 +292,17 @@
     var i = +del.getAttribute("data-del"), p = state.people[pendingId];
     if (confirm('Excluir o registro de "' + p.records[i].name + '"?')) {
       p.records.splice(i, 1); renderHistList(pendingId); render(); commit();
+    }
+  });
+
+  // histórico de períodos saudáveis: excluir
+  document.getElementById("wellHistory").addEventListener("click", function (e) {
+    var del = e.target.closest("[data-wellid]"); if (!del) return;
+    var id = del.getAttribute("data-wellid"), i = +del.getAttribute("data-wellidx");
+    var p = state.people[id]; if (!p || !Array.isArray(p.wellRecords)) return;
+    var r = p.wellRecords[i]; if (!r) return;
+    if (confirm("Excluir este período de " + daysBetween(r.from, r.to) + " dias saudáveis de " + p.name + "?")) {
+      p.wellRecords.splice(i, 1); render(); commit();
     }
   });
 
@@ -337,8 +386,7 @@
       try {
         var s = JSON.parse(reader.result);
         if (!valid(s)) throw new Error("formato");
-        if (typeof s.coupleBest !== "number") s.coupleBest = 0;
-        state = s; closeModals(); render(); commit();
+        state = migrate(s); closeModals(); render(); commit();
         alert("Backup restaurado com sucesso! ✅");
       } catch (e) { alert("Não consegui ler esse arquivo. Escolha um backup válido (.json)."); }
       importFile.value = "";
