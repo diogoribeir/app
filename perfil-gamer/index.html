@@ -126,6 +126,10 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
 .factive{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 12px}
 .factive .fchip.clear{margin-left:0}
 .fchip.sm{padding:5px 10px;font-size:.68rem;font-weight:700}
+.panelfoot{display:flex;align-items:center;gap:10px;margin-top:16px}
+.panelapply{flex:1;text-align:center;border:0;border-radius:12px;background:var(--accent);color:#fff;
+  font:inherit;font-size:.84rem;font-weight:800;padding:12px 16px;cursor:pointer}
+.panelapply:active{transform:scale(.98)}
 .toolrow{display:flex;align-items:center;gap:8px;margin:11px 0 12px}
 .toolrow select{flex:1;padding:10px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);
   color:var(--ink);font:inherit;font-size:.84rem;font-weight:600}
@@ -650,7 +654,10 @@ function viewJogos(){
     <div class="flabel">Situação</div><div class="frow">${sitChips}</div>
     <div class="flabel">Veredicto</div><div class="frow">${verChips}</div>
     <div class="flabel">Ordenar</div><div class="frow">${ordChips}</div>
-    ${nActive?`<div class="frow" style="margin-top:12px"><button type="button" class="fchip clear" data-unall="1">limpar filtros</button></div>`:""}
+    <div class="panelfoot">
+      ${nActive?`<button type="button" class="fchip clear" data-unall="1">limpar</button>`:""}
+      <button type="button" class="panelapply" data-filttoggle="1">✓ Ver ${lst.length} jogo(s)</button>
+    </div>
   </div>` : "";
   const filters = `<div class="filterbar">
     <button type="button" class="filttoggle ${filtersOpen?"open":""}" data-filttoggle="1">⚙ Filtros${nActive?`<span class="fbadge">${nActive}</span>`:""}<span class="chev">▾</span></button>
