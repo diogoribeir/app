@@ -100,7 +100,9 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Pastas:** `perfil-gamer/` (app publicado: `index.html` + `dados.js` gerado) e
   `perfil-gamer-src/` (dados mestres: `biblioteca_jogos.xlsx` + geradores + docs).
 - **O que faz:** biblioteca de jogos PS4/PS5 com veredictos estilo ACG (Masterpiece → Muito Ruim),
-  3 abas: 🎮 Jogos (busca, filtros por veredicto/status, ordenação, custo/hora R$90) ·
+  3 abas: 🎮 Jogos (busca sempre visível + painel de filtros **recolhível** `⚙ Filtros` — recolhido por
+  padrão p/ dar espaço à lista no celular; quando recolhido mostra a ordenação atual e os filtros ativos
+  como chips; veredicto/status/ordenação dentro do painel, custo/hora R$90) ·
   📊 Estatísticas (distribuição, tempo total jogado, top horas com filtro por veredicto, hall do
   custo/hora, por gênero, motivos de drop) · 🗓 Plano 2026.
 - **PWA:** instalável (manifest + `sw.js` network-first) e abre offline; ícones `icon-192/512.png`
@@ -122,7 +124,8 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   item tem **▶️ "estou jogando"**, que marca o jogo como *jogando agora*: ele vira o card do topo da aba
   Jogos e entra na biblioteca; o "falta na fila" desconta as horas já jogadas desse jogo (estimativa −
   horas). Na aba 📊
-  **Estatísticas**, o "Top 10 — mais horas" tem chips para filtrar por veredicto (Masterpiece, Muito Bom…).
+  **Estatísticas**, o "Top 10 — mais horas" tem chips para filtrar por veredicto (Masterpiece, Muito Bom…)
+  e uma marca discreta **❌** ao lado do nome dos jogos que foram dropados (`enc==="N"`).
 - **Sincronização:** Realtime Database via REST, nó **`planos/perfil-gamer-dt2026`** — a nuvem é a
   fonte da verdade; `perfil-gamer/dados.js` é só a carga inicial (seed). localStorage = cópia offline;
   recarrega ao voltar se houver gravação mais nova (mesma receita 1 do paris-planner). O **Plano 2026**

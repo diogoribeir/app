@@ -112,6 +112,20 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
 .fchip.on .cdot{background:var(--von,#fff)!important;opacity:.9}
 .fchip.clear{margin-left:auto;color:var(--mr);border-style:dashed}
 .fchip:active{transform:scale(.96)}
+.filterbar{display:flex;align-items:center;gap:10px;margin:12px 0 0}
+.filttoggle{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);
+  color:var(--ink);font:inherit;font-size:.8rem;font-weight:800;padding:9px 13px;border-radius:12px;cursor:pointer}
+.filttoggle .chev{color:var(--muted);font-size:.7rem;transition:transform .18s ease}
+.filttoggle.open .chev{transform:rotate(180deg)}
+.filttoggle .fbadge{background:var(--accent);color:#fff;border-radius:999px;font-size:.62rem;font-weight:800;
+  min-width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+.filttoggle:active{transform:scale(.97)}
+.filterbar .count{margin-left:auto}
+.filterpanel{margin:6px 0 12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);
+  padding:2px 12px 12px;animation:fadeUp .18s ease}
+.factive{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 12px}
+.factive .fchip.clear{margin-left:0}
+.fchip.sm{padding:5px 10px;font-size:.68rem;font-weight:700}
 .toolrow{display:flex;align-items:center;gap:8px;margin:11px 0 12px}
 .toolrow select{flex:1;padding:10px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);
   color:var(--ink);font:inherit;font-size:.84rem;font-weight:600}
@@ -500,6 +514,7 @@ const fStatus = new Set();   // multi: S, N, #
 const fVer = new Set();      // multi: veredictos
 let busca = "";
 let ordem = "horas";
+let filtersOpen = false;   // painel de filtros recolhido por padrão (mais espaço p/ a lista no celular)
 let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
 let openGame = null;     // id do card expandido (edição inline, sem modal)
 const secOpen = new Set(["ver"]);  // seções abertas nas Estatísticas
@@ -619,6 +634,29 @@ function viewJogos(){
       </div>
     </div>` : "";
 
+  const nActive = fStatus.size + fVer.size;
+  const ordLabels = {horas:"⏱ Mais horas", veredicto:"🏆 Veredicto", custo:"💰 Custo/h", nome:"🔤 A–Z"};
+  const sitChips = Object.entries(STATUS_LABEL).map(([s,l])=>`<button type="button" class="fchip ${fStatus.has(s)?"on":""}" data-tstatus="${esc(s)}">${l}</button>`).join("");
+  const verChips = ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)}</button>`).join("");
+  const ordChips = Object.entries(ordLabels).map(([o,l])=>`<button type="button" class="fchip ${ordem===o?"on":""}" data-ordem="${o}">${l}</button>`).join("");
+  // recolhido: mostra ordenação atual (abre o painel) + filtros ativos (toque no ✕ remove) + limpar
+  const ctx = filtersOpen ? "" : `<div class="factive">
+    <button type="button" class="fchip sm" data-filttoggle="1">${ordLabels[ordem]}</button>
+    ${[...fStatus].map(s=>`<button type="button" class="fchip sm on" data-tstatus="${esc(s)}">${STATUS_LABEL[s]} ✕</button>`).join("")}
+    ${[...fVer].map(v=>`<button type="button" class="fchip sm on" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)} ✕</button>`).join("")}
+    ${nActive?`<button type="button" class="fchip sm clear" data-unall="1">limpar</button>`:""}
+  </div>`;
+  const filterPanel = filtersOpen ? `<div class="filterpanel">
+    <div class="flabel">Situação</div><div class="frow">${sitChips}</div>
+    <div class="flabel">Veredicto</div><div class="frow">${verChips}</div>
+    <div class="flabel">Ordenar</div><div class="frow">${ordChips}</div>
+    ${nActive?`<div class="frow" style="margin-top:12px"><button type="button" class="fchip clear" data-unall="1">limpar filtros</button></div>`:""}
+  </div>` : "";
+  const filters = `<div class="filterbar">
+    <button type="button" class="filttoggle ${filtersOpen?"open":""}" data-filttoggle="1">⚙ Filtros${nActive?`<span class="fbadge">${nActive}</span>`:""}<span class="chev">▾</span></button>
+    <span class="count num">${lst.length} jogo(s)</span>
+  </div>${ctx}${filterPanel}`;
+
   return `${hero}
   <div class="strip">
     <div class="cell"><div class="v num">${tot}</div><div class="k">jogos</div></div>
@@ -627,25 +665,7 @@ function viewJogos(){
   </div>
   <button type="button" class="addbtn" id="btnAdd">➕ Registrar jogo</button>
   <input class="search" id="busca" type="search" placeholder="Buscar jogo ou gênero…" value="${esc(busca)}" />
-  <div class="flabel">Situação</div>
-  <div class="frow">
-    ${Object.entries(STATUS_LABEL).map(([s,l])=>`<button type="button" class="fchip ${fStatus.has(s)?"on":""}" data-tstatus="${esc(s)}">${l}</button>`).join("")}
-  </div>
-  <div class="flabel">Veredicto</div>
-  <div class="frow">
-    ${ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)}</button>`).join("")}
-  </div>
-  <div class="flabel">Ordenar</div>
-  <div class="frow">
-    <button type="button" class="fchip ${ordem==="horas"?"on":""}" data-ordem="horas">⏱ Mais horas</button>
-    <button type="button" class="fchip ${ordem==="veredicto"?"on":""}" data-ordem="veredicto">🏆 Veredicto</button>
-    <button type="button" class="fchip ${ordem==="custo"?"on":""}" data-ordem="custo">💰 Custo/h</button>
-    <button type="button" class="fchip ${ordem==="nome"?"on":""}" data-ordem="nome">🔤 A–Z</button>
-  </div>
-  <div class="toolrow">
-    <span class="count num">${lst.length} jogo(s)</span>
-    ${(fStatus.size+fVer.size)?`<button type="button" class="fchip clear" data-unall="1">limpar filtros</button>`:""}
-  </div>
+  ${filters}
   ${lst.map(gameCard).join("") || '<p class="lead">Nenhum jogo com esse filtro.</p>'}`;
 }
 
@@ -663,7 +683,7 @@ function viewStats(){
   const topRows = topLst.sort((a,b)=>totalHoras(b)-totalHoras(a)).slice(0,10).map((g,i)=>
     `<div class="rowline"><span class="pos num">${i+1}</span>
       <span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
-      <span class="nm">${esc(g.nome)}</span><span class="hv num">${totalHoras(g)}h</span></div>`).join("")
+      <span class="nm">${esc(g.nome)}</span>${g.enc==="N"?'<span class="droptag" title="dropado">❌</span>':""}<span class="hv num">${totalHoras(g)}h</span></div>`).join("")
     || '<p class="lead" style="margin:6px 2px">Nenhum jogo com esse veredicto.</p>';
   const topChips = `<div class="frow" style="margin-bottom:12px">
     <button type="button" class="fchip ${statVer===""?"on":""}" data-statver="">Todos</button>
@@ -919,6 +939,7 @@ $("#bFile").addEventListener("change", e=>{
 
 document.addEventListener("click", e=>{
   const t = e.target.closest("[data-tab]"); if (t){ tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
+  if (e.target.closest("[data-filttoggle]")){ filtersOpen=!filtersOpen; render(); return; }
   const ts = e.target.closest("[data-tstatus]");
   if (ts){ const s=ts.dataset.tstatus; fStatus.has(s)?fStatus.delete(s):fStatus.add(s); render(); return; }
   const tv = e.target.closest("[data-tver]");
