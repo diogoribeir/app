@@ -25,6 +25,19 @@
       var p = s.people[k];
       if (!Array.isArray(p.records)) p.records = [];
       if (!Array.isArray(p.wellRecords)) p.wellRecords = [];
+      // Back-fill automático: se a pessoa está doente agora, o período saudável
+      // que acabou de encerrar vai de streakStart até o início da doença. Doenças
+      // registradas antes desta função existir não guardaram esse período — então
+      // o recuperamos aqui a partir dos dados que já estão salvos. Idempotente:
+      // usa o mesmo formato do registro automático (ver handler "sick"), então
+      // não duplica quando o período já foi guardado.
+      if (p.status === "sick" && p.illness && p.illness.startedAt) {
+        var from = p.streakStart, to = p.illness.startedAt;
+        if (daysBetween(from, to) >= 1) {
+          var exists = p.wellRecords.some(function (r) { return r.from === from && r.to === to; });
+          if (!exists) p.wellRecords.push({ from: from, to: to, illness: p.illness.name });
+        }
+      }
     });
     if (typeof s.coupleBest !== "number") s.coupleBest = 0;
     return s;
@@ -180,6 +193,34 @@
     }
   }
 
+  // ---------- desfazer (undo da última ação dos cards) ----------
+  // Guarda uma cópia do estado ANTES de "Ficou doente" / "Sarou" / "corrigir"
+  // e mostra a barra "Desfazer" — para o caso de clicar no botão errado.
+  var undoState = null, undoTimer = null;
+  var undoBar = document.getElementById("undoBar");
+  function pushUndo(label) {
+    undoState = JSON.parse(JSON.stringify(state));
+    if (!undoBar) return;
+    document.getElementById("undoText").textContent = label;
+    undoBar.classList.remove("hidden");
+    if (undoTimer) clearTimeout(undoTimer);
+    undoTimer = setTimeout(hideUndo, 15000);
+  }
+  function hideUndo() {
+    if (undoTimer) { clearTimeout(undoTimer); undoTimer = null; }
+    if (undoBar) undoBar.classList.add("hidden");
+    undoState = null;
+  }
+  if (undoBar) {
+    document.getElementById("undoBtn").addEventListener("click", function () {
+      if (!undoState) { hideUndo(); return; }
+      var prev = undoState;
+      hideUndo();
+      state = prev;
+      render(); commit();
+    });
+  }
+
   // ---------- modais ----------
   var sickModal = document.getElementById("sickModal");
   var wellModal = document.getElementById("wellModal");
@@ -261,6 +302,7 @@
     if (!name) { document.getElementById("sickName").focus(); return; }
     var p = state.people[pendingId];
     var startedAt = dateInputToTs(document.getElementById("sickDate").value);
+    pushUndo(fixingIllness ? ("Correção da doença de " + p.name) : (p.name + " ficou doente"));
     if (fixingIllness && p.illness) {
       // só corrige os dados da doença atual — não mexe em contador nem histórico
       p.illness.name = name;
@@ -285,6 +327,7 @@
     var p = state.people[pendingId]; if (!p.illness) { closeModals(); return; }
     var rec = dateInputToTs(document.getElementById("wellDate").value);
     if (rec < p.illness.startedAt) rec = p.illness.startedAt;
+    pushUndo(p.name + " sarou");
     p.records.push({ name: p.illness.name, note: p.illness.note, startedAt: p.illness.startedAt, recoveredAt: rec });
     p.status = "healthy"; p.streakStart = rec; p.illness = null;
     closeModals(); render(); commit();
