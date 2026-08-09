@@ -108,6 +108,22 @@ body{
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .hist-link{background:none;border:0;color:var(--muted);font-size:.7rem;margin-top:9px;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 
+/* barra de desfazer (toast flutuante) */
+.undobar{
+  position:fixed;left:50%;transform:translateX(-50%);
+  bottom:calc(16px + env(safe-area-inset-bottom));z-index:60;
+  display:flex;align-items:center;gap:12px;
+  background:linear-gradient(150deg,var(--hero-bg),var(--hero-bg2));color:var(--hero-ink);
+  border:1px solid rgba(231,181,78,.28);border-radius:14px;
+  padding:10px 12px 10px 16px;box-shadow:0 8px 30px rgba(0,0,0,.4);
+  max-width:calc(100% - 28px);width:max-content;animation:up .2s ease
+}
+.undobar.hidden{display:none}
+.undo-text{font-size:.82rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.undo-btn{flex-shrink:0;background:var(--hero-accent);color:#1E2E26;border:0;border-radius:10px;
+  padding:8px 13px;font-weight:800;font-size:.8rem;cursor:pointer;font-family:inherit}
+.undo-btn:active{filter:brightness(.94)}
+
 .footer{max-width:560px;margin:0 auto;padding:2px 16px 16px;width:100%;text-align:center}
 .tag{font-size:.68rem;color:var(--good);background:var(--good-soft);padding:3px 12px;border-radius:999px;letter-spacing:.04em}
 .tag.warn{color:var(--bad);background:var(--bad-soft)}
@@ -195,6 +211,12 @@ body{
   </main>
 
   <footer class="footer"><span id="statusTag" class="tag">funciona offline</span></footer>
+
+  <!-- Barra de desfazer (última ação dos cards) -->
+  <div id="undoBar" class="undobar hidden" role="status" aria-live="polite">
+    <span id="undoText" class="undo-text"></span>
+    <button id="undoBtn" class="undo-btn" type="button">↩︎ Desfazer</button>
+  </div>
 
   <!-- Modal: registrar doença -->
   <div id="sickModal" class="modal hidden" role="dialog" aria-modal="true">
@@ -336,6 +358,19 @@ body{
       var p = s.people[k];
       if (!Array.isArray(p.records)) p.records = [];
       if (!Array.isArray(p.wellRecords)) p.wellRecords = [];
+      // Back-fill automático: se a pessoa está doente agora, o período saudável
+      // que acabou de encerrar vai de streakStart até o início da doença. Doenças
+      // registradas antes desta função existir não guardaram esse período — então
+      // o recuperamos aqui a partir dos dados que já estão salvos. Idempotente:
+      // usa o mesmo formato do registro automático (ver handler "sick"), então
+      // não duplica quando o período já foi guardado.
+      if (p.status === "sick" && p.illness && p.illness.startedAt) {
+        var from = p.streakStart, to = p.illness.startedAt;
+        if (daysBetween(from, to) >= 1) {
+          var exists = p.wellRecords.some(function (r) { return r.from === from && r.to === to; });
+          if (!exists) p.wellRecords.push({ from: from, to: to, illness: p.illness.name });
+        }
+      }
     });
     if (typeof s.coupleBest !== "number") s.coupleBest = 0;
     return s;
@@ -491,6 +526,34 @@ body{
     }
   }
 
+  // ---------- desfazer (undo da última ação dos cards) ----------
+  // Guarda uma cópia do estado ANTES de "Ficou doente" / "Sarou" / "corrigir"
+  // e mostra a barra "Desfazer" — para o caso de clicar no botão errado.
+  var undoState = null, undoTimer = null;
+  var undoBar = document.getElementById("undoBar");
+  function pushUndo(label) {
+    undoState = JSON.parse(JSON.stringify(state));
+    if (!undoBar) return;
+    document.getElementById("undoText").textContent = label;
+    undoBar.classList.remove("hidden");
+    if (undoTimer) clearTimeout(undoTimer);
+    undoTimer = setTimeout(hideUndo, 15000);
+  }
+  function hideUndo() {
+    if (undoTimer) { clearTimeout(undoTimer); undoTimer = null; }
+    if (undoBar) undoBar.classList.add("hidden");
+    undoState = null;
+  }
+  if (undoBar) {
+    document.getElementById("undoBtn").addEventListener("click", function () {
+      if (!undoState) { hideUndo(); return; }
+      var prev = undoState;
+      hideUndo();
+      state = prev;
+      render(); commit();
+    });
+  }
+
   // ---------- modais ----------
   var sickModal = document.getElementById("sickModal");
   var wellModal = document.getElementById("wellModal");
@@ -572,6 +635,7 @@ body{
     if (!name) { document.getElementById("sickName").focus(); return; }
     var p = state.people[pendingId];
     var startedAt = dateInputToTs(document.getElementById("sickDate").value);
+    pushUndo(fixingIllness ? ("Correção da doença de " + p.name) : (p.name + " ficou doente"));
     if (fixingIllness && p.illness) {
       // só corrige os dados da doença atual — não mexe em contador nem histórico
       p.illness.name = name;
@@ -596,6 +660,7 @@ body{
     var p = state.people[pendingId]; if (!p.illness) { closeModals(); return; }
     var rec = dateInputToTs(document.getElementById("wellDate").value);
     if (rec < p.illness.startedAt) rec = p.illness.startedAt;
+    pushUndo(p.name + " sarou");
     p.records.push({ name: p.illness.name, note: p.illness.note, startedAt: p.illness.startedAt, recoveredAt: rec });
     p.status = "healthy"; p.streakStart = rec; p.illness = null;
     closeModals(); render(); commit();

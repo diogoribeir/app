@@ -29,6 +29,12 @@
 
   <footer class="footer"><span id="statusTag" class="tag">funciona offline</span></footer>
 
+  <!-- Barra de desfazer (última ação dos cards) -->
+  <div id="undoBar" class="undobar hidden" role="status" aria-live="polite">
+    <span id="undoText" class="undo-text"></span>
+    <button id="undoBtn" class="undo-btn" type="button">↩︎ Desfazer</button>
+  </div>
+
   <!-- Modal: registrar doença -->
   <div id="sickModal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
