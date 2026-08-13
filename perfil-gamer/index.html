@@ -240,6 +240,25 @@ details.sec>summary:active{background:var(--surface2)}
   border-radius:9px;font-size:.82rem;cursor:pointer;display:grid;place-items:center;padding:0}
 .pbtn.del{color:var(--mr)}
 .pbtn:active{transform:scale(.93)}
+/* ajustar horas por semana */
+details.wkbox{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+details.wkbox>summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:800}
+details.wkbox>summary::-webkit-details-marker{display:none}
+details.wkbox>summary .wksub{margin-left:auto;font-size:.66rem;color:var(--muted);font-weight:700}
+details.wkbox>summary .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
+details.wkbox[open]>summary .schev{transform:rotate(90deg)}
+.wkbody{padding:2px 14px 12px}
+.wknote{font-size:.68rem;color:var(--muted);line-height:1.5;margin:2px 0 8px;font-weight:600}
+.wkrow{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line)}
+.wkrow:last-child{border-bottom:0}
+.wklbl{flex:1;min-width:0;font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkinp{width:60px;text-align:center;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);font:inherit;font-size:.85rem;font-weight:800}
+.wkinp:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
+.wkinp.on{border-color:var(--accent);color:var(--accent)}
+.wkun{font-size:.72rem;color:var(--muted);font-weight:700;margin-left:-3px}
+.wkrst{border:1px solid var(--line);background:var(--surface2);color:var(--accent);width:30px;height:30px;border-radius:9px;font-size:.9rem;flex:0 0 auto;cursor:pointer}
+.wkrst:active{transform:scale(.93)}
+.wkrst-ph{width:30px;flex:0 0 auto}
 /* jogatinas (playthroughs) dentro do card */
 .runs{margin-top:11px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .runrow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:.75rem;font-weight:700}
@@ -416,6 +435,11 @@ function saveJogosQuiet(){
 }
 // edição inline: commit dos campos do card ao sair de cada campo
 document.addEventListener("change", e=>{
+  const wk = e.target.closest("[data-wk]");
+  if (wk){ const k=wk.dataset.wk;
+    const v = wk.value==="" ? null : Math.max(0, Math.round(Number(wk.value)||0));
+    if (v==null) delete HS[k]; else HS[k]=v;
+    savePlano(); render(); return; }
   const card = e.target.closest(".game"); if (!card) return;
   const g = J.find(x=>x.id===Number(card.dataset.gid)); if (!g) return;
   const fld = e.target.closest("[data-f]");
@@ -437,6 +461,7 @@ document.addEventListener("change", e=>{
 /* ---------- plano 2026 (editável, sincronizado) ---------- */
 const LS_PLANO = "perfil-gamer:plano";
 let P = [];              // itens do plano [{jogo,est,data,iniciado,jid}]
+let HS = {};             // ajuste de horas por semana { "<segunda ISO>": nº } — quando vazio usa o padrão (10h)
 const estH = s => { const m = String(s??"").match(/[\d.]+/); return m ? parseFloat(m[0]) : 0; };
 
 /* --- orçamento de horas: calculado automaticamente a partir de hoje até 31/01/2027 --- */
@@ -449,22 +474,39 @@ const PERIODOS = [                        // exceções (por dia)
 function ymd(d){ return d.toISOString().slice(0,10); }
 function horasDoDia(iso){
   for (const p of PERIODOS){ if (iso >= p.de && iso <= p.ate) return p.hDia; }
-  return HORAS_SEMANA/7;                   // média diária do teto semanal
+  return HORAS_SEMANA/7;                   // média diária do teto semanal (padrão)
 }
-function horasDisponiveis(){
+// semana = segunda→domingo; a chave do ajuste é a segunda-feira
+function segunda(d){ const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-((x.getDay()+6)%7)); return x; }
+// semanas do plano (de hoje até 31/jan) com o padrão de cada uma (soma de horasDoDia dos dias no intervalo)
+function semanasPlano(){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const fim = new Date(PLANO_FIM+"T00:00:00");
-  let total = 0;
-  for (let d = new Date(hoje); d <= fim; d.setDate(d.getDate()+1)) total += horasDoDia(ymd(d));
-  return Math.round(total);
+  const out = [];
+  for (let ws = segunda(hoje); ws <= fim; ws.setDate(ws.getDate()+7)){
+    const we = new Date(ws); we.setDate(we.getDate()+6);
+    const de = ws < hoje ? new Date(hoje) : new Date(ws);
+    const ate = we > fim ? new Date(fim) : new Date(we);
+    let def = 0;
+    for (let d = new Date(de); d <= ate; d.setDate(d.getDate()+1)) def += horasDoDia(ymd(d));
+    out.push({ key: ymd(ws), de, ate, def: Math.round(def) });
+  }
+  return out;
 }
+// horas efetivas da semana: o ajuste manual (se houver) ou o padrão
+function horasDaSemana(w){ return HS[w.key] != null ? HS[w.key] : w.def; }
+function horasDisponiveis(){ return Math.round(semanasPlano().reduce((s,w)=>s+horasDaSemana(w),0)); }
 const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function fmtData(iso){
   if (!iso) return "s/ data";
   const [a,m,dd] = iso.split("-"); return `${dd}/${MESES[Number(m)-1]}`;
 }
+function fmtSemana(w){
+  const a=w.de, b=w.ate, ma=MESES[a.getMonth()], mb=MESES[b.getMonth()];
+  return ma===mb ? `${a.getDate()}–${b.getDate()}/${ma}` : `${a.getDate()}/${ma} – ${b.getDate()}/${mb}`;
+}
 function savePlano(){
-  const payload = { itens: P };
+  const payload = { itens: P, horasSemana: HS };
   try { localStorage.setItem(LS_PLANO, JSON.stringify(payload)); } catch(e){}
   fetch(`${SYNC_URL}/plano2026.json`, { method:"PUT", body: JSON.stringify(payload) })
     .then(()=>{ cloudOK = true; syncStamp = Date.now();
@@ -476,7 +518,8 @@ function savePlano(){
 async function boot(){
   try { const raw = localStorage.getItem(LS_KEY); if (raw) J = JSON.parse(raw); } catch(e){}
   try { const raw = localStorage.getItem(LS_PLANO); if (raw){ const p = JSON.parse(raw);
-    if (p && Array.isArray(p.itens)) P = p.itens; } } catch(e){}
+    if (p && Array.isArray(p.itens)) P = p.itens;
+    if (p && p.horasSemana && typeof p.horasSemana==="object") HS = p.horasSemana; } } catch(e){}
   render();  // 1ª pintura com a cópia do aparelho (evita "piscar" o seed antigo)
   try {
     const r = await fetch(`${SYNC_URL}/jogos.json`, { cache:"no-store" });
@@ -496,6 +539,7 @@ async function boot(){
       const v = await r.json();
       if (v && Array.isArray(v.itens)) P = v.itens;
       else if (P.length === 0 && Array.isArray(window.PLANO)) { P = window.PLANO.slice(); savePlano(); }
+      if (v && v.horasSemana && typeof v.horasSemana==="object") HS = v.horasSemana;
     }
   } catch(e){}
   if (P.length === 0 && Array.isArray(window.PLANO)) P = window.PLANO.slice();
@@ -519,6 +563,7 @@ const fVer = new Set();      // multi: veredictos
 let busca = "";
 let ordem = "horas";
 let filtersOpen = false;   // painel de filtros recolhido por padrão (mais espaço p/ a lista no celular)
+let wkOpen = false;        // painel "ajustar horas por semana" (Plano) recolhido por padrão
 let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
 let openGame = null;     // id do card expandido (edição inline, sem modal)
 const secOpen = new Set(["ver"]);  // seções abertas nas Estatísticas
@@ -784,8 +829,24 @@ function viewPlano(){
       </div>
     </div>`;
   }).join("") : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
-  return `<p class="lead">Fila até 31/jan/2027. As horas disponíveis recalculam sozinhas a partir de hoje (10h/semana; 21–24/set 10h/dia; sem jogatina 10–19/set), e o "falta" desconta as horas que você já jogou do jogo atual.</p>
-    <h2>⏳ Horas disponíveis (auto)</h2>
+  // ajuste de horas por semana (padrão 10h; editável na respectiva semana)
+  const semanas = semanasPlano();
+  const nAjust = semanas.filter(w=>HS[w.key]!=null).length;
+  const wkRows = semanas.map(w=>{
+    const ef = horasDaSemana(w), on = HS[w.key]!=null;
+    return `<div class="wkrow">
+      <span class="wklbl">${fmtSemana(w)}</span>
+      <input class="wkinp${on?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-wk="${w.key}" value="${ef}">
+      <span class="wkun">h</span>
+      ${on?`<button type="button" class="wkrst" data-wkreset="${w.key}" title="Voltar ao padrão (${w.def}h)">↺</button>`:'<span class="wkrst-ph"></span>'}
+    </div>`;
+  }).join("");
+  const wkSec = `<details class="wkbox" ${wkOpen?"open":""}>
+    <summary><span>⚙️ Ajustar horas por semana</span><span class="wksub">${nAjust?`${nAjust} ajustada${nAjust>1?"s":""}`:"padrão 10h"}</span><span class="schev">▸</span></summary>
+    <div class="wkbody"><p class="wknote">Cada semana começa em 10h. Mude o número na semana em que vai jogar mais (ou menos) — o total <b>disponível</b> recalcula sozinho.</p>${wkRows}</div>
+  </details>`;
+  return `<p class="lead">Fila até 31/jan/2027. Cada semana vale 10h por padrão, mas dá pra editar semana a semana em "⚙️ Ajustar horas por semana" (21–24/set já vem 10h/dia; sem jogatina 10–19/set). O "falta" desconta as horas que você já jogou do jogo atual.</p>
+    <h2>⏳ Horas disponíveis</h2>
     <div class="card">
       <div class="strip" style="margin:0">
         <div class="cell"><div class="v num">${Math.round(somaEst)}h</div><div class="k">falta na fila</div></div>
@@ -795,6 +856,7 @@ function viewPlano(){
       <div class="bar" style="margin-top:12px"><div class="track"><div class="fill" style="width:${Math.max(pct,3)}%;background:${cor}">${Math.round(pct)}%</div></div></div>
       <div class="lead" style="margin:8px 2px 0;color:${cor}">${cabe?`✓ Cabe no tempo — sobram ${Math.round(rest)}h até 31/jan.`:`⚠ Passou ${Math.abs(Math.round(rest))}h do disponível. Tire um jogo ou reduza estimativas.`}</div>
     </div>
+    ${wkSec}
     <button type="button" class="addbtn" id="btnAddPlano">➕ Adicionar jogo planejado</button>
     <h2>🗓 Fila de jogos (por data)</h2><div class="card">${rows}</div>`;
 }
@@ -816,6 +878,8 @@ function render(){
   document.querySelectorAll("details.sec").forEach(d=>d.addEventListener("toggle", ()=>{
     d.open ? secOpen.add(d.dataset.sec) : secOpen.delete(d.dataset.sec);
   }));
+  const wb = document.querySelector("details.wkbox");
+  if (wb) wb.addEventListener("toggle", ()=>{ wkOpen = wb.open; });
 }
 
 /* ---------- registrar / editar / excluir ---------- */
@@ -957,6 +1021,8 @@ document.addEventListener("click", e=>{
   if (e.target.closest("#btnAdd")){ openModal(null); return; }
   const sv = e.target.closest("[data-statver]");
   if (sv){ statVer = sv.dataset.statver; render(); return; }
+  const wr = e.target.closest("[data-wkreset]");
+  if (wr){ delete HS[wr.dataset.wkreset]; savePlano(); render(); return; }
   if (e.target.closest("#btnAddPlano")){ openPlano(null); return; }
   const pe = e.target.closest("[data-peditar]");
   if (pe){ openPlano(Number(pe.dataset.peditar)); return; }
