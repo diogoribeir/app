@@ -251,6 +251,7 @@ details.wkbox[open]>summary .schev{transform:rotate(90deg)}
 .wknote{font-size:.68rem;color:var(--muted);line-height:1.5;margin:2px 0 8px;font-weight:600}
 .wkrow{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line)}
 .wkrow:last-child{border-bottom:0}
+.wkrow.wkpad{border-bottom:2px solid var(--line);margin-bottom:3px;padding-bottom:9px}
 .wklbl{flex:1;min-width:0;font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wkinp{width:60px;text-align:center;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);font:inherit;font-size:.85rem;font-weight:800}
 .wkinp:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
@@ -435,6 +436,9 @@ function saveJogosQuiet(){
 }
 // edição inline: commit dos campos do card ao sair de cada campo
 document.addEventListener("change", e=>{
+  if (e.target.id==="padSemana"){
+    const v = Math.max(0, Math.round(Number(e.target.value)||0));
+    padraoSemana = v; savePlano(); render(); return; }
   const wk = e.target.closest("[data-wk]");
   if (wk){ const k=wk.dataset.wk;
     const v = wk.value==="" ? null : Math.max(0, Math.round(Number(wk.value)||0));
@@ -466,15 +470,16 @@ const estH = s => { const m = String(s??"").match(/[\d.]+/); return m ? parseFlo
 
 /* --- orçamento de horas: calculado automaticamente a partir de hoje até 31/01/2027 --- */
 const PLANO_FIM = "2027-01-31";           // horizonte do plano
-const HORAS_SEMANA = 10;                  // no máximo 10h/semana normalmente
-const PERIODOS = [                        // exceções (por dia)
+const HORAS_SEMANA = 10;                  // padrão de fábrica (↺ volta pra cá)
+let padraoSemana = HORAS_SEMANA;          // horas/semana padrão — editável globalmente (vale pra todas as semanas sem ajuste)
+const PERIODOS = [                        // exceções (por dia) — independem do padrão semanal
   { de:"2026-09-10", ate:"2026-09-19", hDia:0  },  // sem jogatina (viagem)
   { de:"2026-09-21", ate:"2026-09-24", hDia:10 },  // 10h por dia
 ];
 function ymd(d){ return d.toISOString().slice(0,10); }
 function horasDoDia(iso){
   for (const p of PERIODOS){ if (iso >= p.de && iso <= p.ate) return p.hDia; }
-  return HORAS_SEMANA/7;                   // média diária do teto semanal (padrão)
+  return padraoSemana/7;                   // média diária do padrão semanal
 }
 // semana = segunda→domingo; a chave do ajuste é a segunda-feira
 function segunda(d){ const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-((x.getDay()+6)%7)); return x; }
@@ -506,7 +511,7 @@ function fmtSemana(w){
   return ma===mb ? `${a.getDate()}–${b.getDate()}/${ma}` : `${a.getDate()}/${ma} – ${b.getDate()}/${mb}`;
 }
 function savePlano(){
-  const payload = { itens: P, horasSemana: HS };
+  const payload = { itens: P, horasSemana: HS, padraoSemana };
   try { localStorage.setItem(LS_PLANO, JSON.stringify(payload)); } catch(e){}
   fetch(`${SYNC_URL}/plano2026.json`, { method:"PUT", body: JSON.stringify(payload) })
     .then(()=>{ cloudOK = true; syncStamp = Date.now();
@@ -519,7 +524,8 @@ async function boot(){
   try { const raw = localStorage.getItem(LS_KEY); if (raw) J = JSON.parse(raw); } catch(e){}
   try { const raw = localStorage.getItem(LS_PLANO); if (raw){ const p = JSON.parse(raw);
     if (p && Array.isArray(p.itens)) P = p.itens;
-    if (p && p.horasSemana && typeof p.horasSemana==="object") HS = p.horasSemana; } } catch(e){}
+    if (p && p.horasSemana && typeof p.horasSemana==="object") HS = p.horasSemana;
+    if (p && Number.isFinite(p.padraoSemana)) padraoSemana = p.padraoSemana; } } catch(e){}
   render();  // 1ª pintura com a cópia do aparelho (evita "piscar" o seed antigo)
   try {
     const r = await fetch(`${SYNC_URL}/jogos.json`, { cache:"no-store" });
@@ -540,6 +546,7 @@ async function boot(){
       if (v && Array.isArray(v.itens)) P = v.itens;
       else if (P.length === 0 && Array.isArray(window.PLANO)) { P = window.PLANO.slice(); savePlano(); }
       if (v && v.horasSemana && typeof v.horasSemana==="object") HS = v.horasSemana;
+      if (v && Number.isFinite(v.padraoSemana)) padraoSemana = v.padraoSemana;
     }
   } catch(e){}
   if (P.length === 0 && Array.isArray(window.PLANO)) P = window.PLANO.slice();
@@ -829,9 +836,16 @@ function viewPlano(){
       </div>
     </div>`;
   }).join("") : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
-  // ajuste de horas por semana (padrão 10h; editável na respectiva semana)
+  // ajuste de horas por semana (padrão global editável; e por semana na respectiva linha)
   const semanas = semanasPlano();
   const nAjust = semanas.filter(w=>HS[w.key]!=null).length;
+  const padOn = padraoSemana!==HORAS_SEMANA;
+  const padRow = `<div class="wkrow wkpad">
+      <span class="wklbl"><b>Padrão de todas as semanas</b></span>
+      <input class="wkinp${padOn?" on":""}" type="number" min="0" step="1" inputmode="numeric" id="padSemana" value="${padraoSemana}">
+      <span class="wkun">h</span>
+      ${padOn?`<button type="button" class="wkrst" data-padreset="1" title="Voltar ao padrão de fábrica (${HORAS_SEMANA}h)">↺</button>`:'<span class="wkrst-ph"></span>'}
+    </div>`;
   const wkRows = semanas.map(w=>{
     const ef = horasDaSemana(w), on = HS[w.key]!=null;
     return `<div class="wkrow">
@@ -841,11 +855,12 @@ function viewPlano(){
       ${on?`<button type="button" class="wkrst" data-wkreset="${w.key}" title="Voltar ao padrão (${w.def}h)">↺</button>`:'<span class="wkrst-ph"></span>'}
     </div>`;
   }).join("");
+  const wkSub = nAjust ? `padrão ${padraoSemana}h · ${nAjust} ajustada${nAjust>1?"s":""}` : `padrão ${padraoSemana}h`;
   const wkSec = `<details class="wkbox" ${wkOpen?"open":""}>
-    <summary><span>⚙️ Ajustar horas por semana</span><span class="wksub">${nAjust?`${nAjust} ajustada${nAjust>1?"s":""}`:"padrão 10h"}</span><span class="schev">▸</span></summary>
-    <div class="wkbody"><p class="wknote">Cada semana começa em 10h. Mude o número na semana em que vai jogar mais (ou menos) — o total <b>disponível</b> recalcula sozinho.</p>${wkRows}</div>
+    <summary><span>⚙️ Ajustar horas por semana</span><span class="wksub">${wkSub}</span><span class="schev">▸</span></summary>
+    <div class="wkbody"><p class="wknote">Mude o <b>padrão</b> pra trocar todas as semanas de uma vez (ex.: 10 → 8). Depois dá pra ajustar semanas específicas por baixo — o total <b>disponível</b> recalcula sozinho.</p>${padRow}${wkRows}</div>
   </details>`;
-  return `<p class="lead">Fila até 31/jan/2027. Cada semana vale 10h por padrão, mas dá pra editar semana a semana em "⚙️ Ajustar horas por semana" (21–24/set já vem 10h/dia; sem jogatina 10–19/set). O "falta" desconta as horas que você já jogou do jogo atual.</p>
+  return `<p class="lead">Fila até 31/jan/2027. Cada semana vale ${padraoSemana}h por padrão (mude o padrão ou semanas específicas em "⚙️ Ajustar horas por semana"; 21–24/set já vem 10h/dia; sem jogatina 10–19/set). O "falta" desconta as horas que você já jogou do jogo atual.</p>
     <h2>⏳ Horas disponíveis</h2>
     <div class="card">
       <div class="strip" style="margin:0">
@@ -1021,6 +1036,7 @@ document.addEventListener("click", e=>{
   if (e.target.closest("#btnAdd")){ openModal(null); return; }
   const sv = e.target.closest("[data-statver]");
   if (sv){ statVer = sv.dataset.statver; render(); return; }
+  if (e.target.closest("[data-padreset]")){ padraoSemana = HORAS_SEMANA; savePlano(); render(); return; }
   const wr = e.target.closest("[data-wkreset]");
   if (wr){ delete HS[wr.dataset.wkreset]; savePlano(); render(); return; }
   if (e.target.closest("#btnAddPlano")){ openPlano(null); return; }
