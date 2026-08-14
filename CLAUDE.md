@@ -125,12 +125,14 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   motivo, jogatinas W2+, análise interna, Excluir) — salva ao sair de cada campo, sem abrir janela.
   A aba 🗓 **Plano 2026** é editável: cada jogo planejado tem só **nome + estimativa de horas + data
   (calendário)**; a fila fica **ordenada por data**. As **horas disponíveis** vão de hoje até
-  **31/jan/2027**: cada semana vale **10h por padrão** (`HORAS_SEMANA`), com exceções por dia
-  (`PERIODOS`: 21–24/set 10h/dia; sem jogatina 10–19/set) e horizonte `PLANO_FIM`. O painel recolhível
-  **⚙️ Ajustar horas por semana** (`details.wkbox`, estado `wkOpen`) lista cada semana (segunda→domingo,
-  via `semanasPlano()`/`segunda()`) com um input editável — dá pra **subir/baixar as horas da respectiva
-  semana** e o total "disponível" recalcula; ↺ volta ao padrão. Ajustes ficam em `HS` (`{ "<segunda ISO>":
-  nº }`) e o app mostra se a fila cabe (sobra/falta). Cada
+  **31/jan/2027**: cada semana vale um **padrão editável** de horas — `padraoSemana`, que começa em
+  `HORAS_SEMANA` (10, o padrão de fábrica p/ o ↺) — com exceções por dia (`PERIODOS`: 21–24/set 10h/dia;
+  sem jogatina 10–19/set) e horizonte `PLANO_FIM`. O painel recolhível **⚙️ Ajustar horas por semana**
+  (`details.wkbox`, estado `wkOpen`) tem no topo o **Padrão de todas as semanas** (`#padSemana`) — mudar
+  ali troca **todas** as semanas de uma vez (ex.: 10→8) — e abaixo lista cada semana (segunda→domingo, via
+  `semanasPlano()`/`segunda()`) com um input editável p/ **subir/baixar as horas da respectiva semana**; o
+  total "disponível" recalcula e ↺ volta ao padrão. Ajustes por semana ficam em `HS` (`{ "<segunda ISO>":
+  nº }`), sobrepondo o padrão global; o app mostra se a fila cabe (sobra/falta). Cada
   item tem **▶️ "estou jogando"**, que marca o jogo como *jogando agora*: ele vira o card do topo da aba
   Jogos e entra na biblioteca; o "falta na fila" desconta as horas já jogadas desse jogo (estimativa −
   horas). Na aba 📊
@@ -139,8 +141,8 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Sincronização:** Realtime Database via REST, nó **`planos/perfil-gamer-dt2026`** — a nuvem é a
   fonte da verdade; `perfil-gamer/dados.js` é só a carga inicial (seed). localStorage = cópia offline;
   recarrega ao voltar se houver gravação mais nova (mesma receita 1 do paris-planner). O **Plano 2026**
-  (jogos planejados + ajustes de horas por semana) sincroniza no mesmo nó, chave `plano2026`
-  (`{itens, horasSemana}`); `window.PLANO` do `dados.js` é só o seed inicial.
+  (jogos planejados + padrão global + ajustes de horas por semana) sincroniza no mesmo nó, chave
+  `plano2026` (`{itens, horasSemana, padraoSemana}`); `window.PLANO` do `dados.js` é só o seed inicial.
 - **Atualização em massa/histórico:** `perfil-gamer-src/biblioteca_jogos.xlsx` + `gerar_doc.py` +
   `gerar_dados.py` (regenera o seed). ⚠️ O seed NÃO sobrescreve a nuvem — para repor a nuvem a partir
   do xlsx é preciso apagar o nó `planos/perfil-gamer-dt2026/jogos` (o app então sobe o seed de novo).
