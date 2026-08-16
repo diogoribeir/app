@@ -1,6 +1,8 @@
 # Guia dos Apps — Di & Tati (leia isto primeiro)
 
-Este repositório hospeda **5 apps** do casal Di (Diogo) & Tati, publicados juntos no GitHub Pages.
+Este repositório hospeda **4 apps** do casal Di (Diogo) & Tati, publicados juntos no GitHub Pages.
+(O App 2 — 📊 Roteiro Paris, o do Diogo, `roteiro-paris/` — foi **removido em ago/2026**; segue no
+histórico do git. Não confundir com o App 3 — ✈️ Paris Trip Planner, o da Tati, `paris-planner/`.)
 Este arquivo é o contexto completo para qualquer sessão nova do Claude: estrutura, Firebase,
 como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 
@@ -26,8 +28,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - O workflow `.github/workflows/deploy-pages.yml` roda **a cada push no `master`** (ou manualmente:
   aba **Actions → "Publicar apps no GitHub Pages" → Run workflow**).
 - Ele monta o site assim: raiz → `home/` (página inicial com a lista de apps) · `/dias-sem-doenca/` →
-  `dias-sem-doenca/` · `/roteiro-paris/` → `roteiro-paris/` · `/paris-planner/` → `paris-planner/` ·
-  `/perfil-gamer/` → `perfil-gamer/`.
+  `dias-sem-doenca/` · `/paris-planner/` → `paris-planner/` · `/perfil-gamer/` → `perfil-gamer/`.
 - Fluxo de trabalho do Claude: **branch → commit → push → PR → merge no `master`** (o Diogo autoriza o
   Claude a mergear via ferramentas do GitHub). Depois do merge, verificar que o run terminou `success`.
 - O site atualiza ~1 min após o deploy (o cache do celular pode segurar alguns minutos).
@@ -60,22 +61,9 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   arquivo único com `python3 dias-sem-doenca/build-standalone.py` e subir a versão de cache no `sw.js`
   (`CACHE = "dias-sem-doenca-vN"`).
 
-## App 2 — 📊 Roteiro Paris (o do Diogo)
-- **URL:** https://diogoribeir.github.io/app/roteiro-paris/
-- **Pasta:** `roteiro-paris/` — **arquivo único** `index.html` (dados embutidos em constantes JS).
-- **Viagem (datas FIXAS — respeitar sempre):** ida GRU→CDG **10/09/2026 19:35** (Air France 459,
-  chega 11/09 11:55) · volta CDG→GRU **18/09/2026 08:15** (KLM 2006/791, conexão Amsterdã).
-  7 dias inteiros em Paris (11–17/09); **dia 18 é só o voo, sem passeios**. Não existe mais cenário 10/12 dias.
-- **4 abas (mobile-first, navegação fixa embaixo):** ☑️ **Escolher** (SIM/NÃO por prioridade — o roteiro
-  risca o que foi cortado e o orçamento recalcula) · 🗓 **Roteiro** (dia a dia) · 💶 **Orçamento** ·
-  📖 **Guia** (Reservas, Informações, Atrações, Comer, Brechós, Transporte, Evitar — em seções sanfona, cards).
-- **Orçamento:** o total do topo é SÓ "gastos na viagem" (alimentação, jantares, atrações, cruzeiro,
-  transporte com **Navigo Semaine** semanal €65 casal, brechós, reserva). **Hotel fica em seção separada**
-  ("dinheiro já reservado") e **aéreo aparece como ✓ pago** — nunca somar no total de viagem.
-- **Sincronização:** **Realtime Database**, nó `planos/<código-da-viagem>` — o usuário liga em
-  "Sincronizar entre aparelhos" e compartilha por link `#viagem=<código>`. Config embutida no arquivo.
-- **Edição:** direto em `roteiro-paris/index.html` (constantes `SEL_ITEMS`, `DAYS`, `RESUMO`, `ATRACOES`,
-  `COMER`, `BRECHOS`, `TRANSPORTE`, `EVITAR`; fórmulas em `calcBudget()`).
+## App 2 — 📊 Roteiro Paris (o do Diogo) — ❌ REMOVIDO (ago/2026)
+- Estava em `roteiro-paris/` (arquivo único). O Diogo pediu para deletar. Código no histórico do git
+  (`git log -- roteiro-paris/`). **Não confundir com o App 3 (o da Tati), que continua ativo.**
 
 ## App 3 — ✈️ Paris Trip Planner (o da Tati, React)
 - **URL:** https://diogoribeir.github.io/app/paris-planner/
@@ -196,6 +184,6 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   Firebase bloqueada também (deve abrir com fallback local).
 - **Publicação**: o Diogo prefere que o Claude **faça o merge e acompanhe o deploy** sozinho, avisando
   quando estiver no ar. Confirmar `conclusion: success` no workflow antes de dizer que subiu.
-- **Não misturar os dois apps de Paris**: o `roteiro-paris` é o do Diogo (planilha/escolhas); o
-  `paris-planner` é o da Tati (React, conteúdo vem do artifact dela).
+- **Paris:** só resta o `paris-planner` (o da Tati, React, conteúdo vem do artifact dela). O antigo
+  `roteiro-paris` (o do Diogo) foi removido — não recriar sem o Diogo pedir.
 - Commits em inglês; interface e conversa em **português (BR)**.
