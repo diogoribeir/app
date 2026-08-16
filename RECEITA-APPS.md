@@ -15,7 +15,6 @@
 | App | Link | Pasta no repositório | Sincronização |
 |---|---|---|---|
 | 🩺 Dias sem Doença | https://diogoribeir.github.io/app/dias-sem-doenca/ | `dias-sem-doenca/` | RTDB `planos/dias-sem-doenca-dt2026` (sem login) |
-| 📊 Roteiro Paris (Diogo) | https://diogoribeir.github.io/app/roteiro-paris/ | `roteiro-paris/` | RTDB `planos/<código-da-viagem>` (código no app) |
 | ✈️ Paris Trip Planner (Tati) | https://diogoribeir.github.io/app/paris-planner/ | `paris-planner/` (build) + `paris-planner-src/` (fonte) | RTDB `planos/paris-planner-dt2026` |
 | 🎮 Perfil Gamer | https://diogoribeir.github.io/app/perfil-gamer/ | `perfil-gamer/` (app) + `perfil-gamer-src/` (dados) | RTDB `planos/perfil-gamer-dt2026` (nuvem = fonte da verdade; `dados.js` = seed) |
 | 🇫🇷 Lingo (francês) | https://lingo-liard-kappa.vercel.app | `lingo-src/` (fonte Next.js) | Sem nuvem de dados (progresso local) · **Hospedado no VERCEL** (tem servidor: tutor + senha) — NÃO deletar o projeto `lingo` no Vercel |
@@ -54,7 +53,7 @@ Siga na ordem. Os blocos de código são reais (copiados dos apps que já funcio
 ## 1. Criar a pasta do app
 
 ### Opção A — app simples (HTML/CSS/JS puro) ✅ preferida
-Criar `meu-app/` com `index.html` (pode ser arquivo único, como o `roteiro-paris/`).
+Criar `meu-app/` com `index.html` (pode ser arquivo único, como o `dias-sem-doenca/Dias-sem-Doenca.html`).
 Regras de ouro (mobile-first):
 - viewport: `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />`
 - testar em 390px de largura; **cards em vez de tabelas**; nada de scroll horizontal;
@@ -97,10 +96,9 @@ Espelho do workflow atual — acrescente só a linha do `meu-app`:
 ```yaml
       - name: Montar o site (home na raiz + um caminho por app)
         run: |
-          mkdir -p _site/dias-sem-doenca _site/roteiro-paris _site/paris-planner _site/perfil-gamer _site/meu-app
+          mkdir -p _site/dias-sem-doenca _site/paris-planner _site/perfil-gamer _site/meu-app
           cp -r home/. _site/
           cp -r dias-sem-doenca/. _site/dias-sem-doenca/
-          cp -r roteiro-paris/. _site/roteiro-paris/
           cp -r paris-planner/. _site/paris-planner/
           cp -r perfil-gamer/. _site/perfil-gamer/
           cp -r meu-app/. _site/meu-app/
@@ -167,11 +165,11 @@ document.addEventListener("visibilitychange", () => {
 Limitações: quem descobrir a URL do nó lê/escreve (o nome funciona como senha);
 conflito = última gravação vence.
 
-### Receita 2 — RTDB com SDK e "código de viagem" (usada no `roteiro-paris`)
+### Receita 2 — RTDB com SDK e "código de viagem" (padrão do antigo `roteiro-paris`, já removido)
 Igual à 1, mas o usuário escolhe um código no app (`planos/<código>`) e compartilha por link
-`#viagem=<código>`; atualização em tempo real com `onValue`. Copiar o bloco
-`connectSync()/pushSync()` de `roteiro-paris/index.html` (importa o SDK do
-`gstatic.com/firebasejs` sob demanda). Usar quando o usuário deve poder trocar/criar planos.
+`#viagem=<código>`; atualização em tempo real com `onValue`. O bloco de referência
+`connectSync()/pushSync()` ficava em `roteiro-paris/index.html` — hoje só no histórico do git
+(`git show <commit>:roteiro-paris/index.html`). Usar quando o usuário deve poder trocar/criar planos.
 
 ### Receita 3 — Firestore com login (dados privados)
 Para dados que **precisam de proteção de verdade** (ex.: saúde). Login e-mail/senha do casal
