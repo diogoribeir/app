@@ -78,9 +78,22 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
 .strip .k{font-size:.56rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:1px;font-weight:700}
 
 /* ---------- busca / filtros ---------- */
-.search{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);
-  color:var(--ink);font:inherit;font-size:.95rem}
+.searchrow{display:flex;gap:8px;align-items:stretch;margin-top:2px}
+.search{flex:1;min-width:0;width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:11px;background:var(--surface);
+  color:var(--ink);font:inherit;font-size:.86rem}
 .search::placeholder{color:var(--muted)}
+/* botão registrar compacto (só ícone) ao lado da busca */
+.addmini{flex:0 0 auto;display:grid;place-items:center;width:40px;border:0;border-radius:11px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:1.15rem;font-weight:800;
+  cursor:pointer;box-shadow:0 4px 12px var(--accent-soft)}
+.addmini:active{transform:scale(.95)}
+/* mini-estatísticas do conjunto filtrado (sutil) */
+.ministats{display:flex;flex-wrap:wrap;align-items:center;gap:6px 11px;margin:2px 2px 12px;
+  font-size:.7rem;color:var(--muted);font-weight:700}
+.ministats .mslbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.07em;font-weight:800}
+.ministats .msitem{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.ministats .msitem b{color:var(--ink);font-weight:800}
+.ministats .msdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
 .search:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
 .fbar{display:flex;gap:8px;margin-top:10px}
 .fbtn{flex:1;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;
@@ -714,7 +727,7 @@ function viewJogos(){
     </div>` : "";
 
   const nActive = fStatus.size + fVer.size + fAno.size;
-  const ordLabels = {horas:"⏱ Mais horas", veredicto:"🏆 Veredicto", ano:"📅 Lançamento", custo:"💰 Custo/h", nome:"🔤 A–Z"};
+  const ordLabels = {horas:"⏱ Mais horas", veredicto:"🏆 Veredicto", nome:"🔤 A–Z"};
   const sitChips = Object.entries(STATUS_LABEL).map(([s,l])=>`<button type="button" class="fchip ${fStatus.has(s)?"on":""}" data-tstatus="${esc(s)}">${l}</button>`).join("");
   const verChips = ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)}</button>`).join("");
   const anos = anosDisponiveis();
@@ -743,15 +756,28 @@ function viewJogos(){
     <span class="count num">${lst.length} jogo(s)</span>
   </div>${ctx}${filterPanel}`;
 
+  // mini-estatísticas por veredicto — só do universo filtrado (aparece quando há filtro/busca)
+  let miniStats = "";
+  if ((nActive>0 || busca) && lst.length){
+    const md = {}; ORD.forEach(v=>md[v]=0);
+    lst.forEach(g=>{ if (ORD.includes(g.v)) md[g.v]++; });
+    const items = ORD.slice().reverse().filter(v=>md[v]>0).map(v=>
+      `<span class="msitem"><span class="msdot" style="background:${VC[v][0]}"></span>${esc(v)} <b class="num">${md[v]}</b> · <span class="num">${Math.round(md[v]/lst.length*100)}%</span></span>`).join("");
+    if (items) miniStats = `<div class="ministats"><span class="mslbl">Neste filtro</span>${items}</div>`;
+  }
+
   return `${hero}
   <div class="strip">
     <div class="cell"><div class="v num">${tot}</div><div class="k">jogos</div></div>
     <div class="cell"><div class="v num">${Math.round(comp/tot*100)}%</div><div class="k">zerados</div></div>
     <div class="cell"><div class="v num">${Math.round(drop/tot*100)}%</div><div class="k">drop</div></div>
   </div>
-  <button type="button" class="addbtn" id="btnAdd">➕ Registrar jogo</button>
-  <input class="search" id="busca" type="search" placeholder="Buscar jogo ou gênero…" value="${esc(busca)}" />
+  <div class="searchrow">
+    <input class="search" id="busca" type="search" placeholder="Buscar jogo ou gênero…" value="${esc(busca)}" />
+    <button type="button" class="addmini" id="btnAdd" title="Registrar jogo" aria-label="Registrar jogo">＋</button>
+  </div>
   ${filters}
+  ${miniStats}
   ${lst.map(gameCard).join("") || '<p class="lead">Nenhum jogo com esse filtro.</p>'}`;
 }
 
