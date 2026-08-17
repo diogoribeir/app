@@ -1,9 +1,10 @@
 // GERADO por perfil-gamer-src/gerar_dados.py — nao editar na mao
-window.DADOS_ATUALIZADOS = "17/07/2026";
+window.DADOS_ATUALIZADOS = "17/08/2026";
 window.JOGOS = [
  {
   "id": 1,
   "nome": "FINAL FANTASY XIV - MMO",
+  "ano": 2013,
   "horas": 1519,
   "enc": "S",
   "w": 1,
@@ -19,6 +20,7 @@ window.JOGOS = [
  {
   "id": 2,
   "nome": "FINAL FANTASY XV",
+  "ano": 2016,
   "horas": 142,
   "enc": "S",
   "w": 2,
@@ -34,6 +36,7 @@ window.JOGOS = [
  {
   "id": 3,
   "nome": "Assassin's Creed® Valhalla",
+  "ano": 2020,
   "horas": 131,
   "enc": "S",
   "w": 1,
@@ -49,6 +52,7 @@ window.JOGOS = [
  {
   "id": 4,
   "nome": "Path of Exile 2",
+  "ano": 2024,
   "horas": 250,
   "enc": "S",
   "w": 5,
@@ -64,6 +68,7 @@ window.JOGOS = [
  {
   "id": 5,
   "nome": "Diablo IV",
+  "ano": 2023,
   "horas": 284,
   "enc": "S",
   "w": 3,
@@ -79,6 +84,7 @@ window.JOGOS = [
  {
   "id": 6,
   "nome": "Tom Clancy's The Division™",
+  "ano": 2016,
   "horas": 102,
   "enc": "S",
   "w": 1,
@@ -94,6 +100,7 @@ window.JOGOS = [
  {
   "id": 7,
   "nome": "Crimson Desert",
+  "ano": 2026,
   "horas": 136,
   "enc": "S",
   "w": 1,
@@ -109,6 +116,7 @@ window.JOGOS = [
  {
   "id": 8,
   "nome": "ELDEN RING™",
+  "ano": 2022,
   "horas": 122,
   "enc": "S",
   "w": 3,
@@ -124,6 +132,7 @@ window.JOGOS = [
  {
   "id": 9,
   "nome": "FINAL FANTASY XVI",
+  "ano": 2023,
   "horas": 114,
   "enc": "S",
   "w": 2,
@@ -139,6 +148,7 @@ window.JOGOS = [
  {
   "id": 10,
   "nome": "Horizon Forbidden West",
+  "ano": 2022,
   "horas": 113,
   "enc": "S",
   "w": 1,
@@ -154,6 +164,7 @@ window.JOGOS = [
  {
   "id": 11,
   "nome": "The Witcher 3: Wild Hunt",
+  "ano": 2015,
   "horas": 161,
   "enc": "S",
   "w": 2,
@@ -169,6 +180,7 @@ window.JOGOS = [
  {
   "id": 12,
   "nome": "OUTRIDERS",
+  "ano": 2021,
   "horas": 111,
   "enc": "S",
   "w": 1,
@@ -184,6 +196,7 @@ window.JOGOS = [
  {
   "id": 13,
   "nome": "Tales of Arise",
+  "ano": 2021,
   "horas": 80,
   "enc": "S",
   "w": 1,
@@ -199,6 +212,7 @@ window.JOGOS = [
  {
   "id": 14,
   "nome": "FINAL FANTASY VII REBIRTH",
+  "ano": 2024,
   "horas": 88,
   "enc": "S",
   "w": 1,
@@ -214,6 +228,7 @@ window.JOGOS = [
  {
   "id": 15,
   "nome": "Red Dead Redemption 2",
+  "ano": 2018,
   "horas": 98,
   "enc": "S",
   "w": 1,
@@ -229,6 +244,7 @@ window.JOGOS = [
  {
   "id": 16,
   "nome": "Tom Clancy's The Division®2",
+  "ano": 2019,
   "horas": 115,
   "enc": "S",
   "w": 1,
@@ -244,6 +260,7 @@ window.JOGOS = [
  {
   "id": 17,
   "nome": "WILD HEARTS",
+  "ano": 2023,
   "horas": 74,
   "enc": "S",
   "w": 1,
@@ -259,6 +276,7 @@ window.JOGOS = [
  {
   "id": 18,
   "nome": "Middle-earth: Shadow of Mordor",
+  "ano": 2014,
   "horas": 53,
   "enc": "S",
   "w": 1,
@@ -274,6 +292,7 @@ window.JOGOS = [
  {
   "id": 19,
   "nome": "Assassin's Creed® Odyssey",
+  "ano": 2018,
   "horas": 53,
   "enc": "N",
   "w": 1,
@@ -289,6 +308,7 @@ window.JOGOS = [
  {
   "id": 20,
   "nome": "Middle-earth™: Shadow of War™",
+  "ano": 2017,
   "horas": 73,
   "enc": "S",
   "w": 1,
@@ -304,6 +324,7 @@ window.JOGOS = [
  {
   "id": 21,
   "nome": "Ghost of Yōtei",
+  "ano": 2025,
   "horas": 62,
   "enc": "S",
   "w": 1,
@@ -319,6 +340,7 @@ window.JOGOS = [
  {
   "id": 22,
   "nome": "Clair Obscur: Expedition 33",
+  "ano": 2025,
   "horas": 79,
   "enc": "S",
   "w": 2,
@@ -334,6 +356,7 @@ window.JOGOS = [
  {
   "id": 23,
   "nome": "Granblue Fantasy: Relink",
+  "ano": 2024,
   "horas": 61,
   "enc": "S",
   "w": 1,
@@ -349,6 +372,7 @@ window.JOGOS = [
  {
   "id": 24,
   "nome": "Monster Hunter: World",
+  "ano": 2018,
   "horas": 44,
   "enc": "S",
   "w": 1,
@@ -364,6 +388,7 @@ window.JOGOS = [
  {
   "id": 25,
   "nome": "FINAL FANTASY VII REMAKE",
+  "ano": 2020,
   "horas": 41,
   "enc": "S",
   "w": 1,
@@ -379,6 +404,7 @@ window.JOGOS = [
  {
   "id": 26,
   "nome": "The Last of Us™ Remastered",
+  "ano": 2014,
   "horas": 50,
   "enc": "S",
   "w": 3,
@@ -394,6 +420,7 @@ window.JOGOS = [
  {
   "id": 27,
   "nome": "Assassin's Creed® Shadows",
+  "ano": 2025,
   "horas": 45,
   "enc": "#",
   "w": 2,
@@ -409,6 +436,7 @@ window.JOGOS = [
  {
   "id": 28,
   "nome": "Black Myth: Wukong",
+  "ano": 2024,
   "horas": 41,
   "enc": "N",
   "w": 1,
@@ -424,6 +452,7 @@ window.JOGOS = [
  {
   "id": 29,
   "nome": "Dragon Age™: The Veilguard",
+  "ano": 2024,
   "horas": 41,
   "enc": "S",
   "w": 1,
@@ -439,6 +468,7 @@ window.JOGOS = [
  {
   "id": 30,
   "nome": "DAYS GONE",
+  "ano": 2019,
   "horas": 37,
   "enc": "S",
   "w": 1,
@@ -454,6 +484,7 @@ window.JOGOS = [
  {
   "id": 31,
   "nome": "Hogwarts Legacy",
+  "ano": 2023,
   "horas": 63,
   "enc": "S",
   "w": 2,
@@ -469,6 +500,7 @@ window.JOGOS = [
  {
   "id": 32,
   "nome": "Battlefield™ 6",
+  "ano": 2025,
   "horas": 38,
   "enc": "S",
   "w": 1,
@@ -484,6 +516,7 @@ window.JOGOS = [
  {
   "id": 33,
   "nome": "Marvel's Spider-Man 2",
+  "ano": 2023,
   "horas": 36,
   "enc": "S",
   "w": 1,
@@ -499,6 +532,7 @@ window.JOGOS = [
  {
   "id": 34,
   "nome": "Baldur's Gate 3",
+  "ano": 2023,
   "horas": 35,
   "enc": "N",
   "w": 1,
@@ -514,6 +548,7 @@ window.JOGOS = [
  {
   "id": 35,
   "nome": "Sekiro™: Shadows Die Twice",
+  "ano": 2019,
   "horas": 33,
   "enc": "S",
   "w": 1,
@@ -529,6 +564,7 @@ window.JOGOS = [
  {
   "id": 36,
   "nome": "SWORD ART ONLINE Alicization Lycoris",
+  "ano": 2020,
   "horas": 31,
   "enc": "S",
   "w": 1,
@@ -544,6 +580,7 @@ window.JOGOS = [
  {
   "id": 37,
   "nome": "Cyberpunk 2077",
+  "ano": 2020,
   "horas": 30,
   "enc": "N",
   "w": 1,
@@ -559,6 +596,7 @@ window.JOGOS = [
  {
   "id": 38,
   "nome": "Assassin's Creed® Origins",
+  "ano": 2017,
   "horas": 26,
   "enc": "N",
   "w": 1,
@@ -574,6 +612,7 @@ window.JOGOS = [
  {
   "id": 39,
   "nome": "Horizon Zero Dawn",
+  "ano": 2017,
   "horas": 25,
   "enc": "S",
   "w": 2,
@@ -589,6 +628,7 @@ window.JOGOS = [
  {
   "id": 40,
   "nome": "Lords of the Fallen",
+  "ano": 2023,
   "horas": 28,
   "enc": "S",
   "w": 1,
@@ -604,6 +644,7 @@ window.JOGOS = [
  {
   "id": 41,
   "nome": "DEATH STRANDING 2: ON THE BEACH",
+  "ano": 2025,
   "horas": 27,
   "enc": "N",
   "w": 1,
@@ -619,6 +660,7 @@ window.JOGOS = [
  {
   "id": 42,
   "nome": "Demon's Souls",
+  "ano": 2020,
   "horas": 26,
   "enc": "S",
   "w": 1,
@@ -634,6 +676,7 @@ window.JOGOS = [
  {
   "id": 43,
   "nome": "DARK SOULS III",
+  "ano": 2016,
   "horas": 24,
   "enc": "S",
   "w": 1,
@@ -649,6 +692,7 @@ window.JOGOS = [
  {
   "id": 44,
   "nome": "God of War",
+  "ano": 2018,
   "horas": 23,
   "enc": "S",
   "w": 1,
@@ -664,6 +708,7 @@ window.JOGOS = [
  {
   "id": 45,
   "nome": "Mass Effect™: Andromeda",
+  "ano": 2017,
   "horas": 22,
   "enc": "N",
   "w": 1,
@@ -679,6 +724,7 @@ window.JOGOS = [
  {
   "id": 46,
   "nome": "The Last of Us™ Part II",
+  "ano": 2020,
   "horas": 19,
   "enc": "S",
   "w": 2,
@@ -694,6 +740,7 @@ window.JOGOS = [
  {
   "id": 47,
   "nome": "Persona 5 Royal",
+  "ano": 2019,
   "horas": 19,
   "enc": "N",
   "w": 1,
@@ -709,6 +756,7 @@ window.JOGOS = [
  {
   "id": 48,
   "nome": "KINGDOM HEARTS III",
+  "ano": 2019,
   "horas": 19,
   "enc": "N",
   "w": 1,
@@ -724,6 +772,7 @@ window.JOGOS = [
  {
   "id": 49,
   "nome": "STAR WARS Jedi: Fallen Order",
+  "ano": 2019,
   "horas": 19,
   "enc": "S",
   "w": 1,
@@ -739,6 +788,7 @@ window.JOGOS = [
  {
   "id": 50,
   "nome": "God of War Ragnarök",
+  "ano": 2022,
   "horas": 18,
   "enc": "N",
   "w": 1,
@@ -754,6 +804,7 @@ window.JOGOS = [
  {
   "id": 51,
   "nome": "Dragon's Dogma 2",
+  "ano": 2024,
   "horas": 18,
   "enc": "N",
   "w": 1,
@@ -769,6 +820,7 @@ window.JOGOS = [
  {
   "id": 52,
   "nome": "Uncharted 4: A Thief's End™",
+  "ano": 2016,
   "horas": 17,
   "enc": "N",
   "w": 1,
@@ -784,6 +836,7 @@ window.JOGOS = [
  {
   "id": 53,
   "nome": "DEATH STRANDING",
+  "ano": 2019,
   "horas": 40,
   "enc": "N",
   "w": 1,
@@ -799,7 +852,7 @@ window.JOGOS = [
  {
   "id": 54,
   "nome": "Star Wars Outlaws",
-  "gratis": true,
+  "ano": 2024,
   "horas": 17,
   "enc": "N",
   "w": 1,
@@ -810,11 +863,13 @@ window.JOGOS = [
   "d": 1,
   "ff": 1,
   "v": "Muito Ruim",
-  "obs": ""
+  "obs": "",
+  "gratis": true
  },
  {
   "id": 55,
   "nome": "Kingdom Come: Deliverance II",
+  "ano": 2025,
   "horas": 16,
   "enc": "N",
   "w": 1,
@@ -830,6 +885,7 @@ window.JOGOS = [
  {
   "id": 56,
   "nome": "Kena: Bridge of Spirits",
+  "ano": 2021,
   "horas": 16,
   "enc": "S",
   "w": 1,
@@ -845,6 +901,7 @@ window.JOGOS = [
  {
   "id": 57,
   "nome": "Avowed",
+  "ano": 2025,
   "horas": 16,
   "enc": "N",
   "w": 1,
@@ -860,6 +917,7 @@ window.JOGOS = [
  {
   "id": 58,
   "nome": "DETROIT: BECOME HUMAN",
+  "ano": 2018,
   "horas": 13,
   "enc": "S",
   "w": 1,
@@ -875,6 +933,7 @@ window.JOGOS = [
  {
   "id": 59,
   "nome": "PRAGMATA",
+  "ano": 2026,
   "horas": 13,
   "enc": "S",
   "w": 1,
@@ -890,6 +949,7 @@ window.JOGOS = [
  {
   "id": 60,
   "nome": "Ghost of Tsushima",
+  "ano": 2020,
   "horas": 65,
   "enc": "S",
   "w": 2,
@@ -905,6 +965,7 @@ window.JOGOS = [
  {
   "id": 61,
   "nome": "Resident Evil 4",
+  "ano": 2023,
   "horas": 12,
   "enc": "S",
   "w": 1,
@@ -920,6 +981,7 @@ window.JOGOS = [
  {
   "id": 62,
   "nome": "The First Berserker: Khazan",
+  "ano": 2025,
   "horas": 12,
   "enc": "N",
   "w": 1,
@@ -935,6 +997,7 @@ window.JOGOS = [
  {
   "id": 63,
   "nome": "Avatar: Frontiers of Pandora™",
+  "ano": 2023,
   "horas": 12,
   "enc": "N",
   "w": 1,
@@ -950,6 +1013,7 @@ window.JOGOS = [
  {
   "id": 64,
   "nome": "Resident Evil Requiem",
+  "ano": 2026,
   "horas": 12,
   "enc": "S",
   "w": 1,
@@ -965,6 +1029,7 @@ window.JOGOS = [
  {
   "id": 65,
   "nome": "Mass Effect: Legendary Edition",
+  "ano": 2021,
   "horas": 18,
   "enc": "N",
   "w": 1,
@@ -980,6 +1045,7 @@ window.JOGOS = [
  {
   "id": 66,
   "nome": "FINAL FANTASY XII THE ZODIAC AGE",
+  "ano": 2017,
   "horas": 11,
   "enc": "N",
   "w": 1,
@@ -995,7 +1061,7 @@ window.JOGOS = [
  {
   "id": 67,
   "nome": "The Order: 1886",
-  "gratis": true,
+  "ano": 2015,
   "horas": 9,
   "enc": "S",
   "w": 1,
@@ -1006,11 +1072,13 @@ window.JOGOS = [
   "d": 1,
   "ff": 3,
   "v": "Bom",
-  "obs": ""
+  "obs": "",
+  "gratis": true
  },
  {
   "id": 68,
   "nome": "RESIDENT EVIL 2",
+  "ano": 2019,
   "horas": 9,
   "enc": "S",
   "w": 1,
@@ -1026,6 +1094,7 @@ window.JOGOS = [
  {
   "id": 70,
   "nome": "A Way Out",
+  "ano": 2018,
   "horas": 6,
   "enc": "S",
   "w": 1,
@@ -1041,6 +1110,7 @@ window.JOGOS = [
  {
   "id": 71,
   "nome": "NieR:Automata",
+  "ano": 2017,
   "horas": 5,
   "enc": "N",
   "w": 1,
@@ -1056,7 +1126,7 @@ window.JOGOS = [
  {
   "id": 72,
   "nome": "Wuchang: Fallen Feathers",
-  "gratis": true,
+  "ano": 2025,
   "horas": 0.5,
   "enc": "N",
   "w": 1,
@@ -1067,11 +1137,13 @@ window.JOGOS = [
   "d": 3,
   "ff": 1,
   "v": "Muito Ruim",
-  "obs": "PS Plus grátis jun/2026. Dropado em ~30 min. Padrão confirmado: souls-like não-FromSoft decepciona."
+  "obs": "PS Plus grátis jun/2026. Dropado em ~30 min. Padrão confirmado: souls-like não-FromSoft decepciona.",
+  "gratis": true
  },
  {
   "id": 73,
   "nome": "Assassin's Creed® IV Black Flag Resync",
+  "ano": 2026,
   "horas": 13,
   "enc": "N",
   "w": 1,

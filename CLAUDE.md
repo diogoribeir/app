@@ -96,7 +96,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **O que faz:** biblioteca de jogos PS4/PS5 com veredictos estilo ACG (Masterpiece → Muito Ruim),
   3 abas: 🎮 Jogos (busca sempre visível + painel de filtros **recolhível** `⚙ Filtros` — recolhido por
   padrão p/ dar espaço à lista no celular; quando recolhido mostra a ordenação atual e os filtros ativos
-  como chips; veredicto/status/ordenação dentro do painel, custo/hora R$90) ·
+  como chips; veredicto/status/**ano de lançamento**/ordenação dentro do painel, custo/hora R$90) ·
   📊 Estatísticas (distribuição, tempo total jogado, top horas com filtro por veredicto, hall do
   custo/hora, por gênero, motivos de drop) · 🗓 Plano 2026.
 - **PWA:** instalável (manifest + `sw.js` network-first) e abre offline; ícones `icon-192/512.png`
@@ -131,6 +131,11 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   recarrega ao voltar se houver gravação mais nova (mesma receita 1 do paris-planner). O **Plano 2026**
   (jogos planejados + padrão global + ajustes de horas por semana) sincroniza no mesmo nó, chave
   `plano2026` (`{itens, horasSemana, padraoSemana}`); `window.PLANO` do `dados.js` é só o seed inicial.
+- **Ano de lançamento (`g.ano`):** cada jogo tem o ano oficial de lançamento (pesquisado na web, ago/2026)
+  — usado no filtro/ordenação "📅 Lançamento" e exibido no card. Fica na coluna **Ano** do xlsx (e há uma
+  coluna **Grátis** p/ o `g.gratis`); o `dados.js` traz o campo no seed. Como a nuvem é a fonte da verdade,
+  o `boot()` faz **backfill**: preenche `g.ano` faltante casando com o seed por id (fallback: nome
+  normalizado) e regrava — idempotente. Editável no card (campo Ano) e no "➕ Registrar jogo".
 - **Atualização em massa/histórico:** `perfil-gamer-src/biblioteca_jogos.xlsx` + `gerar_doc.py` +
   `gerar_dados.py` (regenera o seed). ⚠️ O seed NÃO sobrescreve a nuvem — para repor a nuvem a partir
   do xlsx é preciso apagar o nó `planos/perfil-gamer-dt2026/jogos` (o app então sobe o seed de novo).
