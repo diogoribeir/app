@@ -11,9 +11,12 @@ for r in range(2, ws.max_row + 1):
     nome = ws.cell(r, 2).value
     if not nome:
         continue
-    games.append({
+    ano = ws.cell(r, 14).value          # ano de lancamento oficial (pesquisado na web)
+    gratis = ws.cell(r, 15).value       # TRUE se veio gratis (PSN Plus/incluido)
+    reg = {
         'id': ws.cell(r, 1).value,
         'nome': str(nome),
+        'ano': int(ano) if ano not in (None, '') else None,
         'horas': ws.cell(r, 3).value or 0,
         'enc': ws.cell(r, 4).value,          # S / N / #
         'w': ws.cell(r, 5).value or 1,
@@ -25,7 +28,10 @@ for r in range(2, ws.max_row + 1):
         'ff': ws.cell(r, 11).value,
         'v': ws.cell(r, 12).value or 'N/A',
         'obs': ws.cell(r, 13).value or ''
-    })
+    }
+    if gratis in (True, 'TRUE', 'True', 1):
+        reg['gratis'] = True
+    games.append(reg)
 
 # Planejamento 2026 (manter em dia manualmente aqui)
 plano = [
