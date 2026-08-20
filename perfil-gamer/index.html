@@ -627,13 +627,25 @@ let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
 let openGame = null;     // id do card expandido (edição inline, sem modal)
 const secOpen = new Set(["ver"]);  // seções abertas nas Estatísticas
 const STATUS_LABEL = {"S":"✅ Zerados","N":"❌ Dropados","#":"🔄 Jogando"};
+const LEGADO_ANO = 2020;   // anos < 2020 agrupam num único chip "Legado (<2020)" (token "lt")
+// um ano casa a seleção se estiver escolhido, ou se for legado (<2020) e o chip "lt" estiver ativo
+function anoCasa(sel, y){ return y!=null && (sel.has(String(y)) || (sel.has("lt") && y<LEGADO_ANO)); }
 function aplicarFiltros(lst){
   if (fStatus.size) lst = lst.filter(g=>fStatus.has(g.enc));
   if (fVer.size) lst = lst.filter(g=>fVer.has(g.v));
-  if (fAno.size) lst = lst.filter(g=>fAno.has(String(g.ano)));
-  if (fAnoJog.size) lst = lst.filter(g=>anosDoJogo(g).some(y=>fAnoJog.has(String(y))));
+  if (fAno.size) lst = lst.filter(g=>anoCasa(fAno, g.ano));
+  if (fAnoJog.size) lst = lst.filter(g=>anosDoJogo(g).some(y=>anoCasa(fAnoJog, y)));
   return lst;
 }
+// monta os chips de ano: individuais p/ >=2020 + um "Legado (<2020)" se houver antigos
+function chipsAno(anos, sel, attr){
+  const recentes = anos.filter(a=>a>=LEGADO_ANO);
+  let html = recentes.map(a=>`<button type="button" class="fchip ${sel.has(String(a))?"on":""}" ${attr}="${a}">${a}</button>`).join("");
+  if (anos.some(a=>a<LEGADO_ANO)) html += `<button type="button" class="fchip ${sel.has("lt")?"on":""}" ${attr}="lt">Legado &lt;${LEGADO_ANO}</button>`;
+  return html;
+}
+// rótulo de um chip ativo de ano ("lt" = legado)
+function labelAno(a){ return a==="lt" ? `Legado <${LEGADO_ANO}` : a; }
 // anos distintos presentes na biblioteca, do mais novo p/ o mais antigo
 function anosDisponiveis(){
   return [...new Set(J.map(g=>g.ano).filter(a=>a!=null))].sort((a,b)=>b-a);
@@ -763,17 +775,17 @@ function viewJogos(){
   const sitChips = Object.entries(STATUS_LABEL).map(([s,l])=>`<button type="button" class="fchip ${fStatus.has(s)?"on":""}" data-tstatus="${esc(s)}">${l}</button>`).join("");
   const verChips = ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)}</button>`).join("");
   const anos = anosDisponiveis();
-  const anoChips = anos.map(a=>`<button type="button" class="fchip ${fAno.has(String(a))?"on":""}" data-tano="${a}">${a}</button>`).join("");
+  const anoChips = chipsAno(anos, fAno, "data-tano");
   const anosJog = anosJogadosDisp();
-  const anoJogChips = anosJog.map(a=>`<button type="button" class="fchip ${fAnoJog.has(String(a))?"on":""}" data-tanojog="${a}">${a}</button>`).join("");
+  const anoJogChips = chipsAno(anosJog, fAnoJog, "data-tanojog");
   const ordChips = Object.entries(ordLabels).map(([o,l])=>`<button type="button" class="fchip ${ordem===o?"on":""}" data-ordem="${o}">${l}</button>`).join("");
   // recolhido: mostra ordenação atual (abre o painel) + filtros ativos (toque no ✕ remove) + limpar
   const ctx = filtersOpen ? "" : `<div class="factive">
     <button type="button" class="fchip sm" data-filttoggle="1">${ordLabels[ordem]}</button>
     ${[...fStatus].map(s=>`<button type="button" class="fchip sm on" data-tstatus="${esc(s)}">${STATUS_LABEL[s]} ✕</button>`).join("")}
     ${[...fVer].map(v=>`<button type="button" class="fchip sm on" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)} ✕</button>`).join("")}
-    ${[...fAno].map(a=>`<button type="button" class="fchip sm on" data-tano="${esc(a)}">📅 ${esc(a)} ✕</button>`).join("")}
-    ${[...fAnoJog].map(a=>`<button type="button" class="fchip sm on" data-tanojog="${esc(a)}">🎮 ${esc(a)} ✕</button>`).join("")}
+    ${[...fAno].map(a=>`<button type="button" class="fchip sm on" data-tano="${esc(a)}">📅 ${esc(labelAno(a))} ✕</button>`).join("")}
+    ${[...fAnoJog].map(a=>`<button type="button" class="fchip sm on" data-tanojog="${esc(a)}">🎮 ${esc(labelAno(a))} ✕</button>`).join("")}
     ${nActive?`<button type="button" class="fchip sm clear" data-unall="1">limpar</button>`:""}
   </div>`;
   const filterPanel = filtersOpen ? `<div class="filterpanel">
