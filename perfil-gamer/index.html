@@ -197,6 +197,7 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
 .grunrow .rlbl{flex:0 0 auto;background:var(--surface2);color:var(--muted);border-radius:7px;padding:4px 8px;font-size:.66rem;font-weight:800}
 .grunrow .runh{flex:1;margin-top:0}
 .grunrow .hh{color:var(--muted);font-size:.72rem}
+.grunrow .runano{flex:0 0 68px;margin-top:0;text-align:center;padding-left:4px;padding-right:4px}
 .grunrow .pbtn{width:30px;height:30px;flex:0 0 auto}
 
 /* ---------- estatísticas ---------- */
@@ -286,6 +287,8 @@ details.wkbox[open]>summary .schev{transform:rotate(90deg)}
 .runrow .runh{flex:1;min-width:0;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;
   background:var(--bg);color:var(--ink);font:inherit;font-size:.9rem;font-weight:700}
 .runrow .runh:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
+.runrow .runano{flex:0 0 68px;min-width:0;text-align:center;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:.82rem;font-weight:700}
+.runrow .runano:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
 #mRuns{display:flex;flex-direction:column;gap:7px;margin-top:6px}
 #mRuns .runrow{border:1px solid var(--line);border-radius:11px;padding:7px 9px}
 
@@ -355,6 +358,8 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
       <div><label for="fEnc">Status</label>
         <select id="fEnc"><option value="#">🔄 Jogando</option><option value="S">✅ Zerado</option><option value="N">❌ Dropado</option></select></div>
     </div>
+    <label for="fAnoJog">🎮 Joguei em (ano)</label>
+    <input id="fAnoJog" type="number" min="1990" max="2100" step="1" inputmode="numeric" placeholder="ex.: 2026" />
     <label for="fV">Veredicto</label>
     <select id="fV"><option value="N/A">— ainda sem veredicto —</option>
       <option>Masterpiece</option><option>Muito Bom</option><option>Bom</option>
@@ -471,17 +476,19 @@ document.addEventListener("change", e=>{
   if (fld){
     const f = fld.dataset.f;
     if (f==="horas") g.horas = fld.value===""?0:Number(fld.value);
-    else if (f==="ano") g.ano = fld.value===""?null:Number(fld.value);
+    else if (f==="ano"||f==="anoJog") g[f] = fld.value===""?null:Number(fld.value);
     else if (["h","g","d","ff"].includes(f)) g[f] = fld.value===""?null:Number(fld.value);
     else if (f==="v"||f==="enc") g[f] = fld.value;
     else if (f==="nome"){ const v=fld.value.trim(); if (v) g.nome=v; else fld.value=g.nome; }
     else g[f] = fld.value.trim();
     saveJogosQuiet();
-    if (f==="v"||f==="enc"||f==="nome"||f==="ano") render();  // atualiza pill/cor/summary/meta e chips de ano (foco já saiu)
+    if (f==="v"||f==="enc"||f==="nome"||f==="ano"||f==="anoJog") render();  // atualiza pill/cor/summary/meta e chips de ano (foco já saiu)
     return;
   }
   const rh = e.target.closest("[data-runh]");
-  if (rh && g.runs){ const i=Number(rh.dataset.runh); if (g.runs[i]) { g.runs[i].horas=Number(rh.value)||0; saveJogosQuiet(); } }
+  if (rh && g.runs){ const i=Number(rh.dataset.runh); if (g.runs[i]) { g.runs[i].horas=Number(rh.value)||0; saveJogosQuiet(); } return; }
+  const ra = e.target.closest("[data-runano]");
+  if (ra && g.runs){ const i=Number(ra.dataset.runano); if (g.runs[i]) { g.runs[i].anoJog = ra.value===""?null:Number(ra.value); saveJogosQuiet(); render(); } }
 });
 /* ---------- plano 2026 (editável, sincronizado) ---------- */
 const LS_PLANO = "perfil-gamer:plano";
@@ -592,6 +599,7 @@ let tab = "jogos";
 const fStatus = new Set();   // multi: S, N, #
 const fVer = new Set();      // multi: veredictos
 const fAno = new Set();      // multi: anos de lançamento (string)
+const fAnoJog = new Set();   // multi: anos em que joguei as jogatinas (string)
 let busca = "";
 let ordem = "horas";
 let filtersOpen = false;   // painel de filtros recolhido por padrão (mais espaço p/ a lista no celular)
@@ -604,11 +612,25 @@ function aplicarFiltros(lst){
   if (fStatus.size) lst = lst.filter(g=>fStatus.has(g.enc));
   if (fVer.size) lst = lst.filter(g=>fVer.has(g.v));
   if (fAno.size) lst = lst.filter(g=>fAno.has(String(g.ano)));
+  if (fAnoJog.size) lst = lst.filter(g=>anosDoJogo(g).some(y=>fAnoJog.has(String(y))));
   return lst;
 }
 // anos distintos presentes na biblioteca, do mais novo p/ o mais antigo
 function anosDisponiveis(){
   return [...new Set(J.map(g=>g.ano).filter(a=>a!=null))].sort((a,b)=>b-a);
+}
+// anos em que cada jogatina foi jogada (W1 = g.anoJog; W2+ = run.anoJog)
+function anosDoJogo(g){
+  const ys = [];
+  if (g.anoJog!=null) ys.push(g.anoJog);
+  (g.runs||[]).forEach(r=>{ if (r && r.anoJog!=null) ys.push(r.anoJog); });
+  return ys;
+}
+// anos jogados distintos na biblioteca, do mais novo p/ o mais antigo
+function anosJogadosDisp(){
+  const s = new Set();
+  J.forEach(g=>anosDoJogo(g).forEach(y=>s.add(y)));
+  return [...s].sort((a,b)=>b-a);
 }
 
 function statusTxt(e){ return e==="S"?"✅ zerado":(e==="N"?"❌ dropado":"🔄 jogando"); }
@@ -631,6 +653,7 @@ function gedRuns(g){
       <span class="rlbl">W${i+2}</span>
       <input class="runh" type="number" min="0" step="0.5" inputmode="decimal" data-runh="${i}" value="${r.horas??0}" />
       <span class="hh">h</span>
+      <input class="runano" type="number" min="1990" max="2100" step="1" inputmode="numeric" data-runano="${i}" value="${r.anoJog??""}" placeholder="ano" aria-label="Ano W${i+2}" />
       <button type="button" class="pbtn del" data-grundel="${i}" title="Remover">✕</button>
     </div>`).join("");
 }
@@ -645,6 +668,7 @@ function gameEditor(g){
       <label class="el">Ano de lançamento<input data-f="ano" type="number" min="1990" max="2100" step="1" inputmode="numeric" placeholder="—" value="${g.ano??""}" /></label>
       <label class="el">Horas (W1)<input data-f="horas" type="number" min="0" step="0.5" inputmode="decimal" value="${g.horas??0}" /></label>
     </div>
+    <label class="el">🎮 Joguei em (ano)${nRuns(g)>1?" — W1":""}<input data-f="anoJog" type="number" min="1990" max="2100" step="1" inputmode="numeric" placeholder="—" value="${g.anoJog??""}" /></label>
     <label class="el">Status<select data-f="enc">
       <option value="#" ${g.enc==="#"?"selected":""}>🔄 Jogando</option>
       <option value="S" ${g.enc==="S"?"selected":""}>✅ Zerado</option>
@@ -716,12 +740,14 @@ function viewJogos(){
       </div>
     </div>` : "";
 
-  const nActive = fStatus.size + fVer.size + fAno.size;
+  const nActive = fStatus.size + fVer.size + fAno.size + fAnoJog.size;
   const ordLabels = {horas:"⏱ Mais horas", veredicto:"🏆 Veredicto", nome:"🔤 A–Z"};
   const sitChips = Object.entries(STATUS_LABEL).map(([s,l])=>`<button type="button" class="fchip ${fStatus.has(s)?"on":""}" data-tstatus="${esc(s)}">${l}</button>`).join("");
   const verChips = ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${fVer.has(v)?"on":""}" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)}</button>`).join("");
   const anos = anosDisponiveis();
   const anoChips = anos.map(a=>`<button type="button" class="fchip ${fAno.has(String(a))?"on":""}" data-tano="${a}">${a}</button>`).join("");
+  const anosJog = anosJogadosDisp();
+  const anoJogChips = anosJog.map(a=>`<button type="button" class="fchip ${fAnoJog.has(String(a))?"on":""}" data-tanojog="${a}">${a}</button>`).join("");
   const ordChips = Object.entries(ordLabels).map(([o,l])=>`<button type="button" class="fchip ${ordem===o?"on":""}" data-ordem="${o}">${l}</button>`).join("");
   // recolhido: mostra ordenação atual (abre o painel) + filtros ativos (toque no ✕ remove) + limpar
   const ctx = filtersOpen ? "" : `<div class="factive">
@@ -729,12 +755,14 @@ function viewJogos(){
     ${[...fStatus].map(s=>`<button type="button" class="fchip sm on" data-tstatus="${esc(s)}">${STATUS_LABEL[s]} ✕</button>`).join("")}
     ${[...fVer].map(v=>`<button type="button" class="fchip sm on" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)} ✕</button>`).join("")}
     ${[...fAno].map(a=>`<button type="button" class="fchip sm on" data-tano="${esc(a)}">📅 ${esc(a)} ✕</button>`).join("")}
+    ${[...fAnoJog].map(a=>`<button type="button" class="fchip sm on" data-tanojog="${esc(a)}">🎮 ${esc(a)} ✕</button>`).join("")}
     ${nActive?`<button type="button" class="fchip sm clear" data-unall="1">limpar</button>`:""}
   </div>`;
   const filterPanel = filtersOpen ? `<div class="filterpanel">
     <div class="flabel">Situação</div><div class="frow">${sitChips}</div>
     <div class="flabel">Veredicto</div><div class="frow">${verChips}</div>
     ${anos.length?`<div class="flabel">Ano de lançamento</div><div class="frow">${anoChips}</div>`:""}
+    ${anosJog.length?`<div class="flabel">🎮 Joguei no ano</div><div class="frow">${anoJogChips}</div>`:""}
     <div class="flabel">Ordenar</div><div class="frow">${ordChips}</div>
     <div class="panelfoot">
       ${nActive?`<button type="button" class="fchip clear" data-unall="1">limpar</button>`:""}
@@ -938,6 +966,7 @@ function openModal(g){
   $("#mTitle").textContent = g ? "Editar jogo" : "Registrar jogo";
   $("#fNome").value = g?.nome || "";
   $("#fAno").value = g?.ano ?? "";
+  $("#fAnoJog").value = g?.anoJog ?? "";
   $("#fHoras").value = g?.horas ?? "";
   $("#fEnc").value = g?.enc || "#";
   $("#fV").value = (g && ORD.includes(g.v)) ? g.v : "N/A";
@@ -952,18 +981,19 @@ function openModal(g){
   $("#modal").classList.remove("hidden");
   setTimeout(()=>$("#fNome").focus(), 60);
 }
-function runRowHtml(wn, val){
+function runRowHtml(wn, val, ano){
   return `<div class="runrow">
     <span class="rlbl">W${wn}</span>
     <input class="runh" type="number" min="0" step="0.5" inputmode="decimal" value="${val}" aria-label="Horas W${wn}" />
     <span style="color:var(--muted);font-size:.72rem">h</span>
+    <input class="runano" type="number" min="1990" max="2100" step="1" inputmode="numeric" value="${ano??""}" placeholder="ano" aria-label="Ano W${wn}" />
     <button type="button" class="pbtn del" data-rundelrow title="Remover jogatina">✕</button>
   </div>`;
 }
 function renumberRuns(){ [...document.querySelectorAll("#mRuns .runrow")].forEach((row,i)=>{ row.querySelector(".rlbl").textContent = "W"+(i+2); }); }
 function renderMRuns(g){
   const ex = (g && g.runs) || [];
-  $("#mRuns").innerHTML = ex.map((r,i)=>runRowHtml(i+2, r.horas ?? 0)).join("");
+  $("#mRuns").innerHTML = ex.map((r,i)=>runRowHtml(i+2, r.horas ?? 0, r.anoJog)).join("");
 }
 function closeModal(){ $("#modal").classList.add("hidden"); editId = null; }
 $("#mCancel").addEventListener("click", closeModal);
@@ -972,10 +1002,15 @@ $("#mSave").addEventListener("click", ()=>{
   const nome = $("#fNome").value.trim();
   if (!nome){ $("#fNome").focus(); return; }
   const numOr = (id, def)=>{ const v = $(id).value; return v==="" ? def : Number(v); };
-  // jogatinas extras (W2+), lidas inline
-  const runs = [...document.querySelectorAll("#mRuns .runh")].map(inp=>({ horas: Number(inp.value)||0 }));
+  // jogatinas extras (W2+), lidas inline — horas + ano jogado
+  const runs = [...document.querySelectorAll("#mRuns .runrow")].map(row=>{
+    const o = { horas: Number(row.querySelector(".runh")?.value)||0 };
+    const a = row.querySelector(".runano")?.value;
+    if (a!=="" && a!=null) o.anoJog = Number(a);
+    return o;
+  });
   const reg = {
-    nome, ano: numOr("#fAno", null), horas: numOr("#fHoras", 0), enc: $("#fEnc").value,
+    nome, ano: numOr("#fAno", null), anoJog: numOr("#fAnoJog", null), horas: numOr("#fHoras", 0), enc: $("#fEnc").value,
     motivo: $("#fMotivo").value.trim(), genres: $("#fGenres").value.trim(),
     h: numOr("#fH", null), g: numOr("#fG", null), d: numOr("#fD", null), ff: numOr("#fFF", null),
     v: $("#fV").value, runs
@@ -1067,7 +1102,9 @@ document.addEventListener("click", e=>{
   if (tv){ const v=tv.dataset.tver; fVer.has(v)?fVer.delete(v):fVer.add(v); render(); return; }
   const ta = e.target.closest("[data-tano]");
   if (ta){ const a=ta.dataset.tano; fAno.has(a)?fAno.delete(a):fAno.add(a); render(); return; }
-  if (e.target.closest("[data-unall]")){ fStatus.clear(); fVer.clear(); fAno.clear(); render(); return; }
+  const taj = e.target.closest("[data-tanojog]");
+  if (taj){ const a=taj.dataset.tanojog; fAnoJog.has(a)?fAnoJog.delete(a):fAnoJog.add(a); render(); return; }
+  if (e.target.closest("[data-unall]")){ fStatus.clear(); fVer.clear(); fAno.clear(); fAnoJog.clear(); render(); return; }
   const od = e.target.closest("[data-ordem]");
   if (od){ ordem = od.dataset.ordem; render(); return; }
   if (e.target.closest("#btnAdd")){ openModal(null); return; }
