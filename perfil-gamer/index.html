@@ -187,6 +187,8 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
 .gedit textarea{min-height:50px;resize:vertical}
 .gedit input:focus-visible,.gedit select:focus-visible,.gedit textarea:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
 .gedit .erow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gedit .erow3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gedit .erow3 input{padding-left:8px;padding-right:6px}
 .gedit .mrow4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
 .gedit .checkline{display:flex;align-items:center;gap:9px;font-size:.82rem;color:var(--ink);text-transform:none;letter-spacing:0;font-weight:700;margin:13px 0 0;cursor:pointer}
 .gedit .checkline input{width:18px;height:18px;margin:0;flex:0 0 auto}
@@ -660,23 +662,22 @@ function gedRuns(g){
 function gameEditor(g){
   const iv = x => (x==null||x==="N/A") ? "" : x;
   return `<div class="gedit">
-    <div class="row" style="margin-top:10px">
-      ${horasOcultas(g)?"":`<span class="stat"><b class="num">${totalHoras(g)}h</b>tempo total</span>`}
+    <label class="el" style="margin-top:12px">Nome<input data-f="nome" type="text" value="${esc(g.nome)}" /></label>
+    <div class="erow3">
+      <label class="el">Lançamento<input data-f="ano" type="number" min="1990" max="2100" step="1" inputmode="numeric" placeholder="—" value="${g.ano??""}" /></label>
+      <label class="el">🎮 Joguei${nRuns(g)>1?" W1":""}<input data-f="anoJog" type="number" min="1990" max="2100" step="1" inputmode="numeric" placeholder="—" value="${g.anoJog??""}" /></label>
+      <label class="el">Horas W1<input data-f="horas" type="number" min="0" step="0.5" inputmode="decimal" value="${g.horas??0}" /></label>
     </div>
-    <label class="el">Nome<input data-f="nome" type="text" value="${esc(g.nome)}" /></label>
     <div class="erow">
-      <label class="el">Ano de lançamento<input data-f="ano" type="number" min="1990" max="2100" step="1" inputmode="numeric" placeholder="—" value="${g.ano??""}" /></label>
-      <label class="el">Horas (W1)<input data-f="horas" type="number" min="0" step="0.5" inputmode="decimal" value="${g.horas??0}" /></label>
+      <label class="el">Status<select data-f="enc">
+        <option value="#" ${g.enc==="#"?"selected":""}>🔄 Jogando</option>
+        <option value="S" ${g.enc==="S"?"selected":""}>✅ Zerado</option>
+        <option value="N" ${g.enc==="N"?"selected":""}>❌ Dropado</option></select></label>
+      <label class="el">Veredicto<select data-f="v">
+        ${VOPTS.map(v=>`<option ${g.v===v||(!ORD.includes(g.v)&&v==="N/A")?"selected":""}>${v==="N/A"?"— sem —":v}</option>`).join("")}</select></label>
     </div>
-    <label class="el">🎮 Joguei em (ano)${nRuns(g)>1?" — W1":""}<input data-f="anoJog" type="number" min="1990" max="2100" step="1" inputmode="numeric" placeholder="—" value="${g.anoJog??""}" /></label>
-    <label class="el">Status<select data-f="enc">
-      <option value="#" ${g.enc==="#"?"selected":""}>🔄 Jogando</option>
-      <option value="S" ${g.enc==="S"?"selected":""}>✅ Zerado</option>
-      <option value="N" ${g.enc==="N"?"selected":""}>❌ Dropado</option></select></label>
-    <label class="el">Veredicto<select data-f="v">
-      ${VOPTS.map(v=>`<option ${g.v===v||(!ORD.includes(g.v)&&v==="N/A")?"selected":""}>${v==="N/A"?"— sem veredicto —":v}</option>`).join("")}</select></label>
     <label class="el">Gêneros (1º = principal)<input data-f="genres" type="text" value="${esc(g.genres||"")}" /></label>
-    <label class="el">Motivo do drop<textarea data-f="motivo">${esc(g.motivo||"")}</textarea></label>
+    ${g.enc==="N"?`<label class="el">Motivo do drop<textarea data-f="motivo">${esc(g.motivo||"")}</textarea></label>`:""}
     <div class="el" style="margin-top:12px">Outras jogatinas (horas)
       <div class="gruns">${gedRuns(g)}</div>
       <button type="button" class="cbtn" data-addrun="${g.id}" style="width:100%;margin-top:6px">➕ Adicionar jogatina (NG+/rejogar)</button>
