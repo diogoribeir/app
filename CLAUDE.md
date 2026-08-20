@@ -144,6 +144,12 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   `dados.js` traz o campo no seed. Como a nuvem é a fonte da verdade,
   o `boot()` faz **backfill**: preenche `g.ano` faltante casando com o seed por id (fallback: nome
   normalizado) e regrava — idempotente. Editável no card (campo Ano) e no "➕ Registrar jogo".
+- **Chips de ano (lançamento e "joguei no ano"):** anos **≥ `LEGADO_ANO` (2020)** viram chip individual;
+  tudo **antes de 2020** agrupa num único chip **"Legado <2020"** (token `"lt"`) — helper `chipsAno()`,
+  matcher `anoCasa()`, rótulo ativo `labelAno()`. Evita a fileira enorme de anos antigos (era PS4).
+- **Migração única `migAnoJog`:** ao abrir, o `boot()` preenche `anoJog = g.ano` nos jogos de 1 jogatina
+  (Avowed = 2026), pula multi-jogatina, não sobrescreve o que já tem, e grava o marcador `migAnoJog=true`
+  na nuvem p/ rodar só uma vez.
 - **Atualização em massa/histórico:** `perfil-gamer-src/biblioteca_jogos.xlsx` + `gerar_doc.py` +
   `gerar_dados.py` (regenera o seed). ⚠️ O seed NÃO sobrescreve a nuvem — para repor a nuvem a partir
   do xlsx é preciso apagar o nó `planos/perfil-gamer-dt2026/jogos` (o app então sobe o seed de novo).
