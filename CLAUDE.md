@@ -101,11 +101,19 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   motivos de drop) · 🗓 Plano 2026.
 - **PWA:** instalável (manifest + `sw.js` network-first) e abre offline; ícones `icon-192/512.png`
   gerados por canvas. Menu **⋯** no cabeçalho = backup exportar/importar (`.json` com jogos + plano).
-- **Jogatinas (playthroughs):** cada jogo pode ter mais de uma jogatina (rejogar/NG+) — guarda-se **só as
-  horas** de cada uma: a 1ª é o campo `horas` base e as demais ficam em `g.runs[]` (`{horas}`). **Veredicto
-  e status são únicos por jogo** (não por jogatina). Botão "🔁 Nova jogatina" no card e no Editar (só pede
-  horas); o card mostra "🔁 W1 Xh · W2 Yh". Horas totais e estatísticas somam todas as
-  jogatinas. Helpers: `runHoras/totalHoras/runsResumo`. (Não há campo Observação.)
+- **Jogatinas (playthroughs):** cada jogo pode ter mais de uma jogatina (rejogar/NG+) — guarda-se as
+  **horas** e o **ano jogado** de cada uma: a 1ª é o campo `horas`/`anoJog` base e as demais ficam em
+  `g.runs[]` (`{horas, anoJog}`). **Veredicto e status são únicos por jogo** (não por jogatina). Botão
+  "🔁 Nova jogatina" no card e no Editar (pede horas + ano); o card mostra "🔁 W1 Xh · W2 Yh". Horas
+  totais e estatísticas somam todas as jogatinas. Helpers: `runHoras/totalHoras/runsResumo`.
+  (Não há campo Observação.)
+- **Ano jogado (`g.anoJog` / `run.anoJog`):** ano em que cada jogatina foi jogada — **diferente do ano de
+  lançamento** (`g.ano`), pois dá pra rejogar o mesmo jogo em anos distintos (ex.: Death Stranding 2 —
+  W1 num ano, W2 em 2026). Editável no card (campo "🎮 Joguei em (ano)" p/ o W1 + input de ano em cada
+  jogatina W2+) e no "➕ Registrar jogo". A aba 🎮 **Jogos** tem o filtro **"🎮 Joguei no ano"** no painel
+  `⚙ Filtros` (`fAnoJog`, chips por ano via `anosJogadosDisp()`): um jogo entra se **qualquer** jogatina
+  bater o ano (helper `anosDoJogo(g)`). Só ano de jogatina, não confundir com o filtro "📅 Ano de
+  lançamento" (`fAno`).
 - **Filosofia (respeitar):** veredicto categórico, NUNCA notas numéricas na interface;
   componentes H/G/D/FF discretos como "análise interna". Detalhes em `perfil-gamer-src/README.md`.
 - **EDITÁVEL no app** (igual aos outros): botão "➕ Registrar jogo" (modal). **Editar é inline no card**:
