@@ -96,20 +96,20 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **O que faz:** biblioteca de jogos PS4/PS5 com veredictos estilo ACG (Masterpiece → Muito Ruim),
   3 abas: 🎮 Jogos (busca sempre visível + painel de filtros **recolhível** `⚙ Filtros` — recolhido por
   padrão p/ dar espaço à lista no celular; quando recolhido mostra a ordenação atual e os filtros ativos
-  como chips; veredicto/status/**ano de lançamento**/ordenação dentro do painel, custo/hora R$90) ·
-  📊 Estatísticas (distribuição, tempo total jogado, top horas com filtro por veredicto, hall do
-  custo/hora, por gênero, motivos de drop) · 🗓 Plano 2026.
+  como chips; veredicto/status/**ano de lançamento**/ordenação dentro do painel) ·
+  📊 Estatísticas (distribuição, tempo total jogado, top horas com filtro por veredicto, por gênero,
+  motivos de drop) · 🗓 Plano 2026.
 - **PWA:** instalável (manifest + `sw.js` network-first) e abre offline; ícones `icon-192/512.png`
   gerados por canvas. Menu **⋯** no cabeçalho = backup exportar/importar (`.json` com jogos + plano).
 - **Jogatinas (playthroughs):** cada jogo pode ter mais de uma jogatina (rejogar/NG+) — guarda-se **só as
   horas** de cada uma: a 1ª é o campo `horas` base e as demais ficam em `g.runs[]` (`{horas}`). **Veredicto
   e status são únicos por jogo** (não por jogatina). Botão "🔁 Nova jogatina" no card e no Editar (só pede
-  horas); o card mostra "🔁 W1 Xh · W2 Yh". Horas totais, custo/hora e estatísticas somam todas as
+  horas); o card mostra "🔁 W1 Xh · W2 Yh". Horas totais e estatísticas somam todas as
   jogatinas. Helpers: `runHoras/totalHoras/runsResumo`. (Não há campo Observação.)
 - **Filosofia (respeitar):** veredicto categórico, NUNCA notas numéricas na interface;
   componentes H/G/D/FF discretos como "análise interna". Detalhes em `perfil-gamer-src/README.md`.
 - **EDITÁVEL no app** (igual aos outros): botão "➕ Registrar jogo" (modal). **Editar é inline no card**:
-  tocar no jogo expande o card já como editor (nome, horas W1, status, veredicto, 🎁 grátis, gêneros,
+  tocar no jogo expande o card já como editor (nome, ano, horas W1, status, veredicto, gêneros,
   motivo, jogatinas W2+, análise interna, Excluir) — salva ao sair de cada campo, sem abrir janela.
   A aba 🗓 **Plano 2026** é editável: cada jogo planejado tem só **nome + estimativa de horas + data
   (calendário)**; a fila fica **ordenada por data**. As **horas disponíveis** vão de hoje até
@@ -132,8 +132,8 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   (jogos planejados + padrão global + ajustes de horas por semana) sincroniza no mesmo nó, chave
   `plano2026` (`{itens, horasSemana, padraoSemana}`); `window.PLANO` do `dados.js` é só o seed inicial.
 - **Ano de lançamento (`g.ano`):** cada jogo tem o ano oficial de lançamento (pesquisado na web, ago/2026)
-  — usado no filtro/ordenação "📅 Lançamento" e exibido no card. Fica na coluna **Ano** do xlsx (e há uma
-  coluna **Grátis** p/ o `g.gratis`); o `dados.js` traz o campo no seed. Como a nuvem é a fonte da verdade,
+  — usado no filtro/ordenação "📅 Lançamento" e exibido no card. Fica na coluna **Ano** do xlsx; o
+  `dados.js` traz o campo no seed. Como a nuvem é a fonte da verdade,
   o `boot()` faz **backfill**: preenche `g.ano` faltante casando com o seed por id (fallback: nome
   normalizado) e regrava — idempotente. Editável no card (campo Ano) e no "➕ Registrar jogo".
 - **Atualização em massa/histórico:** `perfil-gamer-src/biblioteca_jogos.xlsx` + `gerar_doc.py` +
