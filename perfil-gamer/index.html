@@ -572,6 +572,23 @@ async function boot(){
     if (g.ano == null){ const a = anoSeed(g); if (a != null){ g.ano = a; migrou = true; } }
   });
   if (migrou){ try{localStorage.setItem(LS_KEY, JSON.stringify(J));}catch(e){} if (cloudOK) saveJogos(); }
+  // migração ÚNICA (marcador na nuvem): anoJog = ano de lançamento p/ jogos de 1 jogatina; Avowed = 2026
+  if (cloudOK){
+    try {
+      const mr = await fetch(`${SYNC_URL}/migAnoJog.json`, { cache:"no-store" });
+      const done = mr.ok ? await mr.json() : null;
+      if (!done){
+        let mudou = false;
+        J.forEach(g=>{
+          if (/avowed/i.test(g.nome||"")){ if (g.anoJog==null){ g.anoJog = 2026; mudou = true; } return; }
+          if (g.runs && g.runs.length) return;                       // só jogos de 1 jogatina
+          if (Number.isFinite(g.ano) && g.anoJog==null){ g.anoJog = g.ano; mudou = true; }
+        });
+        if (mudou){ try{localStorage.setItem(LS_KEY, JSON.stringify(J));}catch(e){} saveJogos(); }
+        fetch(`${SYNC_URL}/migAnoJog.json`, { method:"PUT", body:"true" }).catch(()=>{});
+      }
+    } catch(e){}
+  }
   try {
     const r = await fetch(`${SYNC_URL}/plano2026.json`, { cache:"no-store" });
     if (r.ok) {
