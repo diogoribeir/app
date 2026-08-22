@@ -69,15 +69,24 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **URL:** https://diogoribeir.github.io/app/paris-planner/
 - **Pastas:** `paris-planner-src/` (fonte Vite + React + Tailwind + lucide-react) e
   `paris-planner/` (o build publicado — index.html + assets/).
-- **Quem desenvolve:** a **Tati**, num artifact do claude.ai dela. Ela exporta um `paristripplanner.tsx`
-  (~3400 linhas) e o Diogo traz o arquivo pra cá. **Não** alterar funcionalidades por conta própria —
-  a fonte da verdade do conteúdo é o arquivo dela.
+- **Fonte da verdade (ago/2026 em diante):** o **repositório** é oficial. A Tati **não exporta mais**
+  o artifact do claude.ai dela — as mudanças de conteúdo/funcionalidade agora são feitas **direto em
+  `paris-planner-src/src/App.jsx`** e publicadas daqui (pode editar horários, textos, dados `default*`
+  etc. quando o Diogo pedir). Histórico: o app nasceu do `paristripplanner.tsx` (~3700 linhas) que ela
+  exportava; o fluxo de importação de um `.tsx` novo continua documentado abaixo só para o caso de um dia
+  chegar outro arquivo, mas o **padrão passou a ser editar no repositório**.
 - **Sincronização:** Realtime Database via REST, nó **`planos/paris-planner-dt2026`** — o app carrega os
-  dados da nuvem ao abrir, salva ao mudar, e recarrega ao voltar se houver gravação mais nova. O arquivo
-  dela vem com `window.storage` (API que só existe no claude.ai) e é **substituído no build** por esse
-  bloco de nuvem + localStorage.
+  dados da nuvem ao abrir, salva ao mudar, e recarrega ao voltar se houver gravação mais nova. localStorage
+  é a cópia offline. ⚠️ **A nuvem é a fonte da verdade dos dados em runtime:** os arrays `default*` no
+  código são só o *seed* inicial — se o nó da nuvem já tiver dados salvos (itinerário, orçamento etc.),
+  editar o `default*` **não muda o que aparece no celular**; nesse caso, ou a edição é feita no app (que
+  grava na nuvem) ou é preciso apagar/atualizar a chave correspondente no nó da nuvem pra o novo seed valer.
+- ☀️ **Cronograma x nascer do sol:** os passeios ao ar livre de manhã cedo (ex.: Rue de Camoëns e Louvre
+  externo, 07:30) já estão calibrados pro nascer do sol de Paris em setembro (~07:20-07:30, calculado via
+  NOAA) — chegando 07:30 já há luz de verdade, nenhum passeio começa no escuro. Ao mexer em horários de
+  manhã, conferir o nascer do sol da data antes de marcar passeio ao ar livre.
 
-### 🔁 FLUXO DE ATUALIZAÇÃO do App 3 (quando chegar um .tsx novo)
+### 🔁 FLUXO DE IMPORTAÇÃO do App 3 (histórico — só se um dia chegar um `.tsx` novo da Tati)
 1. Copiar o conteúdo do `.tsx` novo para `paris-planner-src/src/App.jsx`.
 2. **Trocar o bloco de storage**: localizar `async function loadKey` / `saveKey` (que usam
    `window.storage`) e substituir pelo bloco com `SYNC_URL` (copiar do `App.jsx` atual do repositório
