@@ -222,6 +222,18 @@ h2{font-size:.78rem;margin:20px 4px 9px;font-weight:800;letter-spacing:.1em;text
 .bar .fill{height:100%;border-radius:8px;min-width:3px;display:flex;align-items:center;justify-content:flex-end;
   padding-right:6px;font-size:.62rem;font-weight:800;color:var(--von,#fff)}
 .bar .val{flex:0 0 40px;font-size:.7rem;color:var(--muted);font-weight:700}
+/* gráfico de distribuição configurável (Estatísticas) */
+.dbar{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.dbar:last-child{margin-bottom:0}
+.dbar .dblbl{flex:0 0 92px;font-size:.71rem;font-weight:800;text-align:right;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dbar .dbtrack{flex:1;min-width:0;height:14px;background:var(--surface2);border-radius:999px;overflow:hidden}
+.dbar .dbfill{height:100%;border-radius:999px;min-width:4px;transition:width .25s ease}
+.dbar .dbval{flex:0 0 66px;display:flex;align-items:baseline;justify-content:flex-end;gap:5px}
+.dbar .dbval b{font-size:.86rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.dbar .dbval .dbpct{font-size:.68rem;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums;
+  min-width:30px;text-align:right}
+.dnote{font-size:.62rem;color:var(--muted);margin:10px 2px 0;line-height:1.4}
 .rowline{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.82rem}
 .rowline:last-child{border-bottom:0}
 .rowline .pos{flex:0 0 22px;height:22px;border-radius:7px;background:var(--surface2);color:var(--muted);
@@ -634,6 +646,7 @@ let ordem = "horas";
 let filtersOpen = false;   // painel de filtros recolhido por padrão (mais espaço p/ a lista no celular)
 let wkOpen = false;        // painel "ajustar horas por semana" (Plano) recolhido por padrão
 let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
+let statDim = "ver";     // dimensão do gráfico "Distribuição": ver | lanc | jogou
 let openGame = null;     // id do card expandido (edição inline, sem modal)
 const secOpen = new Set(["ver"]);  // seções abertas nas Estatísticas
 const STATUS_LABEL = {"S":"✅ Zerados","N":"❌ Dropados","#":"🔄 Jogando"};
@@ -875,12 +888,36 @@ function viewJogos(){
 /* ---------- aba Estatísticas ---------- */
 function viewStats(){
   const rated = J.filter(g=>ORD.includes(g.v));
-  const dist = {}; ORD.forEach(v=>dist[v]=0); rated.forEach(g=>dist[g.v]++);
-  const maxD = Math.max(...Object.values(dist),1);
-  const bars = ORD.slice().reverse().map(v=>`
-    <div class="bar"><div class="lbl" style="color:${VC[v][0]}">${VC[v][2]} ${v}</div>
-      <div class="track"><div class="fill" style="width:${Math.max(dist[v]/maxD*100,6)}%;background:${VC[v][0]}">${dist[v]||""}</div></div>
-      <div class="val num">${Math.round(dist[v]/(rated.length||1)*100)}%</div></div>`).join("");
+  // gráfico "Distribuição" configurável: por veredicto, por ano de lançamento ou por ano jogado
+  const distData = dim => {
+    if (dim==="ver"){
+      const m={}; ORD.forEach(v=>m[v]=0); rated.forEach(g=>m[g.v]++);
+      return ORD.slice().reverse().filter(v=>m[v]>0)
+        .map(v=>({label:v, n:m[v], color:VC[v][0], ic:VC[v][2]}));
+    }
+    // anos: lançamento = g.ano (1 por jogo); jogado = anos distintos por jogo (W1/W2+)
+    const m=new Map();
+    const bump = y => { if (y==null) return; const k=(y<LEGADO_ANO)?"lt":String(y); m.set(k,(m.get(k)||0)+1); };
+    if (dim==="lanc") J.forEach(g=>bump(g.ano));
+    else J.forEach(g=>[...new Set(anosDoJogo(g))].forEach(bump));
+    const keys=[...m.keys()].sort((a,b)=> a==="lt"?1 : b==="lt"?-1 : Number(b)-Number(a));
+    return keys.map(k=>({label:labelAno(k), n:m.get(k), color:"var(--accent)", ic:""}));
+  };
+  const dimLbl = {ver:"⭐ Veredicto", lanc:"📅 Lançamento", jogou:"🎮 Ano jogado"};
+  const dimChips = `<div class="frow" style="margin-bottom:12px">${
+    Object.entries(dimLbl).map(([d,l])=>`<button type="button" class="fchip ${statDim===d?"on":""}" data-statdim="${d}">${l}</button>`).join("")}</div>`;
+  const dd = distData(statDim);
+  const sumN = dd.reduce((s,x)=>s+x.n,0) || 1;
+  const maxN = Math.max(...dd.map(x=>x.n), 1);
+  const distBars = dd.map(x=>`
+    <div class="dbar">
+      <div class="dblbl"${x.color!=="var(--accent)"?` style="color:${x.color}"`:""}>${x.ic?x.ic+" ":""}${esc(x.label)}</div>
+      <div class="dbtrack"><div class="dbfill" style="width:${Math.max(x.n/maxN*100,4)}%;background:${x.color}"></div></div>
+      <div class="dbval"><b class="num">${x.n}</b><span class="dbpct num">${Math.round(x.n/sumN*100)}%</span></div>
+    </div>`).join("") || '<p class="lead" style="margin:6px 2px">Sem dados.</p>';
+  const distNote = statDim==="jogou" ? '<p class="dnote">Um jogo rejogado em anos diferentes conta em cada ano.</p>' : "";
+  const bars = dimChips + distBars + distNote;
+  const distSub = statDim==="ver" ? `${rated.length} avaliados` : `${dd.length} ${dd.length===1?"ano":"anos"}`;
   let topLst = J.slice().filter(g=>!horasOcultas(g));
   if (statVer) topLst = topLst.filter(g=>g.v===statVer);
   const topRows = topLst.sort((a,b)=>totalHoras(b)-totalHoras(a)).slice(0,10).map((g,i)=>
@@ -921,7 +958,7 @@ function viewStats(){
       <summary><span class="sic">${ic}</span><span>${title}</span>${sub?`<span class="ssub">${sub}</span>`:'<span style="margin-left:auto"></span>'}<span class="schev">▸</span></summary>
       <div class="secbody">${inner}</div></details>`;
   return `${overview}
-    ${sec("ver","⭐","Veredictos", `${rated.length} avaliados`, bars)}
+    ${sec("ver","📊","Distribuição", distSub, bars)}
     ${sec("top","⏱","Top horas", statVer||"", topChips+topRows)}
     ${sec("gen","🎯","Por gênero", "", `<div class="ggrid">${genRows}</div>`)}
     ${sec("drop","❌","Drops", `${dropsLst.length}`, drops)}`;
@@ -1183,6 +1220,8 @@ document.addEventListener("click", e=>{
   if (e.target.closest("#btnAdd")){ openModal(null); return; }
   const sv = e.target.closest("[data-statver]");
   if (sv){ statVer = sv.dataset.statver; render(); return; }
+  const sd = e.target.closest("[data-statdim]");
+  if (sd){ statDim = sd.dataset.statdim; render(); return; }
   if (e.target.closest("[data-padreset]")){ padraoSemana = HORAS_SEMANA; savePlano(); render(); return; }
   const wr = e.target.closest("[data-wkreset]");
   if (wr){ delete HS[wr.dataset.wkreset]; savePlano(); render(); return; }
