@@ -712,6 +712,11 @@ function horasNoFiltro(g){
   return s;
 }
 function horasOcultas(g){ return /FINAL FANTASY XIV/i.test(g.nome||""); }
+/* jogos "sem fim" (live-service): nos gráficos de horas por ano, limitados a um teto p/ não distorcer o ano */
+const HORAS_TETO = 150;
+function ehSemFim(g){ return /path of exile|diablo iv/i.test(g.nome||""); }
+// fator (0–1) que escala as horas do jogo nos gráficos de distribuição; 1 = sem corte
+function fatorTeto(g){ const t=totalHoras(g); return (ehSemFim(g) && t>HORAS_TETO) ? HORAS_TETO/t : 1; }
 
 /* ---------- aba Jogos: card = editor inline (sem modal) ---------- */
 const VOPTS = ["N/A","Masterpiece","Muito Bom","Bom","Mediano","Ruim","Muito Ruim"];
@@ -906,13 +911,13 @@ function viewStats(){
     const addH=(k,h)=>{ if (k==null) return; hrs.set(k,(hrs.get(k)||0)+h); };
     if (dim==="lanc"){
       J.forEach(g=>{ const k=key(g.ano); if (k==null) return;
-        cnt.set(k,(cnt.get(k)||0)+1); addH(k, horasOcultas(g)?0:totalHoras(g)); });
+        cnt.set(k,(cnt.get(k)||0)+1); addH(k, horasOcultas(g)?0:totalHoras(g)*fatorTeto(g)); });
     } else {
       J.forEach(g=>{
         [...new Set(anosDoJogo(g).map(key).filter(k=>k!=null))].forEach(k=>cnt.set(k,(cnt.get(k)||0)+1)); // jogo distinto por ano
-        const oc = horasOcultas(g);
-        if (g.anoJog!=null) addH(key(g.anoJog), oc?0:(g.horas||0));
-        (g.runs||[]).forEach(r=>{ if (r && r.anoJog!=null) addH(key(r.anoJog), oc?0:(r.horas||0)); });
+        const f = horasOcultas(g) ? 0 : fatorTeto(g);   // 0 = oculto; <1 = jogo sem fim (teto)
+        if (g.anoJog!=null) addH(key(g.anoJog), (g.horas||0)*f);
+        (g.runs||[]).forEach(r=>{ if (r && r.anoJog!=null) addH(key(r.anoJog), (r.horas||0)*f); });
       });
     }
     const keys=[...cnt.keys()].sort((a,b)=> a==="lt"?1 : b==="lt"?-1 : Number(b)-Number(a));
@@ -937,7 +942,9 @@ function viewStats(){
       <div class="dbval ${showPct?"":"stack"}">${right}</div>
     </div>`;
   }).join("") || '<p class="lead" style="margin:6px 2px">Sem dados.</p>';
-  const distNote = statDim==="jogou" ? '<p class="dnote">Contagem: um jogo rejogado em anos diferentes conta em cada ano. Horas: cada jogatina soma no ano em que foi jogada.</p>' : "";
+  const tetoNote = `Jogos sem fim (Path of Exile 2, Diablo IV) entram no máximo com ${HORAS_TETO}h para não distorcer o ano.`;
+  const distNote = statDim==="jogou" ? `<p class="dnote">Contagem: um jogo rejogado em anos diferentes conta em cada ano. Horas: cada jogatina soma no ano em que foi jogada. ${tetoNote}</p>`
+                 : statDim==="lanc" ? `<p class="dnote">${tetoNote}</p>` : "";
   const bars = dimChips + distBars + distNote;
   const distSub = statDim==="ver" ? `${rated.length} avaliados` : `${dd.length} ${dd.length===1?"ano":"anos"}`;
   let topLst = J.slice().filter(g=>!horasOcultas(g));
