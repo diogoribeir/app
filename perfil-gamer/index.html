@@ -900,15 +900,16 @@ function viewStats(){
     }
     // anos: contagem de jogos + horas por ano. lançamento = g.ano (1 por jogo);
     // jogado = anos distintos por jogo (contagem) com horas por jogatina (W1=g.horas, W2+=run.horas)
-    const key = y => (y<LEGADO_ANO)?"lt":String(y);
+    // anos < 2020 (era PS4) são outliers e ficam de fora destes gráficos (key = null)
+    const key = y => (y==null || y<LEGADO_ANO) ? null : String(y);
     const cnt=new Map(), hrs=new Map();
-    const addH=(k,h)=>hrs.set(k,(hrs.get(k)||0)+h);
+    const addH=(k,h)=>{ if (k==null) return; hrs.set(k,(hrs.get(k)||0)+h); };
     if (dim==="lanc"){
-      J.forEach(g=>{ if (g.ano==null) return; const k=key(g.ano);
+      J.forEach(g=>{ const k=key(g.ano); if (k==null) return;
         cnt.set(k,(cnt.get(k)||0)+1); addH(k, horasOcultas(g)?0:totalHoras(g)); });
     } else {
       J.forEach(g=>{
-        [...new Set(anosDoJogo(g).map(key))].forEach(k=>cnt.set(k,(cnt.get(k)||0)+1)); // jogo distinto por ano
+        [...new Set(anosDoJogo(g).map(key).filter(k=>k!=null))].forEach(k=>cnt.set(k,(cnt.get(k)||0)+1)); // jogo distinto por ano
         const oc = horasOcultas(g);
         if (g.anoJog!=null) addH(key(g.anoJog), oc?0:(g.horas||0));
         (g.runs||[]).forEach(r=>{ if (r && r.anoJog!=null) addH(key(r.anoJog), oc?0:(r.horas||0)); });
