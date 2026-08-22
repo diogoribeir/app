@@ -135,17 +135,20 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
 .fchip.on .cdot{background:var(--von,#fff)!important;opacity:.9}
 .fchip.clear{margin-left:auto;color:var(--mr);border-style:dashed}
 .fchip:active{transform:scale(.96)}
-.filterbar{display:flex;align-items:center;gap:10px;margin:12px 0 0}
-.filttoggle{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);
-  color:var(--ink);font:inherit;font-size:.8rem;font-weight:800;padding:9px 13px;border-radius:12px;cursor:pointer}
-.filttoggle .chev{color:var(--muted);font-size:.7rem;transition:transform .18s ease}
-.filttoggle.open .chev{transform:rotate(180deg)}
+.filterbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 0}
+.filttoggle,.sorttoggle{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);
+  color:var(--ink);font:inherit;font-size:.78rem;font-weight:800;padding:9px 12px;border-radius:12px;cursor:pointer}
+.sorttoggle{color:var(--muted)}
+.filttoggle .chev,.sorttoggle .chev{color:var(--muted);font-size:.68rem;transition:transform .18s ease}
+.filttoggle.open .chev,.sorttoggle.open .chev{transform:rotate(180deg)}
 .filttoggle .fbadge{background:var(--accent);color:#fff;border-radius:999px;font-size:.62rem;font-weight:800;
   min-width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
-.filttoggle:active{transform:scale(.97)}
+.filttoggle.on,.sorttoggle.open{border-color:var(--accent);color:var(--accent)}
+.filttoggle:active,.sorttoggle:active{transform:scale(.97)}
 .filterbar .count{margin-left:auto}
-.filterpanel{margin:6px 0 12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);
-  padding:2px 12px 12px;animation:fadeUp .18s ease}
+.filterpanel,.sortpanel{margin:6px 0 12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);
+  padding:10px 12px 12px;animation:fadeUp .18s ease}
+.sortpanel .flabel{margin-top:0}
 .factive{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 12px}
 .factive .fchip.clear{margin-left:0}
 .fchip.sm{padding:5px 10px;font-size:.68rem;font-weight:700}
@@ -647,6 +650,7 @@ const fAnoJog = new Set();   // multi: anos em que joguei as jogatinas (string)
 let busca = "";
 let ordem = "horas";
 let filtersOpen = false;   // painel de filtros recolhido por padrão (mais espaço p/ a lista no celular)
+let sortOpen = false;      // mini-painel de ordenação (separado dos filtros), recolhido por padrão
 let wkOpen = false;        // painel "ajustar horas por semana" (Plano) recolhido por padrão
 let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
 let statDim = "ver";     // dimensão do gráfico "Distribuição": ver | lanc | jogou
@@ -820,30 +824,32 @@ function viewJogos(){
   const anosJog = anosJogadosDisp();
   const anoJogChips = chipsAno(anosJog, fAnoJog, "data-tanojog");
   const ordChips = Object.entries(ordLabels).map(([o,l])=>`<button type="button" class="fchip ${ordem===o?"on":""}" data-ordem="${o}">${l}</button>`).join("");
-  // recolhido: mostra ordenação atual (abre o painel) + filtros ativos (toque no ✕ remove) + limpar
-  const ctx = filtersOpen ? "" : `<div class="factive">
-    <button type="button" class="fchip sm" data-filttoggle="1">${ordLabels[ordem]}</button>
+  // recolhido: só os filtros ativos (toque no ✕ remove) + limpar; a ordenação agora é botão próprio
+  const ctx = (!filtersOpen && nActive) ? `<div class="factive">
     ${[...fStatus].map(s=>`<button type="button" class="fchip sm on" data-tstatus="${esc(s)}">${STATUS_LABEL[s]} ✕</button>`).join("")}
     ${[...fVer].map(v=>`<button type="button" class="fchip sm on" style="--vc:${VC[v][0]}" data-tver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)} ✕</button>`).join("")}
     ${[...fAno].map(a=>`<button type="button" class="fchip sm on" data-tano="${esc(a)}">📅 ${esc(labelAno(a))} ✕</button>`).join("")}
     ${[...fAnoJog].map(a=>`<button type="button" class="fchip sm on" data-tanojog="${esc(a)}">🎮 ${esc(labelAno(a))} ✕</button>`).join("")}
-    ${nActive?`<button type="button" class="fchip sm clear" data-unall="1">limpar</button>`:""}
-  </div>`;
+    <button type="button" class="fchip sm clear" data-unall="1">limpar</button>
+  </div>` : "";
   const filterPanel = filtersOpen ? `<div class="filterpanel">
     <div class="flabel">Situação</div><div class="frow">${sitChips}</div>
     <div class="flabel">Veredicto</div><div class="frow">${verChips}</div>
     ${anos.length?`<div class="flabel">📅 Ano de lançamento</div><div class="frow">${anoChips}</div>`:""}
     ${anosJog.length?`<div class="flabel">🎮 Joguei no ano</div><div class="frow">${anoJogChips}</div>`:""}
-    <div class="flabel">Ordenar</div><div class="frow">${ordChips}</div>
     <div class="panelfoot">
       ${nActive?`<button type="button" class="fchip clear" data-unall="1">limpar</button>`:""}
       <button type="button" class="panelapply" data-filttoggle="1">✓ Ver ${lst.length} jogo(s)</button>
     </div>
   </div>` : "";
+  const sortPanel = sortOpen ? `<div class="sortpanel">
+    <div class="flabel">Ordenar por</div><div class="frow">${ordChips}</div>
+  </div>` : "";
   const filters = `<div class="filterbar">
-    <button type="button" class="filttoggle ${filtersOpen?"open":""}" data-filttoggle="1">⚙ Filtros${nActive?`<span class="fbadge">${nActive}</span>`:""}<span class="chev">▾</span></button>
+    <button type="button" class="filttoggle ${filtersOpen?"open":""} ${nActive?"on":""}" data-filttoggle="1">⚙ Filtros${nActive?`<span class="fbadge">${nActive}</span>`:""}<span class="chev">▾</span></button>
+    <button type="button" class="sorttoggle ${sortOpen?"open":""}" data-sorttoggle="1">${ordLabels[ordem]}<span class="chev">▾</span></button>
     <span class="count num">${lst.length} jogo(s)</span>
-  </div>${ctx}${filterPanel}`;
+  </div>${ctx}${filterPanel}${sortPanel}`;
 
   // resumo do conjunto filtrado — total de jogos, horas jogadas e distribuição por veredicto
   let miniStats = "";
@@ -1234,7 +1240,8 @@ $("#bFile").addEventListener("change", e=>{
 
 document.addEventListener("click", e=>{
   const t = e.target.closest("[data-tab]"); if (t){ tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
-  if (e.target.closest("[data-filttoggle]")){ filtersOpen=!filtersOpen; render(); return; }
+  if (e.target.closest("[data-filttoggle]")){ filtersOpen=!filtersOpen; sortOpen=false; render(); return; }
+  if (e.target.closest("[data-sorttoggle]")){ sortOpen=!sortOpen; filtersOpen=false; render(); return; }
   const ts = e.target.closest("[data-tstatus]");
   if (ts){ const s=ts.dataset.tstatus; fStatus.has(s)?fStatus.delete(s):fStatus.add(s); render(); return; }
   const tv = e.target.closest("[data-tver]");
@@ -1245,7 +1252,7 @@ document.addEventListener("click", e=>{
   if (taj){ const a=taj.dataset.tanojog; fAnoJog.has(a)?fAnoJog.delete(a):fAnoJog.add(a); render(); return; }
   if (e.target.closest("[data-unall]")){ fStatus.clear(); fVer.clear(); fAno.clear(); fAnoJog.clear(); render(); return; }
   const od = e.target.closest("[data-ordem]");
-  if (od){ ordem = od.dataset.ordem; render(); return; }
+  if (od){ ordem = od.dataset.ordem; sortOpen=false; render(); return; }
   if (e.target.closest("#btnAdd")){ openModal(null); return; }
   const sv = e.target.closest("[data-statver]");
   if (sv){ statVer = sv.dataset.statver; render(); return; }
