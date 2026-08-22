@@ -87,13 +87,23 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
   background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:1.15rem;font-weight:800;
   cursor:pointer;box-shadow:0 4px 12px var(--accent-soft)}
 .addmini:active{transform:scale(.95)}
-/* mini-estatísticas do conjunto filtrado (sutil) */
-.ministats{display:flex;flex-wrap:wrap;align-items:center;gap:6px 11px;margin:2px 2px 12px;
-  font-size:.7rem;color:var(--muted);font-weight:700}
-.ministats .mslbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.07em;font-weight:800}
-.ministats .msitem{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-.ministats .msitem b{color:var(--ink);font-weight:800}
-.ministats .msdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+/* resumo do conjunto filtrado (cartão) */
+.fsummary{margin:4px 2px 14px;padding:11px 13px;border:1px solid var(--line);border-radius:14px;
+  background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.fshead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.fshead .fslbl{font-size:.56rem;text-transform:uppercase;letter-spacing:.1em;font-weight:800;color:var(--muted)}
+.fsnums{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;margin-left:auto;
+  font-size:.82rem;color:var(--muted);font-weight:600}
+.fsnums .fsstat b{color:var(--ink);font-weight:800;font-size:.98rem}
+.fsnums .fssep{color:var(--line)}
+.fsbar{display:flex;height:7px;border-radius:999px;overflow:hidden;margin:10px 0 2px;background:var(--surface2)}
+.fsbar>span{display:block;height:100%;min-width:2px}
+.fsrows{display:flex;flex-direction:column;gap:1px;margin-top:8px}
+.fsrow{display:flex;align-items:center;gap:8px;padding:3px 0;font-size:.8rem;font-weight:700;color:var(--ink)}
+.fsrow .fsdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.fsrow .fsnm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fsrow .fsn{font-weight:800;font-variant-numeric:tabular-nums}
+.fsrow .fspct{width:38px;text-align:right;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
 .search:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
 .fbar{display:flex;gap:8px;margin-top:10px}
 .fbtn{flex:1;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;
@@ -675,6 +685,16 @@ function runHoras(g){ return [g.horas||0, ...((g.runs||[]).map(r=>(r&&r.horas)||
 function nRuns(g){ return 1 + ((g.runs||[]).length); }
 function totalHoras(g){ return runHoras(g).reduce((s,h)=>s+h,0); }
 function runsResumo(g){ return runHoras(g).map((h,i)=>`W${i+1} ${h}h`).join(" · "); }
+// horas do jogo p/ o resumo do filtro: se o filtro "🎮 Joguei no ano" estiver ativo,
+// soma só as jogatinas jogadas naquele(s) ano(s) (W1 = g.anoJog · W2+ = run.anoJog); senão, soma tudo
+function horasNoFiltro(g){
+  if (horasOcultas(g)) return 0;
+  if (!fAnoJog.size) return totalHoras(g);
+  let s = 0;
+  if (g.anoJog!=null && anoCasa(fAnoJog, g.anoJog)) s += (g.horas||0);
+  (g.runs||[]).forEach(r=>{ if (r && r.anoJog!=null && anoCasa(fAnoJog, r.anoJog)) s += (r.horas||0); });
+  return s;
+}
 function horasOcultas(g){ return /FINAL FANTASY XIV/i.test(g.nome||""); }
 
 /* ---------- aba Jogos: card = editor inline (sem modal) ---------- */
@@ -804,14 +824,37 @@ function viewJogos(){
     <span class="count num">${lst.length} jogo(s)</span>
   </div>${ctx}${filterPanel}`;
 
-  // mini-estatísticas por veredicto — só do universo filtrado (aparece quando há filtro/busca)
+  // resumo do conjunto filtrado — total de jogos, horas jogadas e distribuição por veredicto
   let miniStats = "";
   if ((nActive>0 || busca) && lst.length){
+    const horasTot = lst.reduce((s,g)=>s+horasNoFiltro(g),0);
+    const horasFmt = Math.round(horasTot*10)/10;               // 1 casa se precisar
+    const anoJogAtivo = fAnoJog.size>0;
+    const horasLbl = anoJogAtivo ? `horas em ${[...fAnoJog].map(labelAno).join(", ")}` : "horas jogadas";
     const md = {}; ORD.forEach(v=>md[v]=0);
-    lst.forEach(g=>{ if (ORD.includes(g.v)) md[g.v]++; });
-    const items = ORD.slice().reverse().filter(v=>md[v]>0).map(v=>
-      `<span class="msitem"><span class="msdot" style="background:${VC[v][0]}"></span>${esc(v)} <b class="num">${md[v]}</b> · <span class="num">${Math.round(md[v]/lst.length*100)}%</span></span>`).join("");
-    if (items) miniStats = `<div class="ministats"><span class="mslbl">Neste filtro</span>${items}</div>`;
+    let rated = 0;
+    lst.forEach(g=>{ if (ORD.includes(g.v)){ md[g.v]++; rated++; } });
+    const ordV = ORD.slice().reverse().filter(v=>md[v]>0);
+    // barra proporcional (empilhada) por veredicto
+    const bar = rated ? `<div class="fsbar">${ordV.map(v=>
+      `<span style="width:${md[v]/rated*100}%;background:${VC[v][0]}" title="${esc(v)}: ${md[v]}"></span>`).join("")}</div>` : "";
+    // linhas por veredicto
+    const rows = ordV.map(v=>
+      `<div class="fsrow"><span class="fsdot" style="background:${VC[v][0]}"></span>
+        <span class="fsnm">${esc(v)}</span>
+        <b class="fsn num">${md[v]}</b>
+        <span class="fspct num">${Math.round(md[v]/rated*100)}%</span></div>`).join("");
+    miniStats = `<div class="fsummary">
+      <div class="fshead">
+        <span class="fslbl">Neste filtro</span>
+        <div class="fsnums">
+          <span class="fsstat"><b class="num">${lst.length}</b> ${lst.length===1?"jogo":"jogos"}</span>
+          ${horasTot>0?`<span class="fssep">·</span><span class="fsstat"><b class="num">${horasFmt}h</b> ${horasLbl}</span>`:""}
+        </div>
+      </div>
+      ${bar}
+      ${rows?`<div class="fsrows">${rows}</div>`:""}
+    </div>`;
   }
 
   return `${hero}
