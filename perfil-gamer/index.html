@@ -230,9 +230,12 @@ h2{font-size:.78rem;margin:20px 4px 9px;font-weight:800;letter-spacing:.1em;text
 .dbar .dbtrack{flex:1;min-width:0;height:14px;background:var(--surface2);border-radius:999px;overflow:hidden}
 .dbar .dbfill{height:100%;border-radius:999px;min-width:4px;transition:width .25s ease}
 .dbar .dbval{flex:0 0 66px;display:flex;align-items:baseline;justify-content:flex-end;gap:5px}
+.dbar .dbval.stack{flex:0 0 70px;align-items:flex-end}
 .dbar .dbval b{font-size:.86rem;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
-.dbar .dbval .dbpct{font-size:.68rem;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums;
-  min-width:30px;text-align:right}
+.dbar .dbval .dbpct{font-size:.68rem;color:var(--muted);font-weight:700;
+  font-variant-numeric:tabular-nums;min-width:30px;text-align:right}
+.dbstack{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15}
+.dbstack .dbsub{font-size:.6rem;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
 .dnote{font-size:.62rem;color:var(--muted);margin:10px 2px 0;line-height:1.4}
 .rowline{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.82rem}
 .rowline:last-child{border-bottom:0}
@@ -895,27 +898,45 @@ function viewStats(){
       return ORD.slice().reverse().filter(v=>m[v]>0)
         .map(v=>({label:v, n:m[v], color:VC[v][0], ic:VC[v][2]}));
     }
-    // anos: lançamento = g.ano (1 por jogo); jogado = anos distintos por jogo (W1/W2+)
-    const m=new Map();
-    const bump = y => { if (y==null) return; const k=(y<LEGADO_ANO)?"lt":String(y); m.set(k,(m.get(k)||0)+1); };
-    if (dim==="lanc") J.forEach(g=>bump(g.ano));
-    else J.forEach(g=>[...new Set(anosDoJogo(g))].forEach(bump));
-    const keys=[...m.keys()].sort((a,b)=> a==="lt"?1 : b==="lt"?-1 : Number(b)-Number(a));
-    return keys.map(k=>({label:labelAno(k), n:m.get(k), color:"var(--accent)", ic:""}));
+    // anos: contagem de jogos + horas por ano. lançamento = g.ano (1 por jogo);
+    // jogado = anos distintos por jogo (contagem) com horas por jogatina (W1=g.horas, W2+=run.horas)
+    const key = y => (y<LEGADO_ANO)?"lt":String(y);
+    const cnt=new Map(), hrs=new Map();
+    const addH=(k,h)=>hrs.set(k,(hrs.get(k)||0)+h);
+    if (dim==="lanc"){
+      J.forEach(g=>{ if (g.ano==null) return; const k=key(g.ano);
+        cnt.set(k,(cnt.get(k)||0)+1); addH(k, horasOcultas(g)?0:totalHoras(g)); });
+    } else {
+      J.forEach(g=>{
+        [...new Set(anosDoJogo(g).map(key))].forEach(k=>cnt.set(k,(cnt.get(k)||0)+1)); // jogo distinto por ano
+        const oc = horasOcultas(g);
+        if (g.anoJog!=null) addH(key(g.anoJog), oc?0:(g.horas||0));
+        (g.runs||[]).forEach(r=>{ if (r && r.anoJog!=null) addH(key(r.anoJog), oc?0:(r.horas||0)); });
+      });
+    }
+    const keys=[...cnt.keys()].sort((a,b)=> a==="lt"?1 : b==="lt"?-1 : Number(b)-Number(a));
+    return keys.map(k=>({label:labelAno(k), n:cnt.get(k), hrs:Math.round(hrs.get(k)||0), color:"var(--accent)", ic:""}));
   };
   const dimLbl = {ver:"⭐ Veredicto", lanc:"📅 Lançamento", jogou:"🎮 Ano jogado"};
   const dimChips = `<div class="frow" style="margin-bottom:12px">${
     Object.entries(dimLbl).map(([d,l])=>`<button type="button" class="fchip ${statDim===d?"on":""}" data-statdim="${d}">${l}</button>`).join("")}</div>`;
   const dd = distData(statDim);
+  const showPct = statDim==="ver";                 // veredicto: barra=contagem + %; anos: barra=horas + contagem
   const sumN = dd.reduce((s,x)=>s+x.n,0) || 1;
-  const maxN = Math.max(...dd.map(x=>x.n), 1);
-  const distBars = dd.map(x=>`
+  const maxBar = showPct ? Math.max(...dd.map(x=>x.n),1) : Math.max(...dd.map(x=>x.hrs||0),1);
+  const distBars = dd.map(x=>{
+    const barVal = showPct ? x.n : (x.hrs||0);
+    const right = showPct
+      ? `<b class="num">${x.n}</b><span class="dbpct num">${Math.round(x.n/sumN*100)}%</span>`
+      : `<div class="dbstack"><b class="num">${(x.hrs||0).toLocaleString("pt-BR")}h</b><span class="dbsub num">${x.n} ${x.n===1?"jogo":"jogos"}</span></div>`;
+    return `
     <div class="dbar">
       <div class="dblbl"${x.color!=="var(--accent)"?` style="color:${x.color}"`:""}>${x.ic?x.ic+" ":""}${esc(x.label)}</div>
-      <div class="dbtrack"><div class="dbfill" style="width:${Math.max(x.n/maxN*100,4)}%;background:${x.color}"></div></div>
-      <div class="dbval"><b class="num">${x.n}</b><span class="dbpct num">${Math.round(x.n/sumN*100)}%</span></div>
-    </div>`).join("") || '<p class="lead" style="margin:6px 2px">Sem dados.</p>';
-  const distNote = statDim==="jogou" ? '<p class="dnote">Um jogo rejogado em anos diferentes conta em cada ano.</p>' : "";
+      <div class="dbtrack"><div class="dbfill" style="width:${Math.max(barVal/maxBar*100,4)}%;background:${x.color}"></div></div>
+      <div class="dbval ${showPct?"":"stack"}">${right}</div>
+    </div>`;
+  }).join("") || '<p class="lead" style="margin:6px 2px">Sem dados.</p>';
+  const distNote = statDim==="jogou" ? '<p class="dnote">Contagem: um jogo rejogado em anos diferentes conta em cada ano. Horas: cada jogatina soma no ano em que foi jogada.</p>' : "";
   const bars = dimChips + distBars + distNote;
   const distSub = statDim==="ver" ? `${rated.length} avaliados` : `${dd.length} ${dd.length===1?"ano":"anos"}`;
   let topLst = J.slice().filter(g=>!horasOcultas(g));
