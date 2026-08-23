@@ -81,27 +81,57 @@ function configNivel(nivel: Nivel): { nOpcoes: number; usaFRPT: boolean } {
 }
 
 /**
+ * Escolhe um tipo de teste para uma frase, sorteando entre os formatos
+ * possíveis para aquele item (evita cair sempre no mesmo estilo). Recebe o
+ * tipo usado na rodada anterior para não repetir dois iguais em seguida.
+ */
+function tiposPossiveis(
+  item: ItemConteudo,
+  nivel: Nivel
+): ("escolher-pt-fr" | "escolher-fr-pt" | "montar" | "ouvir")[] {
+  const { usaFRPT } = configNivel(nivel);
+  const tipos: ("escolher-pt-fr" | "escolher-fr-pt" | "montar" | "ouvir")[] = [
+    "escolher-pt-fr",
+    "ouvir",
+  ];
+  if (usaFRPT) tipos.push("escolher-fr-pt");
+  // só oferece montar se a frase render peças suficientes
+  if (exMontar(item)) tipos.push("montar");
+  return tipos;
+}
+
+function exDoTipo(
+  item: ItemConteudo,
+  tipo: "escolher-pt-fr" | "escolher-fr-pt" | "montar" | "ouvir",
+  nOpcoes: number
+): Exercicio {
+  if (tipo === "montar") return exMontar(item)!;
+  if (tipo === "ouvir") return exOuvir(item, nOpcoes);
+  return exEscolher(item, tipo === "escolher-fr-pt" ? "fr-pt" : "pt-fr", nOpcoes);
+}
+
+/**
  * Fila de uma LIÇÃO NOVA: ensina todas as frases primeiro (evita o "eco" de
  * testar logo após mostrar) e fecha com um quiz variado sobre elas.
+ * Cada frase é testada em DOIS formatos diferentes, sorteados por item, para
+ * que a mesma lição não pareça sempre a mesma sequência de exercícios.
  */
 export function gerarFilaLicao(itens: ItemConteudo[], nivel: Nivel): Exercicio[] {
   const frases = itens.filter((i) => i.tipo !== "regra");
-  const { nOpcoes, usaFRPT } = configNivel(nivel);
+  const { nOpcoes } = configNivel(nivel);
 
   const ensino: Exercicio[] = frases.map((item) => ({ tipo: "apresentar", item }));
 
+  // Para cada frase, sorteia 2 formatos DISTINTOS entre os possíveis — assim
+  // cada item aparece de dois jeitos e a mistura muda a cada abertura.
   const quiz: Exercicio[] = [];
-  frases.forEach((item, idx) => {
-    const direcao = usaFRPT && idx % 2 === 1 ? "fr-pt" : "pt-fr";
-    quiz.push(exEscolher(item, direcao, nOpcoes));
+  frases.forEach((item) => {
+    const opcoes = embaralhar(tiposPossiveis(item, nivel));
+    const quantos = Math.min(2, opcoes.length);
+    for (let i = 0; i < quantos; i++) {
+      quiz.push(exDoTipo(item, opcoes[i], nOpcoes));
+    }
   });
-  // Montagem para até 2 frases (as que rendem peças suficientes)…
-  const montaveis = frases.map(exMontar).filter((e): e is Exercicio => e !== null);
-  quiz.push(...embaralhar(montaveis).slice(0, 2));
-  // …e 1 exercício de escuta.
-  if (frases.length > 0) {
-    quiz.push(exOuvir(frases[Math.floor(Math.random() * frases.length)], nOpcoes));
-  }
 
   const filaQuiz = embaralhar(quiz);
   // Fala fica por último: é opcional (pulável) e fecha a lição falando.

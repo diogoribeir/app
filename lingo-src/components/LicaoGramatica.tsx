@@ -22,11 +22,14 @@ export default function LicaoGramatica({
   topicoId,
   licaoId,
   aoSair,
+  aoProxima,
 }: {
   topicoId: string;
   /** Presente quando aberta pela trilha (dá XP); ausente na biblioteca. */
   licaoId?: string;
   aoSair: () => void;
+  /** Segue para a próxima lição da trilha (só quando há uma). */
+  aoProxima?: () => void;
 }) {
   const topico = topicoPorId(topicoId);
   const [indice, setIndice] = useState(0);
@@ -87,9 +90,23 @@ export default function LicaoGramatica({
               +{licaoId ? xpGanho : Math.max(5, Math.round(xpGanho / 2))}
             </p>
           </div>
-          <button onClick={aoSair} className="botao mt-8 w-full">
-            Continuar
-          </button>
+          {aoProxima ? (
+            <>
+              <button onClick={aoProxima} className="botao mt-8 w-full">
+                Próxima lição →
+              </button>
+              <button
+                onClick={aoSair}
+                className="mt-2 w-full py-2 text-sm font-bold text-[var(--suave)]"
+              >
+                Voltar à trilha
+              </button>
+            </>
+          ) : (
+            <button onClick={aoSair} className="botao mt-8 w-full">
+              Continuar
+            </button>
+          )}
         </div>
       </div>
     );

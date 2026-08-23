@@ -14,7 +14,7 @@ import LicaoGramatica from "@/components/LicaoGramatica";
 import TutorChat from "@/components/TutorChat";
 import Perfil from "@/components/Perfil";
 import { lerUsuario, salvarUsuario } from "@/lib/estadoLocal";
-import { licaoPorId, itensDaLicao, itemPorId } from "@/lib/curso";
+import { licaoPorId, itensDaLicao, itemPorId, proximaAposLicao } from "@/lib/curso";
 import { gerarFilaLicao, gerarFilaRevisao } from "@/lib/exercicios";
 import { XP_LICAO, XP_REVISAO } from "@/lib/jogo";
 import type { Usuario, Exercicio } from "@/lib/types";
@@ -77,6 +77,13 @@ export default function Pagina() {
     }
   }
 
+  /** Segue a trilha: abre a lição seguinte ou volta à trilha se acabou. */
+  function irParaProxima(licaoIdAtual: string) {
+    const prox = proximaAposLicao(licaoIdAtual);
+    if (prox) abrirLicao(prox.licao.id);
+    else voltar();
+  }
+
   // ── telas em cima das abas ────────────────────────────────────────
   if (tela.tipo === "licao") {
     const achado = licaoPorId(tela.licaoId);
@@ -85,14 +92,17 @@ export default function Pagina() {
       return null;
     }
     const fila: Exercicio[] = gerarFilaLicao(itensDaLicao(achado.licao), usuario.nivel);
+    const temProxima = Boolean(proximaAposLicao(tela.licaoId));
     return (
       <Sessao
+        key={tela.licaoId}
         titulo={achado.licao.titulo}
         cor={achado.unidade.cor}
         fila={fila}
         xpBase={XP_LICAO}
         licaoId={tela.licaoId}
         aoSair={voltar}
+        aoProxima={temProxima ? () => irParaProxima(tela.licaoId) : undefined}
       />
     );
   }
@@ -102,11 +112,16 @@ export default function Pagina() {
   }
 
   if (tela.tipo === "gramatica") {
+    const licaoIdG = tela.licaoId;
     return (
       <LicaoGramatica
+        key={tela.topicoId}
         topicoId={tela.topicoId}
-        licaoId={tela.licaoId}
+        licaoId={licaoIdG}
         aoSair={voltar}
+        aoProxima={
+          licaoIdG && proximaAposLicao(licaoIdG) ? () => irParaProxima(licaoIdG) : undefined
+        }
       />
     );
   }

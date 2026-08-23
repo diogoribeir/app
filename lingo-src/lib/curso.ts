@@ -149,6 +149,17 @@ export function proximaLicao(feitas: Set<string>): { licao: Licao; unidade: Unid
   return todasLicoes().find((x) => !feitas.has(x.licao.id)) ?? null;
 }
 
+/**
+ * A lição SEGUINTE a uma dada, na ordem linear da trilha (para "continuar a
+ * trilha" ao terminar uma lição). Retorna null se for a última do curso.
+ */
+export function proximaAposLicao(licaoId: string): { licao: Licao; unidade: Unidade } | null {
+  const lista = todasLicoes();
+  const i = lista.findIndex((x) => x.licao.id === licaoId);
+  if (i < 0 || i + 1 >= lista.length) return null;
+  return lista[i + 1];
+}
+
 /** Sanidade em dev: acusa lições apontando para ids inexistentes. */
 export function validarCurso(): string[] {
   const problemas: string[] = [];

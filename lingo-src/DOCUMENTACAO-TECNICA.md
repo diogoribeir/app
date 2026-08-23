@@ -152,9 +152,16 @@ ar) → `npm run build` → `npm start`.
   tem as nasais). Cada tópico: seções + exemplos com áudio + mini-quiz; campo
   `conjugacoes` puxa tabelas da camada A.
 - **Exercícios (lib/exercicios.ts):** lição nova = apresentar todas as frases →
-  quiz embaralhado (escolher PT↔FR conforme nível, montar frase com chips + 2
-  iscas, ouvir e reconhecer) → falar (opcional/pulável). Erro → reinsere no fim
-  UMA vez. Revisão SRS = só quiz.
+  quiz embaralhado → falar (opcional/pulável). Cada frase é testada em **2
+  formatos DISTINTOS sorteados por item** (entre escolher PT→FR, escolher FR→PT,
+  montar com chips e ouvir), então a mesma lição não cai sempre na mesma
+  sequência (menos repetitivo). Erro → reinsere no fim UMA vez. Revisão SRS = só
+  quiz.
+- **Player (Sessao.tsx):** respostas guardadas **por índice** (`estados`), então
+  dá para **voltar (‹)** e rever exercícios já respondidos sem perder a resposta.
+  Ao concluir uma lição da trilha, a tela de pontos mostra **"Próxima lição →"**
+  (encadeia via `proximaAposLicao` em `curso.ts`) além de "Voltar à trilha".
+  O mesmo vale para as lições de gramática (`LicaoGramatica.tsx`).
 - **Progresso (lib/jogo.ts):** 10 pontos/lição (+5 perfeita), meta diária
   (20/40/60 pts), sequência de dias não quebra se ainda não estudou hoje.
   Tom sóbrio na UI — "pontos" e "dias seguidos", nunca "XP"/estética de jogo.

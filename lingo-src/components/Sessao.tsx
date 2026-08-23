@@ -3,6 +3,8 @@
 // O player de exercícios (o coração do Lingo): barra de progresso, um
 // exercício por vez, rodapé verde/vermelho e tela de conclusão com XP.
 // Errou? A frase volta uma vez para o fim da fila — sem loop infinito.
+// As respostas ficam guardadas por índice, então dá para VOLTAR (‹) e rever
+// o que já foi respondido. Ao concluir, "Próxima lição →" segue a trilha.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import BotaoOuvir from "./BotaoOuvir";
@@ -15,6 +17,16 @@ import type { CorUnidade, Exercicio } from "@/lib/types";
 
 type Checagem = null | "certo" | "errado";
 
+// Estado de resposta de UM exercício — guardado por índice para que dê para
+// voltar e rever o que já foi respondido (sem perder a resposta).
+type EstadoEx = {
+  escolha: string | null;
+  montagem: number[]; // índices das peças usadas
+  falou: boolean;
+  checado: Checagem;
+};
+const EST_VAZIO: EstadoEx = { escolha: null, montagem: [], falou: false, checado: null };
+
 export default function Sessao({
   titulo,
   cor,
@@ -22,6 +34,7 @@ export default function Sessao({
   xpBase,
   licaoId,
   aoSair,
+  aoProxima,
 }: {
   titulo: string;
   cor: CorUnidade;
@@ -29,20 +42,27 @@ export default function Sessao({
   xpBase: number;
   licaoId?: string;
   aoSair: () => void;
+  /** Segue para a próxima lição da trilha (só quando há uma). */
+  aoProxima?: () => void;
 }) {
   const [fila, setFila] = useState<Exercicio[]>(filaInicial);
   const [indice, setIndice] = useState(0);
-  const [checado, setChecado] = useState<Checagem>(null);
   const [erros, setErros] = useState(0);
   const [fim, setFim] = useState(false);
   const [confirmaSaida, setConfirmaSaida] = useState(false);
   const reinseridos = useRef(new Set<string>());
   const registrou = useRef(false);
 
-  // respostas do exercício atual
-  const [escolha, setEscolha] = useState<string | null>(null);
-  const [montagem, setMontagem] = useState<number[]>([]); // índices das peças usadas
-  const [falou, setFalou] = useState(false);
+  // respostas guardadas por índice (permite voltar para rever)
+  const [estados, setEstados] = useState<Record<number, EstadoEx>>({});
+  const atual = estados[indice] ?? EST_VAZIO;
+  const { escolha, montagem, falou, checado } = atual;
+
+  function patchAtual(patch: Partial<EstadoEx>) {
+    setEstados((m) => ({ ...m, [indice]: { ...(m[indice] ?? EST_VAZIO), ...patch } }));
+  }
+  const setEscolha = (s: string) => patchAtual({ escolha: s });
+  const setMontagem = (mm: number[]) => patchAtual({ montagem: mm });
 
   const trio = corDe(cor);
   const ex = fila[indice];
@@ -88,7 +108,7 @@ export default function Sessao({
   function verificar() {
     if (!ex) return;
     const acertou = respostaAtualCorreta();
-    setChecado(acertou ? "certo" : "errado");
+    patchAtual({ checado: acertou ? "certo" : "errado" });
     // feedback tátil no celular: toque curto no acerto, duplo no erro
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       navigator.vibrate(acertou ? 25 : [60, 40, 60]);
@@ -108,12 +128,13 @@ export default function Sessao({
   }
 
   function continuar() {
-    setChecado(null);
-    setEscolha(null);
-    setMontagem([]);
-    setFalou(false);
+    // não zera nada: cada índice guarda a própria resposta (dá para voltar).
     if (indice + 1 >= fila.length) setFim(true);
     else setIndice((i) => i + 1);
+  }
+
+  function voltarEx() {
+    if (indice > 0) setIndice((i) => i - 1);
   }
 
   const podeVerificar =
@@ -156,9 +177,23 @@ export default function Sessao({
               +{XP_BONUS_PERFEITA} pontos de bônus por não errar nenhuma!
             </p>
           )}
-          <button onClick={aoSair} className="botao mt-8 w-full">
-            Continuar
-          </button>
+          {aoProxima ? (
+            <>
+              <button onClick={aoProxima} className="botao mt-8 w-full">
+                Próxima lição →
+              </button>
+              <button
+                onClick={aoSair}
+                className="mt-2 w-full py-2 text-sm font-bold text-[var(--suave)]"
+              >
+                Voltar à trilha
+              </button>
+            </>
+          ) : (
+            <button onClick={aoSair} className="botao mt-8 w-full">
+              Continuar
+            </button>
+          )}
         </div>
       </div>
     );
@@ -167,7 +202,7 @@ export default function Sessao({
   // ── sessão em andamento ───────────────────────────────────────────
   return (
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-4">
-      {/* topo: sair + progresso */}
+      {/* topo: sair + voltar + progresso */}
       <div className="flex items-center gap-3 py-4">
         <button
           onClick={() => setConfirmaSaida(true)}
@@ -175,6 +210,18 @@ export default function Sessao({
           className="text-2xl font-black text-[var(--suave)] transition hover:text-[var(--texto)]"
         >
           ✕
+        </button>
+        <button
+          onClick={voltarEx}
+          disabled={indice === 0}
+          aria-label="Exercício anterior"
+          className={`text-2xl font-black transition ${
+            indice === 0
+              ? "cursor-not-allowed text-[var(--borda)]"
+              : "text-[var(--suave)] hover:text-[var(--texto)]"
+          }`}
+        >
+          ‹
         </button>
         <div className="h-4 flex-1 overflow-hidden rounded-full bg-[var(--borda)]">
           <div
@@ -210,7 +257,7 @@ export default function Sessao({
         {ex.tipo === "montar" && (
           <ExMontar ex={ex} montagem={montagem} setMontagem={setMontagem} checado={checado} />
         )}
-        {ex.tipo === "falar" && <ExFalar ex={ex} aoTentar={() => setFalou(true)} />}
+        {ex.tipo === "falar" && <ExFalar ex={ex} aoTentar={() => patchAtual({ falou: true })} />}
       </div>
 
       {/* rodapé: verificar / feedback */}
