@@ -82,7 +82,7 @@ export async function gerarRespostaTutor(
  */
 function respostaMock(msg: string): RespostaTutor {
   return {
-    resposta: `Boa pergunta! (modo demonstração — sem chave de API). Uma dica que sempre vale: para pedir qualquer coisa com educação, use "Je voudrais…" (eu gostaria…). Tente: "Je voudrais un café, s'il vous plaît." Quando você ligar sua chave Anthropic, eu respondo de verdade ao que você escreveu: "${msg}".`,
+    resposta: `Boa pergunta sobre "${msg}"! (modo demonstração — este é um protótipo estático, então respondo com dicas do conteúdo já verificado). Uma que sempre vale: para pedir qualquer coisa com educação, use "Je voudrais…" (eu gostaria…). Tente: "Je voudrais un café, s'il vous plaît."`,
     correcoes: msg.toLowerCase().includes("je veux")
       ? [
           {

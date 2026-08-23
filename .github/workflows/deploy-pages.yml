@@ -5,6 +5,7 @@ name: Publicar apps no GitHub Pages
 #   /dias-sem-doenca/   -> contador de dias sem doenca
 #   /paris-planner/     -> planejador React da viagem
 #   /perfil-gamer/      -> biblioteca de jogos PS4/PS5
+#   /lingo/             -> curso de frances (Next.js exportado estatico)
 # Roda automaticamente quando um app muda no master, e pode ser
 # disparado manualmente na aba Actions (botao "Run workflow").
 
@@ -16,6 +17,7 @@ on:
       - "dias-sem-doenca/**"
       - "paris-planner/**"
       - "perfil-gamer/**"
+      - "lingo-src/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -43,13 +45,31 @@ jobs:
         with:
           enablement: true
 
+      - name: Configurar Node (para o build do Lingo)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: lingo-src/package-lock.json
+
+      - name: Build do Lingo (Next.js -> site estatico)
+        working-directory: lingo-src
+        env:
+          # publica sob /app/lingo/ no GitHub Pages; sem chave de API,
+          # o Tutor roda em modo demonstracao no proprio navegador.
+          NEXT_PUBLIC_BASE_PATH: /app/lingo
+        run: |
+          npm ci
+          npm run build
+
       - name: Montar o site (home na raiz + um caminho por app)
         run: |
-          mkdir -p _site/dias-sem-doenca _site/paris-planner _site/perfil-gamer
+          mkdir -p _site/dias-sem-doenca _site/paris-planner _site/perfil-gamer _site/lingo
           cp -r home/. _site/
           cp -r dias-sem-doenca/. _site/dias-sem-doenca/
           cp -r paris-planner/. _site/paris-planner/
           cp -r perfil-gamer/. _site/perfil-gamer/
+          cp -r lingo-src/out/. _site/lingo/
 
       - name: Empacotar o site
         uses: actions/upload-pages-artifact@v3

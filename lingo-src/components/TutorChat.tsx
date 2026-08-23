@@ -2,11 +2,14 @@
 
 // Módulo TUTOR (camada C): chat em português com o tutor de IA.
 // Toda resposta passa pela guarda gerador→avaliador; sem chave de API,
-// roda em modo demonstração com conteúdo verificado.
+// roda em modo demonstração com conteúdo verificado. Como o app é publicado
+// como site estático (GitHub Pages, sem servidor), o pipeline roda no próprio
+// navegador via `perguntarTutorLocal` (sempre em modo demonstração).
 
 import { useEffect, useRef, useState } from "react";
 import BotaoOuvir from "./BotaoOuvir";
 import { falar } from "@/lib/fala";
+import { perguntarTutorLocal } from "@/lib/tutorCliente";
 import type { RespostaTutor, TurnoChat, Usuario } from "@/lib/types";
 
 /** A frase em francês que merece ser FALADA ao chegar a resposta. */
@@ -41,14 +44,7 @@ export default function TutorChat({ usuario }: { usuario: Usuario }) {
     setTurnos((t) => [...t, { papel: "aluno", texto: msg }]);
     setCarregando(true);
     try {
-      const resp = await fetch("/api/tutor", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ mensagem: msg, usuario }),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.erro || "Erro no tutor.");
-      const resposta = data.resposta as RespostaTutor;
+      const resposta = await perguntarTutorLocal(msg, usuario);
       setTurnos((t) => [
         ...t,
         { papel: "tutor", texto: resposta.resposta, estruturado: resposta },

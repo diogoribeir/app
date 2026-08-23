@@ -17,11 +17,11 @@
 | 🩺 Dias sem Doença | https://diogoribeir.github.io/app/dias-sem-doenca/ | `dias-sem-doenca/` | RTDB `planos/dias-sem-doenca-dt2026` (sem login) |
 | ✈️ Paris Trip Planner (Tati) | https://diogoribeir.github.io/app/paris-planner/ | `paris-planner/` (build) + `paris-planner-src/` (fonte) | RTDB `planos/paris-planner-dt2026` |
 | 🎮 Perfil Gamer | https://diogoribeir.github.io/app/perfil-gamer/ | `perfil-gamer/` (app) + `perfil-gamer-src/` (dados) | RTDB `planos/perfil-gamer-dt2026` (nuvem = fonte da verdade; `dados.js` = seed) |
-| 🇫🇷 Lingo (francês) | https://lingo-liard-kappa.vercel.app | `lingo-src/` (fonte Next.js) | Sem nuvem de dados (progresso local) · **Hospedado no VERCEL** (tem servidor: tutor + senha) — NÃO deletar o projeto `lingo` no Vercel |
+| 🇫🇷 Lingo (francês) | https://diogoribeir.github.io/app/lingo/ | `lingo-src/` (fonte Next.js, exportada estática) | Sem nuvem de dados (progresso local) · **GitHub Pages** (estático; migrado do Vercel em ago/2026 — o workflow builda `lingo-src/` e publica em `/app/lingo/`). Tutor roda no navegador, modo demonstração |
 
 ### Infraestrutura fixa
 - **Repositório:** `diogoribeir/app` (https://github.com/diogoribeir/app) · branch principal `master`
-- **Hospedagem:** GitHub Pages (workflow `.github/workflows/deploy-pages.yml`, publica a cada merge no `master`) — exceto o Lingo, que fica no Vercel por precisar de servidor
+- **Hospedagem:** GitHub Pages para **todos** os 4 apps (workflow `.github/workflows/deploy-pages.yml`, publica a cada merge no `master`). O Lingo é um Next.js **exportado estático** (o workflow roda `npm ci && npm run build` com `NEXT_PUBLIC_BASE_PATH=/app/lingo`); os demais são arquivos estáticos copiados direto. O Vercel não é mais usado
 - **Banco:** Firebase, projeto único `apps-4b887` (Realtime Database no nó `planos/` para os apps; Firestore antigo do dias-sem-doenca guardado só como backup)
 - **Fluxo git:** branch → commit → push → PR → merge no `master` (o Claude pode mergear e deve conferir o deploy `success`)
 - **Contexto completo para o Claude:** arquivo `CLAUDE.md` na raiz do repositório (carregado automaticamente em sessões abertas no repositório)
@@ -103,7 +103,10 @@ Espelho do workflow atual — acrescente só a linha do `meu-app`:
           cp -r perfil-gamer/. _site/perfil-gamer/
           cp -r meu-app/. _site/meu-app/
 ```
-(o **Lingo** não entra aqui — fica no Vercel.)
+(esta receita é para apps **estáticos** — só copiar a pasta. O **Lingo** é o caso especial:
+tem um passo de **build** antes do copy — `npm ci && npm run build` em `lingo-src/` com
+`NEXT_PUBLIC_BASE_PATH=/app/lingo`, depois `cp -r lingo-src/out/. _site/lingo/`. Veja o
+workflow atual como referência se um dia precisar de um app com build.)
 **(3)** adicionar o card do app novo na página inicial `home/index.html`.
 
 Depois do merge no `master`, o workflow publica sozinho. Conferir na aba Actions que o run
