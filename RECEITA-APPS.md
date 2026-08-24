@@ -17,6 +17,7 @@
 | 🩺 Dias sem Doença | https://diogoribeir.github.io/app/dias-sem-doenca/ | `dias-sem-doenca/` | RTDB `planos/dias-sem-doenca-dt2026` (sem login) |
 | ✈️ Paris Trip Planner (Tati) | https://diogoribeir.github.io/app/paris-planner/ | `paris-planner/` (build) + `paris-planner-src/` (fonte) | RTDB `planos/paris-planner-dt2026` |
 | 🎮 Perfil Gamer | https://diogoribeir.github.io/app/perfil-gamer/ | `perfil-gamer/` (app) + `perfil-gamer-src/` (dados) | RTDB `planos/perfil-gamer-dt2026` (nuvem = fonte da verdade; `dados.js` = seed) |
+| 🚗 Comparador HR-V | https://diogoribeir.github.io/app/hrv-comparador/ | `hrv-comparador/` (build) + `hrv-comparador-src/` (fonte Vite + React) | RTDB `planos/hrv-comparador-dt2026` (localStorage = offline; seed embutido no código) |
 | 🇫🇷 Lingo (francês) | https://lingo-liard-kappa.vercel.app | `lingo-src/` (fonte Next.js) | Sem nuvem de dados (progresso local) · **Hospedado no VERCEL** (tem servidor: tutor + senha) — NÃO deletar o projeto `lingo` no Vercel |
 
 ### Infraestrutura fixa
