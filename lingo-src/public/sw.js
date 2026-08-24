@@ -2,7 +2,7 @@
 // Estratégia stale-while-revalidate: serve do cache na hora e atualiza em
 // segundo plano. Permite instalar no celular e abrir mesmo offline.
 
-const CACHE = "lingo-v5"; // v5: A Viagem (carrossel sem rolagem) + Cenas ao vivo (roleplay com voz)
+const CACHE = "lingo-v6"; // v6: GitHub Pages (estático, Tutor no cliente) + player (voltar/próxima lição/menos repetição)
 
 self.addEventListener("install", () => self.skipWaiting());
 

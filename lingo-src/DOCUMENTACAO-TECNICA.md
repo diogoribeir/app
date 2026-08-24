@@ -19,7 +19,10 @@ deliberadamente **não** parecida com Duolingo, por exigência do usuário
 (ver §7 e memória `feedback-nao-parecer-duolingo`). Reconstrução (jul/2026)
 do protótipo "Bagagem".
 
-**Produção:** https://lingo-liard-kappa.vercel.app (ver §5b).
+**Produção:** https://diogoribeir.github.io/app/lingo/ — **site estático no
+GitHub Pages** (migrado do Vercel em ago/2026; ver §5b). Sem servidor: a rota
+`/api/tutor` e o `middleware` foram removidos e o Tutor roda no navegador
+(`lib/tutorCliente.ts`), sempre em **modo demonstração** (sem chave de API).
 
 **Regra de ouro (inalterada):** o app NÃO ensina francês "inventado" pelo
 modelo. Lições, exercícios e gramática saem de **conteúdo verificado**
@@ -49,20 +52,21 @@ aba Tutor.
 - Estado 100% no aparelho (`localStorage`, chaves `lingo:*`): perfil
   (`lib/estadoLocal.ts`), pontos/sequência/lições (`lib/jogo.ts` — nomes
   internos `xp*`; na UI o termo é "pontos"), SRS (`lib/srs.ts`).
-  Deploy-ready em serverless; só `/api/tutor` usa servidor.
-- Acesso: senha opcional via `middleware.ts` (HTTP Basic + `ACCESS_PASSWORD`,
-  usuário padrão `lingo`, comparação timing-safe).
+  **Site estático (GitHub Pages) — sem servidor:** o Tutor roda no navegador
+  (`lib/tutorCliente.ts`), sempre em modo demonstração.
+- Acesso: **sem senha** — site público como os outros apps (o antigo
+  `middleware.ts` de HTTP Basic foi removido na migração para o Pages).
 - PWA: `manifest.webmanifest` + `public/sw.js` (cache `lingo-v2`) + `icon.svg`
   ("L" serifado, papel creme, filete tricolor).
 
 ## 4. Estrutura de arquivos
 
 ```
-middleware.ts                    # senha opcional (HTTP Basic, timing-safe)
+next.config.mjs                  # output: "export" + basePath (NEXT_PUBLIC_BASE_PATH)
 app/
   layout.tsx, globals.css        # shell + DESIGN SYSTEM "Paris ao anoitecer" (.botao/.opcao/.chip/.cartao/.grad-texto/.nav-vidro)
   page.tsx                       # ⭐ shell de abas (Hoje·Curso·Frases·Tutor·Você) + nav flutuante + lição em tela cheia
-  api/tutor/route.ts             # POST → guardrails → pipeline da camada C
+  (api/tutor removido — site estático; o Tutor roda no cliente, ver lib/tutorCliente.ts)
 components/
   Onboarding.tsx                 # 3 passos: nome → nível → meta diária (pontos)
   Hoje.tsx                       # ⭐ aba HOJE: anel da meta (SVG), "Estudar agora" 1 toque, revisão SRS embutida, atalhos, semana
@@ -80,7 +84,8 @@ lib/
   curso.ts                       # ⭐ CURSO: unidades→lições (refs a ids verificados), desbloqueio linear, validarCurso()
   exercicios.ts                  # ⭐ gerador determinístico: apresentar/escolher(PT↔FR)/montar(chips)/ouvir/falar
   jogo.ts                        # pontos (funções xp*), sequência (streak), lições feitas, atividade da semana
-  guardrails.ts                  # 🛡️ validação/saneamento + rate limit da /api/tutor (ver §6b)
+  guardrails.ts                  # 🛡️ validação/saneamento (validarTurno; rate-limit por IP não usado no estático)
+  tutorCliente.ts                # Tutor no navegador: validarTurno → pipeline (sempre mock)
   gramatica.ts                   # loader dos tópicos verificados (gramatica.json)
   camadaA.ts / camadaB.ts        # 🟢/🟡 (inalterados; recuperarContexto([]) = tudo)
   tutor.ts / avaliador.ts / pipeline.ts  # 🔴 camada C (prompt geral PT-BR→FR + bloco anti-injection)
@@ -99,7 +104,9 @@ scripts/verificar-conteudo.ts    # portão de CI
 - `npx tsc --noEmit` (tipos) · `npm run verificar-conteudo` (CI de conteúdo)
 - Sanidade do curso: `npx tsx -e "import {validarCurso} from './lib/curso'; console.log(validarCurso())"`
 - ⚠️ NÃO rodar `npm run build` com o dev ligado (corrompe `.next`).
-- Sem `ANTHROPIC_API_KEY` → modo mock (só a aba Tutor usa API).
+- `npm run build` gera `out/` (export estático). No Pages o workflow define
+  `NEXT_PUBLIC_BASE_PATH=/app/lingo`; local fica vazio.
+- O Tutor roda **sempre em modo demonstração** (site estático não tem chave).
 
 ## 5b. Acesso pelo celular (Android, mesma rede Wi-Fi)
 
@@ -126,18 +133,23 @@ HTTPS ou localhost):
 - **Service worker/offline não registra** — o atalho abre o site, mas não é a
   PWA completa nem funciona offline.
 
-**✅ PUBLICADO NO VERCEL (2026-07-03):** produção em
-**https://lingo-liard-kappa.vercel.app** (projeto `lingo`, conta Hobby
-diogoribeir-2614s-projects; deploy manual via `npx vercel --prod --yes`, build
-na nuvem — pode rodar com o dev local ligado). Com HTTPS, a PWA completa
-funciona: instalar, offline e 🎤 microfone. Sem env vars configuradas → tutor
-em modo mock; para ligar: painel Vercel → Settings → Environment Variables →
-`ANTHROPIC_API_KEY` (e opcionalmente `ACCESS_PASSWORD`). O acesso via rede
-local abaixo continua valendo como alternativa de dev.
+**✅ MIGRADO PARA O GITHUB PAGES (2026-08):** produção em
+**https://diogoribeir.github.io/app/lingo/** — site **estático** publicado pelo
+workflow do repositório raiz (`.github/workflows/deploy-pages.yml`): ele roda
+`npm ci && npm run build` em `lingo-src/` com `NEXT_PUBLIC_BASE_PATH=/app/lingo`
+e copia `out/` para `/app/lingo/`. Com HTTPS, a PWA completa funciona (instalar,
+offline e 🎤 microfone).
 
-**Servidor para deixar ligado:** `npm run dev` serve, mas para uso contínuo o
-modo produção é mais leve e estável: parar o dev (⚠️ nunca buildar com dev no
-ar) → `npm run build` → `npm start`.
+**Por que estático:** o Pages não roda servidor. A rota `/api/tutor` e o
+`middleware` de senha foram removidos; o Tutor roda no navegador
+(`lib/tutorCliente.ts`) e fica **sempre em modo demonstração** (o navegador não
+pode guardar `ANTHROPIC_API_KEY` com segurança). Para IA real no Tutor de novo
+seria preciso voltar a um servidor (Vercel/etc.) e restaurar `api/tutor`
+(está no histórico do git). O antigo projeto `lingo` no Vercel pode ser removido.
+
+**Rodar em produção local (opcional):** `npm run build` gera `out/`; sirva a
+pasta com qualquer servidor estático (ex.: `npx serve out`). Para dev normal,
+`npm run dev`.
 
 ## 6. O curso (conteúdo pedagógico)
 
@@ -152,37 +164,43 @@ ar) → `npm run build` → `npm start`.
   tem as nasais). Cada tópico: seções + exemplos com áudio + mini-quiz; campo
   `conjugacoes` puxa tabelas da camada A.
 - **Exercícios (lib/exercicios.ts):** lição nova = apresentar todas as frases →
-  quiz embaralhado (escolher PT↔FR conforme nível, montar frase com chips + 2
-  iscas, ouvir e reconhecer) → falar (opcional/pulável). Erro → reinsere no fim
-  UMA vez. Revisão SRS = só quiz.
+  quiz embaralhado → falar (opcional/pulável). Cada frase é testada em **2
+  formatos DISTINTOS sorteados por item** (entre escolher PT→FR, escolher FR→PT,
+  montar com chips e ouvir), então a mesma lição não cai sempre na mesma
+  sequência (menos repetitivo). Erro → reinsere no fim UMA vez. Revisão SRS = só
+  quiz.
+- **Player (Sessao.tsx):** respostas guardadas **por índice** (`estados`), então
+  dá para **voltar (‹)** e rever exercícios já respondidos sem perder a resposta.
+  Ao concluir uma lição da trilha, a tela de pontos mostra **"Próxima lição →"**
+  (encadeia via `proximaAposLicao` em `curso.ts`) além de "Voltar à trilha".
+  O mesmo vale para as lições de gramática (`LicaoGramatica.tsx`).
 - **Progresso (lib/jogo.ts):** 10 pontos/lição (+5 perfeita), meta diária
   (20/40/60 pts), sequência de dias não quebra se ainda não estudou hoje.
   Tom sóbrio na UI — "pontos" e "dias seguidos", nunca "XP"/estética de jogo.
 
-## 6b. Guardrails de segurança (2026-07-02)
+## 6b. Guardrails de segurança (2026-07-02; atualizado ago/2026)
 
-A única superfície com custo/IA é `/api/tutor`; o resto é estático + estado no
-aparelho. Camadas (todas testadas com requisições reais):
+⚠️ **Contexto mudou:** desde a migração para o GitHub Pages (site estático), o
+Tutor roda **no navegador em modo demonstração** — não há mais chamada de API
+com custo, nem servidor. As camadas 1 e 3 continuam valendo (rodam no cliente);
+2, 4 e 6 eram do servidor e não se aplicam mais; a 5 (headers) só vale no `next
+dev` (o Pages não aplica headers). O código do servidor (`api/tutor`, rate limit
+por IP em `guardrails.ts`, `middleware.ts`) está preservado no histórico do git
+caso um dia o Tutor volte a rodar num servidor.
 
-1. **Validação/saneamento** (`lib/guardrails.ts#validarTurno`): a rota NUNCA
-   repassa o objeto do cliente — reconstrói `Usuario` só com campos saneados
+1. **Validação/saneamento** (`lib/guardrails.ts#validarTurno`): `tutorCliente`
+   NUNCA repassa o objeto cru — reconstrói `Usuario` só com campos saneados
    (nome ≤30 chars, sem controle/quebra de linha; nivel só do enum). Mensagem
-   ≤500 chars, sem caracteres de controle; corpo não-JSON → 400.
-2. **Rate limit por IP** (`dentroDoLimite`): 6 req/min, janela deslizante em
-   memória com teto de 5k IPs (serverless: por instância — corta abuso simples;
-   upgrade futuro: Upstash/KV). Excesso → 429.
+   ≤500 chars, sem caracteres de controle. **(ativo — roda no cliente)**
+2. ~~Rate limit por IP~~ — só fazia sentido no servidor; **não se aplica** no
+   estático (sem custo de API, tudo local).
 3. **Anti-prompt-injection** (`lib/tutor.ts`): bloco SEGURANÇA no system prompt
-   (mensagem do aluno é dado, não instrução; escopo só francês; sem revelar
-   prompt), nome re-sanitizado na interpolação (`nomeSeguro`, só letras), e a
-   guarda gerador→avaliador continua por cima.
-4. **Erros genéricos**: exceções logadas no servidor (`console.error`), cliente
-   recebe mensagem neutra — nada de stack/detalhe da API vaza.
-5. **Headers** (`next.config.mjs`): CSP tudo-'self' (app não usa recurso
-   externo), `frame-ancestors 'none'` + `X-Frame-Options DENY` (clickjacking),
-   `nosniff`, `Referrer-Policy`, `Permissions-Policy` (mic só self, resto
-   bloqueado), `poweredByHeader: false`. ⚠️ mudanças aí exigem REINICIAR o dev.
-6. **Basic auth** (`middleware.ts`): comparação em tempo constante
-   (`igualSeguro`), usuário padrão `lingo`.
+   e `nomeSeguro` na interpolação. **(ativo, mas só relevante se um dia houver
+   chave; em modo demonstração a resposta é fixa e verificada.)**
+4. ~~Erros genéricos do servidor~~ — sem servidor; erros do cliente já são neutros.
+5. **Headers** (`next.config.mjs`): CSP tudo-'self' etc. **só valem no `next
+   dev`** — o GitHub Pages não aplica headers (igual aos outros apps do repo).
+6. ~~Basic auth (`middleware.ts`)~~ — **removido**; site público.
 7. **XSS**: React escapa por padrão; sem `dangerouslySetInnerHTML` no projeto.
    Chaves: `.gitignore` cobre `.env*`; sem segredo em código.
 
@@ -228,8 +246,13 @@ aparelho. Camadas (todas testadas com requisições reais):
 ## 8. Roadmap
 
 - **Feito (jul/2026):** reconstrução completa (curso/exercícios/gramática-ponte/
-  tutor/revisão/perfil) + PWA + modo mock + guardrails (§6b) + publicado no
-  Vercel (§5b) + identidade editorial própria (§7).
+  tutor/revisão/perfil) + PWA + modo mock + guardrails (§6b) + identidade
+  editorial própria (§7). Publicado no Vercel (jul) e depois **migrado para o
+  GitHub Pages** como site estático (ago/2026, §5b).
+- **Feito (ago/2026) — melhorias no player:** exercícios menos repetitivos
+  (2 formatos distintos por frase), botão VOLTAR (‹) para rever exercícios, e
+  "Próxima lição →" encadeando a trilha ao concluir (`Sessao.tsx`,
+  `LicaoGramatica.tsx`, `curso.ts#proximaAposLicao`).
 - **Feito (jul/2026) — aba Palavras (vocabulário):** baralho de cards que viram
   para treino de caderno. Dois modos: **Escrever** (vê figura/emoji + PT →
   escreve o FR à mão e fala → vira e confere palavra + pronúncia + áudio) e
@@ -240,8 +263,8 @@ aparelho. Camadas (todas testadas com requisições reais):
   `components/Vocabulario.tsx`; animação de virar em `app/globals.css` (`.vira`).
 - **Próximos:** mais conteúdo verificado por unidade (Tatoeba com filtros
   melhores), áudio TTS premium com cache, pronúncia por fonema (Azure),
-  ícone PNG p/ iOS, contas com sincronização (Supabase), rate limit
-  distribuído (Upstash/KV), ligar `ANTHROPIC_API_KEY` na produção.
+  ícone PNG p/ iOS, contas com sincronização (Supabase). Tutor com IA real
+  exigiria voltar a um servidor (o site hoje é estático, sem chave de API).
 
 ## 9. Convenções
 
@@ -253,5 +276,6 @@ aparelho. Camadas (todas testadas com requisições reais):
   `.botao` (variantes azul/verde/vermelho/claro), `.opcao`, `.chip`, `.cartao`,
   `.tricolor`, `.serif`. Na UI escrever "pontos" (nunca "XP") e manter o tom
   editorial (ver §7 e memória `feedback-nao-parecer-duolingo`).
-- Deploy: `npx vercel --prod --yes` (build na nuvem). Mudança visual grande →
-  bumpar `CACHE` em `public/sw.js`.
+- Deploy: **GitHub Pages** via workflow do repo raiz (push no `master` →
+  build + publish em `/app/lingo/`). Mudança visual grande → bumpar `CACHE` em
+  `public/sw.js`.

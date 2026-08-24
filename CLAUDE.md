@@ -1,6 +1,6 @@
 # Guia dos Apps — Di & Tati (leia isto primeiro)
 
-Este repositório hospeda **4 apps** do casal Di (Diogo) & Tati, publicados juntos no GitHub Pages.
+Este repositório hospeda **5 apps** do casal Di (Diogo) & Tati, publicados juntos no GitHub Pages.
 (O App 2 — 📊 Roteiro Paris, o do Diogo, `roteiro-paris/` — foi **removido em ago/2026**; segue no
 histórico do git. Não confundir com o App 3 — ✈️ Paris Trip Planner, o da Tati, `paris-planner/`.)
 Este arquivo é o contexto completo para qualquer sessão nova do Claude: estrutura, Firebase,
@@ -22,13 +22,15 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 | **GitHub (código + site)** | Repositório `diogoribeir/app`, branch principal `master` | https://github.com/diogoribeir/app |
 | **Site (GitHub Pages)** | Publicado pelo workflow do Actions | https://diogoribeir.github.io/app/ |
 | **Firebase (Google)** | Projeto **`apps-4b887`** — banco de dados dos apps (Firestore + Realtime Database) | https://console.firebase.google.com/project/apps-4b887 |
-| **Vercel** | Hospeda **SÓ o Lingo** (App 5 — projeto `lingo` na conta do Diogo). ⚠️ **NÃO deletar o projeto do Lingo.** Outros projetos Vercel ligados ao repositório antigo podem ser removidos | https://lingo-liard-kappa.vercel.app |
+| **Vercel** | ❌ **Não é mais usado** (ago/2026). O Lingo era o único app no Vercel; foi migrado para o GitHub Pages (site estático, sem servidor). O projeto `lingo` no Vercel pode ser removido — **todos** os apps ativos rodam agora no GitHub Pages | — |
 
 ### Como funciona o deploy
 - O workflow `.github/workflows/deploy-pages.yml` roda **a cada push no `master`** (ou manualmente:
   aba **Actions → "Publicar apps no GitHub Pages" → Run workflow**).
 - Ele monta o site assim: raiz → `home/` (página inicial com a lista de apps) · `/dias-sem-doenca/` →
-  `dias-sem-doenca/` · `/paris-planner/` → `paris-planner/` · `/perfil-gamer/` → `perfil-gamer/`.
+  `dias-sem-doenca/` · `/paris-planner/` → `paris-planner/` · `/perfil-gamer/` → `perfil-gamer/` ·
+  `/lingo/` → build estático de `lingo-src/` (Next.js exportado; o workflow roda `npm ci && npm run build`
+  com `NEXT_PUBLIC_BASE_PATH=/app/lingo` e copia `lingo-src/out/`).
 - Fluxo de trabalho do Claude: **branch → commit → push → PR → merge no `master`** (o Diogo autoriza o
   Claude a mergear via ferramentas do GitHub). Depois do merge, verificar que o run terminou `success`.
 - O site atualiza ~1 min após o deploy (o cache do celular pode segurar alguns minutos).
@@ -192,19 +194,24 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   ⚠️ `vite.config.js` tem `base: "/app/hrv-comparador/"` — se o repositório for renomeado, atualizar e recompilar.
 
 ## App 5 — 🇫🇷 Lingo (curso de francês, Next.js no Vercel)
-- **URL:** https://lingo-liard-kappa.vercel.app — ⚠️ hospedado no **Vercel** (único app fora do
-  GitHub Pages, porque tem servidor: rota de API do tutor + middleware de senha).
+- **URL:** https://diogoribeir.github.io/app/lingo/ — hospedado no **GitHub Pages** como **site
+  estático** (migrado do Vercel em ago/2026). Como o Pages não tem servidor, a rota `/api/tutor` e o
+  `middleware` de senha foram **removidos**: o Tutor roda 100% no navegador via `lib/tutorCliente.ts`,
+  **sempre em modo demonstração** (sem chave de API — o navegador não pode guardar segredo). Para ter
+  IA de verdade no Tutor de novo seria preciso voltar a um servidor (Vercel/etc.).
 - **Pasta:** `lingo-src/` (fonte Next.js 15 + React 19 + Tailwind 4; cópia da branch `claude/lingo`,
-  que veio de outra sessão do Claude Code).
+  que veio de outra sessão do Claude Code). Config de export: `next.config.mjs` tem `output: "export"`
+  e usa `NEXT_PUBLIC_BASE_PATH` (o workflow passa `/app/lingo`; vazio no dev local).
 - **O que faz:** curso de francês PT-BR ("gramática-ponte"), 8 capítulos/26 lições, exercícios,
   áudio pela voz do navegador, prática de fala 🎤, revisão espaçada (SRS), phrasebook, e o módulo
   **Tutor** (chat de dúvidas com Claude).
 - **Regra de ouro do app:** nada de francês inventado por IA — conteúdo verificado em `data/*.json`;
   a IA só atua no Tutor, com guarda gerador→avaliador (`lib/pipeline.ts`, `lib/guardrails.ts`).
-- **Variáveis de ambiente (no Vercel):** `ANTHROPIC_API_KEY` (opcional — sem ela o Tutor roda em
-  modo demonstração/mock) · `ACCESS_PASSWORD`/`ACCESS_USER` (opcional — senha básica de acesso).
-- **Atualização:** editar `lingo-src/`, e o deploy é pelo Vercel (projeto do Diogo). O card na
-  página inicial (`home/index.html`) aponta pro link do Vercel.
+- **Variáveis de ambiente:** só `NEXT_PUBLIC_BASE_PATH` (definida pelo workflow como `/app/lingo`).
+  Não há mais `ANTHROPIC_API_KEY`/`ACCESS_PASSWORD` — o Tutor é sempre demonstração e não há senha
+  (site público, igual aos outros apps).
+- **Atualização:** editar `lingo-src/` → commit/push → PR → merge no `master`; o workflow do Pages
+  recompila e republica em `/app/lingo/`. O card na `home/index.html` aponta para `./lingo/`.
 
 ---
 
