@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  useSynced, uid, SEED_CARS, SEED_DEALERS, DEFAULT_WEIGHTS
+  useSynced, uid, SEED_CARS, SEED_DEALERS, SEED_DEALERS_REV, DEFAULT_WEIGHTS
 } from './store.js'
 // SEED_CARS/SEED_DEALERS sao os dados iniciais pre-cadastrados (usados como seed nos hooks)
 import { CRITERIA, custoEfetivo, scoreAll } from './scoring.js'
@@ -24,9 +24,27 @@ const YESNO = { sim: 'Sim', nao: 'Não', parcial: 'Parcial', vao: 'Vão trocar' 
 
 export default function App() {
   const [tab, setTab] = useState('carros')
-  const [dealers, setDealers] = useSynced('dealers', SEED_DEALERS)
+  const [dealers, setDealers, dealersReady] = useSynced('dealers', SEED_DEALERS)
+  const [seedRev, setSeedRev, seedRevReady] = useSynced('dealerSeedRev', 0)
   const [cars, setCars] = useSynced('cars', SEED_CARS)
   const [weights, setWeights] = useSynced('weights', DEFAULT_WEIGHTS)
+
+  // Migração única: insere no nó da nuvem as concessionárias do seed que
+  // faltarem (por id). Idempotente e roda só quando a revisão do seed sobe,
+  // então lojas apagadas de propósito não voltam.
+  const migrated = useRef(false)
+  useEffect(() => {
+    if (!dealersReady || !seedRevReady || migrated.current) return
+    migrated.current = true
+    if (seedRev >= SEED_DEALERS_REV) return
+    setDealers((prev) => {
+      const ids = new Set(prev.map((d) => d.id))
+      const faltando = SEED_DEALERS.filter((d) => !ids.has(d.id))
+      return faltando.length ? [...prev, ...faltando] : prev
+    })
+    setSeedRev(SEED_DEALERS_REV)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dealersReady, seedRevReady])
 
   const [carForm, setCarForm] = useState(null) // objeto em edicao ou null
   const [dealerForm, setDealerForm] = useState(null)
@@ -311,8 +329,10 @@ function ConcessionariasView({ dealers, cars, onAdd, onEdit, onRemove }) {
             </div>
             <div className="meta">
               {d.telefone && <span className="tag">📞 {d.telefone}</span>}
-              {d.googleNota !== '' && d.googleNota != null && <span className="tag">⭐ Google {numBr(d.googleNota)} ({Number(d.googleAval || 0).toLocaleString('pt-BR')})</span>}
-              {d.reclameNota !== '' && d.reclameNota != null && <span className="tag">RA {numBr(d.reclameNota)}/10 · {d.reclameReput}</span>}
+              {d.googleNota !== '' && d.googleNota != null && (
+                <span className="tag">⭐ Google {numBr(d.googleNota)}{d.googleAval ? ` (${Number(d.googleAval).toLocaleString('pt-BR')})` : ''}</span>
+              )}
+              {d.reclameNota !== '' && d.reclameNota != null && <span className="tag">RA {numBr(d.reclameNota)}/10{d.reclameReput ? ` · ${d.reclameReput}` : ''}</span>}
               {d.reclameResolvidas !== '' && <span className="tag">{d.reclameResolvidas}% resolv.</span>}
               <span className="tag honey">{nCars} carro{nCars === 1 ? '' : 's'}</span>
             </div>

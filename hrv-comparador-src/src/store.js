@@ -103,8 +103,61 @@ export const SEED_DEALERS = [
       'Honda autorizada de verdade (faz fluido do CVT no padrão original); vendas e atendimento geralmente bem avaliados; volume alto de avaliações (nota sólida, 4,2 com 1.700 avaliações).',
     pontosAtencao:
       'Reclamações sobre pós-venda/revisão (relato de "itens voltaram queimados para serem cobrados"); relato de defeito escondido em seminovo (rasgo em banco sob o tapete); avaliação de carro na troca costuma vir abaixo do mercado. CONFERIR CARRO ITEM POR ITEM NA ENTREGA e exigir tudo discriminado na nota.'
+  },
+  {
+    id: 'd-flora-motors',
+    nome: 'Honda Flora Motors',
+    tipo: 'Honda autorizada',
+    endereco: 'Av. Washington Luís, 3709 - Chácara Monte Alegre (Santo Amaro), São Paulo - SP',
+    telefone: '(11) 5685-7100',
+    googleNota: '',
+    googleAval: '',
+    reclameNota: '',
+    reclameReput: '',
+    reclameResolvidas: '',
+    confiabilidade: 'Média',
+    pontosFortes: 'Honda autorizada (faz o fluido do CVT no padrão original de fábrica).',
+    pontosAtencao:
+      'Nota do Google, Reclame Aqui e % de reclamações resolvidas ainda NÃO confirmados — conferir antes de decidir (preencher no cadastro depois de ligar/visitar).'
+  },
+  {
+    id: 'd-dealer-berrini',
+    nome: 'Dealer Honda - Berrini',
+    tipo: 'Honda autorizada',
+    endereco: 'Av. Dr. Chucri Zaidan, 45 - Vila Cordeiro (Brooklin/Berrini), São Paulo - SP',
+    telefone: '(11) 2112-2555',
+    googleNota: 4.2,
+    googleAval: '',
+    reclameNota: '',
+    reclameReput: '',
+    reclameResolvidas: '',
+    confiabilidade: 'Média',
+    pontosFortes: 'Honda autorizada; grande estrutura na região da Berrini/Brooklin (mesmo grupo da unidade Nações Unidas).',
+    pontosAtencao:
+      'Nota Google ~4,2 (nº de avaliações a confirmar). Reclame Aqui e % resolvidas ainda não confirmados; há relatos mistos sobre recall/pós-venda — conferir.'
+  },
+  {
+    id: 'd-dealer-nacoes',
+    nome: 'Dealer Honda - Nações Unidas',
+    tipo: 'Honda autorizada',
+    endereco: 'Av. das Nações Unidas, 21621 - Jurubatuba (Brooklin), São Paulo - SP',
+    telefone: '(11) 3585-9393',
+    googleNota: '',
+    googleAval: '',
+    reclameNota: '',
+    reclameReput: '',
+    reclameResolvidas: '',
+    confiabilidade: 'Média',
+    pontosFortes: 'Honda autorizada; mesmo grupo Dealer da unidade Berrini.',
+    pontosAtencao:
+      'Nota do Google, Reclame Aqui e % resolvidas ainda NÃO confirmados — conferir antes de decidir.'
   }
 ]
+
+// Revisão do seed de concessionárias: ao subir, a migração idempotente
+// (App.jsx) insere no nó da nuvem as lojas do seed que faltarem (por id),
+// uma única vez — sem sobrescrever nem duplicar as que já existem.
+export const SEED_DEALERS_REV = 2
 
 export const SEED_CARS = [
   {
