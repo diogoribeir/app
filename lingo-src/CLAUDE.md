@@ -13,6 +13,8 @@ Next.js 15 + React 19 + Tailwind v4 + TS. Produção (ago/2026 em diante):
 com `NEXT_PUBLIC_BASE_PATH=/app/lingo`, copia `out/`). **Sem servidor:** a rota
 `/api/tutor` e o `middleware` foram removidos — o Tutor roda no navegador
 (`lib/tutorCliente.ts`), **sempre em modo demonstração** (sem chave de API).
+**Progresso sincroniza na nuvem** (RTDB, nó `planos/lingo-dt2026`, `lib/nuvem.ts`):
+as chaves `lingo:*` sobem num pacote só; localStorage = cópia offline.
 
 ## Regra de ouro
 O app **não ensina francês inventado pelo modelo**. Trilha/exercícios/gramática

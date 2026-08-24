@@ -1,6 +1,8 @@
 // Gamificação do Lingo: XP, ofensiva (streak) e lições concluídas.
 // Tudo no aparelho (localStorage) — sem servidor, deploy-ready.
 
+import { agendarEnvio } from "./nuvem";
+
 const K_ATIVIDADE = "lingo:atividade"; // { "2026-07-02": 30, ... } xp por dia
 const K_LICOES = "lingo:licoes"; // { licaoId: "2026-07-02", ... }
 const K_CENAS = "lingo:cenas"; // { dialogoId: "2026-07-02", ... }
@@ -27,6 +29,7 @@ function lerMapa<T>(chave: string): Record<string, T> {
 
 function salvarMapa<T>(chave: string, m: Record<string, T>) {
   localStorage.setItem(chave, JSON.stringify(m));
+  agendarEnvio(); // sincroniza pontos/lições/cenas na nuvem
 }
 
 /** Soma XP na atividade de hoje. */

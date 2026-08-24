@@ -49,9 +49,13 @@ aba Tutor.
 - TTS (🔊 normal / 🐢 devagar): Web Speech API grátis (`lib/fala.ts`).
 - STT (🎤 falar e checar): Web Speech API (`lib/reconhecimento.ts` + nota
   tolerante em `lib/comparar.ts`).
-- Estado 100% no aparelho (`localStorage`, chaves `lingo:*`): perfil
+- Estado no aparelho (`localStorage`, chaves `lingo:*`): perfil
   (`lib/estadoLocal.ts`), pontos/sequência/lições (`lib/jogo.ts` — nomes
   internos `xp*`; na UI o termo é "pontos"), SRS (`lib/srs.ts`).
+  **Sincronização na nuvem (ago/2026, `lib/nuvem.ts`):** RTDB via REST (Receita 1),
+  nó `planos/lingo-dt2026` — todas as chaves `lingo:*` sobem num pacote único
+  (`dados` + carimbo `_at`); carrega ao abrir, reenvia a cada mudança (debounce)
+  e recarrega ao voltar se a nuvem estiver mais nova. localStorage = cópia offline.
   **Site estático (GitHub Pages) — sem servidor:** o Tutor roda no navegador
   (`lib/tutorCliente.ts`), sempre em modo demonstração.
 - Acesso: **sem senha** — site público como os outros apps (o antigo
@@ -86,6 +90,7 @@ lib/
   jogo.ts                        # pontos (funções xp*), sequência (streak), lições feitas, atividade da semana
   guardrails.ts                  # 🛡️ validação/saneamento (validarTurno; rate-limit por IP não usado no estático)
   tutorCliente.ts                # Tutor no navegador: validarTurno → pipeline (sempre mock)
+  nuvem.ts                       # ☁️ sync RTDB (Receita 1): pacote lingo:* no nó planos/lingo-dt2026
   gramatica.ts                   # loader dos tópicos verificados (gramatica.json)
   camadaA.ts / camadaB.ts        # 🟢/🟡 (inalterados; recuperarContexto([]) = tudo)
   tutor.ts / avaliador.ts / pipeline.ts  # 🔴 camada C (prompt geral PT-BR→FR + bloco anti-injection)
@@ -253,6 +258,10 @@ caso um dia o Tutor volte a rodar num servidor.
   (2 formatos distintos por frase), botão VOLTAR (‹) para rever exercícios, e
   "Próxima lição →" encadeando a trilha ao concluir (`Sessao.tsx`,
   `LicaoGramatica.tsx`, `curso.ts#proximaAposLicao`).
+- **Feito (ago/2026) — sincronização na nuvem** (`lib/nuvem.ts`): progresso deixa
+  de ser só local e passa a subir para o RTDB (nó `planos/lingo-dt2026`),
+  sincronizando entre aparelhos como os outros apps. Resolve o "sumiu meu
+  progresso" (que era, na verdade, localStorage preso a um domínio/aparelho).
 - **Feito (jul/2026) — aba Palavras (vocabulário):** baralho de cards que viram
   para treino de caderno. Dois modos: **Escrever** (vê figura/emoji + PT →
   escreve o FR à mão e fala → vira e confere palavra + pronúncia + áudio) e

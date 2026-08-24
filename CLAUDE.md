@@ -210,6 +210,12 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Variáveis de ambiente:** só `NEXT_PUBLIC_BASE_PATH` (definida pelo workflow como `/app/lingo`).
   Não há mais `ANTHROPIC_API_KEY`/`ACCESS_PASSWORD` — o Tutor é sempre demonstração e não há senha
   (site público, igual aos outros apps).
+- **Sincronização (ago/2026):** Realtime Database via REST (Receita 1), nó **`planos/lingo-dt2026`**
+  (`lib/nuvem.ts`). Todo o progresso (perfil, pontos/sequência, lições, cenas, SRS — as chaves
+  `lingo:*` do localStorage) sobe num **pacote único** (`dados` + carimbo `_at`): carrega da nuvem ao
+  abrir, reenvia a cada mudança (debounce) e recarrega ao voltar se houver gravação mais nova.
+  localStorage = cópia offline. Antes disso o progresso era **só local** (sumia ao trocar de aparelho/
+  domínio); agora sincroniza entre aparelhos, como os outros apps.
 - **Atualização:** editar `lingo-src/` → commit/push → PR → merge no `master`; o workflow do Pages
   recompila e republica em `/app/lingo/`. O card na `home/index.html` aponta para `./lingo/`.
 

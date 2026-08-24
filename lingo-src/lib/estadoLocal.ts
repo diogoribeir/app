@@ -2,6 +2,7 @@
 // Deploy-ready em serverless: cada pessoa carrega o próprio estado, sem banco.
 
 import type { Usuario } from "./types";
+import { agendarEnvio } from "./nuvem";
 
 const K_USER = "lingo:usuario";
 
@@ -17,6 +18,7 @@ export function lerUsuario(): Usuario | null {
 
 export function salvarUsuario(usuario: Usuario) {
   localStorage.setItem(K_USER, JSON.stringify(usuario));
+  agendarEnvio();
 }
 
 /** Apaga TODO o progresso do Lingo neste aparelho (perfil, XP, SRS…). */
@@ -27,4 +29,5 @@ export function apagarTudo() {
     if (k && k.startsWith("lingo:")) chaves.push(k);
   }
   chaves.forEach((k) => localStorage.removeItem(k));
+  agendarEnvio(); // propaga o reset para a nuvem
 }

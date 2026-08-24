@@ -1,6 +1,8 @@
 // Repetição espaçada ENTRE dias (FSRS-lite, estilo SM-2 simplificado).
 // Cada frase praticada ganha uma data de revisão (due). O que está vencido
-// hoje volta na "Revisão de hoje". Tudo no aparelho (localStorage), sem custo.
+// hoje volta na "Revisão de hoje". localStorage local + sincronização na nuvem.
+
+import { agendarEnvio } from "./nuvem";
 
 export interface CartaoSRS {
   intervalo: number; // dias até a próxima revisão
@@ -34,6 +36,7 @@ function ler(): Record<string, CartaoSRS> {
 
 function salvar(m: Record<string, CartaoSRS>) {
   localStorage.setItem(CHAVE, JSON.stringify(m));
+  agendarEnvio(); // sincroniza a revisão espaçada na nuvem
 }
 
 /** Atualiza o agendamento de uma frase após uma resposta. */
