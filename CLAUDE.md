@@ -181,7 +181,12 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   "único dono = não" em amarelo; filtro para esconder descartados. Custo efetivo = preço + custo extra (auto).
 - **Sincronização:** localStorage é a fonte offline + RTDB via REST (Receita 1), nó
   **`planos/hrv-comparador-dt2026`**; recarrega ao voltar se houver gravação mais nova (mesmo padrão do
-  paris-planner). Dados iniciais (1 concessionária Honda + 1 carro LX) ficam como **seed** em `store.js`.
+  paris-planner). Dados iniciais (concessionárias Honda da capital + 1 carro LX) ficam como **seed** em
+  `store.js`. ⚠️ Como a nuvem é a fonte da verdade, adicionar loja nova ao `SEED_DEALERS` não aparece
+  sozinho para quem já usou o app; por isso há uma **migração idempotente** no `App.jsx`: quando
+  `SEED_DEALERS_REV` sobe, o app insere no nó da nuvem as concessionárias do seed que faltarem (por id),
+  uma única vez (chave `dealerSeedRev`), sem duplicar nem ressuscitar as apagadas de propósito. Ao
+  acrescentar lojas ao seed, **subir `SEED_DEALERS_REV`**.
 - **Edição:** mexer em `hrv-comparador-src/`, depois `cd hrv-comparador-src && npm install && npm run build`
   e publicar o build: `rm -rf ../hrv-comparador/assets ../hrv-comparador/index.html && cp -r dist/. ../hrv-comparador/`.
   ⚠️ `vite.config.js` tem `base: "/app/hrv-comparador/"` — se o repositório for renomeado, atualizar e recompilar.
