@@ -17,11 +17,12 @@
 | 🩺 Dias sem Doença | https://diogoribeir.github.io/app/dias-sem-doenca/ | `dias-sem-doenca/` | RTDB `planos/dias-sem-doenca-dt2026` (sem login) |
 | ✈️ Paris Trip Planner (Tati) | https://diogoribeir.github.io/app/paris-planner/ | `paris-planner/` (build) + `paris-planner-src/` (fonte) | RTDB `planos/paris-planner-dt2026` |
 | 🎮 Perfil Gamer | https://diogoribeir.github.io/app/perfil-gamer/ | `perfil-gamer/` (app) + `perfil-gamer-src/` (dados) | RTDB `planos/perfil-gamer-dt2026` (nuvem = fonte da verdade; `dados.js` = seed) |
+| 🚗 Comparador HR-V | https://diogoribeir.github.io/app/hrv-comparador/ | `hrv-comparador/` (build) + `hrv-comparador-src/` (fonte Vite + React) | RTDB `planos/hrv-comparador-dt2026` (localStorage = offline; seed embutido no código) |
 | 🇫🇷 Lingo (francês) | https://diogoribeir.github.io/app/lingo/ | `lingo-src/` (fonte Next.js, exportada estática) | Sem nuvem de dados (progresso local) · **GitHub Pages** (estático; migrado do Vercel em ago/2026 — o workflow builda `lingo-src/` e publica em `/app/lingo/`). Tutor roda no navegador, modo demonstração |
 
 ### Infraestrutura fixa
 - **Repositório:** `diogoribeir/app` (https://github.com/diogoribeir/app) · branch principal `master`
-- **Hospedagem:** GitHub Pages para **todos** os 4 apps (workflow `.github/workflows/deploy-pages.yml`, publica a cada merge no `master`). O Lingo é um Next.js **exportado estático** (o workflow roda `npm ci && npm run build` com `NEXT_PUBLIC_BASE_PATH=/app/lingo`); os demais são arquivos estáticos copiados direto. O Vercel não é mais usado
+- **Hospedagem:** GitHub Pages para **todos** os apps (workflow `.github/workflows/deploy-pages.yml`, publica a cada merge no `master`). O Lingo é um Next.js **exportado estático** (o workflow roda `npm ci && npm run build` com `NEXT_PUBLIC_BASE_PATH=/app/lingo`); os demais são arquivos estáticos copiados direto. O Vercel não é mais usado
 - **Banco:** Firebase, projeto único `apps-4b887` (Realtime Database no nó `planos/` para os apps; Firestore antigo do dias-sem-doenca guardado só como backup)
 - **Fluxo git:** branch → commit → push → PR → merge no `master` (o Claude pode mergear e deve conferir o deploy `success`)
 - **Contexto completo para o Claude:** arquivo `CLAUDE.md` na raiz do repositório (carregado automaticamente em sessões abertas no repositório)

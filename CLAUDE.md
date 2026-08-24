@@ -1,6 +1,6 @@
 # Guia dos Apps — Di & Tati (leia isto primeiro)
 
-Este repositório hospeda **4 apps** do casal Di (Diogo) & Tati, publicados juntos no GitHub Pages.
+Este repositório hospeda **5 apps** do casal Di (Diogo) & Tati, publicados juntos no GitHub Pages.
 (O App 2 — 📊 Roteiro Paris, o do Diogo, `roteiro-paris/` — foi **removido em ago/2026**; segue no
 histórico do git. Não confundir com o App 3 — ✈️ Paris Trip Planner, o da Tati, `paris-planner/`.)
 Este arquivo é o contexto completo para qualquer sessão nova do Claude: estrutura, Firebase,
@@ -22,7 +22,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 | **GitHub (código + site)** | Repositório `diogoribeir/app`, branch principal `master` | https://github.com/diogoribeir/app |
 | **Site (GitHub Pages)** | Publicado pelo workflow do Actions | https://diogoribeir.github.io/app/ |
 | **Firebase (Google)** | Projeto **`apps-4b887`** — banco de dados dos apps (Firestore + Realtime Database) | https://console.firebase.google.com/project/apps-4b887 |
-| **Vercel** | ❌ **Não é mais usado** (ago/2026). O Lingo era o único app no Vercel; foi migrado para o GitHub Pages (site estático, sem servidor). O projeto `lingo` no Vercel pode ser removido — **todos** os 4 apps ativos rodam agora no GitHub Pages | — |
+| **Vercel** | ❌ **Não é mais usado** (ago/2026). O Lingo era o único app no Vercel; foi migrado para o GitHub Pages (site estático, sem servidor). O projeto `lingo` no Vercel pode ser removido — **todos** os apps ativos rodam agora no GitHub Pages | — |
 
 ### Como funciona o deploy
 - O workflow `.github/workflows/deploy-pages.yml` roda **a cada push no `master`** (ou manualmente:
@@ -166,6 +166,32 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   do xlsx é preciso apagar o nó `planos/perfil-gamer-dt2026/jogos` (o app então sobe o seed de novo).
 - **Agente de apoio:** `.claude/agents/perfil-gamer.md` (psicólogo comportamental + estatístico +
   especialista em jogos) — usar para registrar jogos, propor veredictos e análises.
+
+## App 6 — 🚗 Comparador HR-V (o do Diogo, React)
+- **URL:** https://diogoribeir.github.io/app/hrv-comparador/
+- **Pastas:** `hrv-comparador-src/` (fonte Vite + React puro, sem Tailwind) e `hrv-comparador/`
+  (build publicado — index.html + assets/).
+- **O que faz:** apoia a compra de um Honda HR-V usado em São Paulo — cadastra **carros** e
+  **concessionárias**, compara todos numa **matriz** (linhas = atributos, colunas = carros) e ranqueia
+  por um **score configurável** (pesos definidos pelo Diogo). Interface por abas (🚗 Carros · 🏢 Lojas ·
+  📊 Comparar · 🏆 Ranking), mobile-first, tema claro/escuro. Botões de exportar JSON e imprimir a matriz.
+- **Score:** média ponderada de 5 sub-notas 0-100 (`scoring.js`): Procedência/CVT (único dono +
+  histórico + fluido do CVT, absoluta), KM e Preço/custo efetivo (relativas ao grupo, menor = melhor),
+  Equipamento (LX<EX<EXL<Touring) e Confiabilidade da loja (mistura o campo manual com Google + Reclame
+  Aqui). Pesos padrão: Procedência 5 > KM 4 > Preço 3 > Equipamento 2 > Confiab. 1 (editáveis na aba Ranking).
+- **Matriz:** destaca menor KM e menor custo efetivo em verde, "Fluido CVT não trocado" em vermelho e
+  "único dono = não" em amarelo; filtro para esconder descartados. Custo efetivo = preço + custo extra (auto).
+- **Sincronização:** localStorage é a fonte offline + RTDB via REST (Receita 1), nó
+  **`planos/hrv-comparador-dt2026`**; recarrega ao voltar se houver gravação mais nova (mesmo padrão do
+  paris-planner). Dados iniciais (concessionárias Honda da capital + 1 carro LX) ficam como **seed** em
+  `store.js`. ⚠️ Como a nuvem é a fonte da verdade, adicionar loja nova ao `SEED_DEALERS` não aparece
+  sozinho para quem já usou o app; por isso há uma **migração idempotente** no `App.jsx`: quando
+  `SEED_DEALERS_REV` sobe, o app insere no nó da nuvem as concessionárias do seed que faltarem (por id),
+  uma única vez (chave `dealerSeedRev`), sem duplicar nem ressuscitar as apagadas de propósito. Ao
+  acrescentar lojas ao seed, **subir `SEED_DEALERS_REV`**.
+- **Edição:** mexer em `hrv-comparador-src/`, depois `cd hrv-comparador-src && npm install && npm run build`
+  e publicar o build: `rm -rf ../hrv-comparador/assets ../hrv-comparador/index.html && cp -r dist/. ../hrv-comparador/`.
+  ⚠️ `vite.config.js` tem `base: "/app/hrv-comparador/"` — se o repositório for renomeado, atualizar e recompilar.
 
 ## App 5 — 🇫🇷 Lingo (curso de francês, Next.js no Vercel)
 - **URL:** https://diogoribeir.github.io/app/lingo/ — hospedado no **GitHub Pages** como **site
