@@ -8,6 +8,9 @@ import { CRITERIA, custoEfetivo, scoreAll } from './scoring.js'
 const brl = (n) =>
   (Number(n) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 const kmFmt = (n) => (Number(n) || 0).toLocaleString('pt-BR') + ' km'
+// numero no formato BR (virgula decimal): 4.2 -> "4,2", 1700 -> "1.700"
+const numBr = (n, dec = 1) =>
+  Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: dec })
 
 const STATUS = [
   { v: 'analise', l: 'Em análise', cls: 'st-analise' },
@@ -308,8 +311,8 @@ function ConcessionariasView({ dealers, cars, onAdd, onEdit, onRemove }) {
             </div>
             <div className="meta">
               {d.telefone && <span className="tag">📞 {d.telefone}</span>}
-              {d.googleNota !== '' && <span className="tag">⭐ Google {d.googleNota} ({Number(d.googleAval).toLocaleString('pt-BR')})</span>}
-              {d.reclameNota !== '' && <span className="tag">RA {d.reclameNota}/10 · {d.reclameReput}</span>}
+              {d.googleNota !== '' && d.googleNota != null && <span className="tag">⭐ Google {numBr(d.googleNota)} ({Number(d.googleAval || 0).toLocaleString('pt-BR')})</span>}
+              {d.reclameNota !== '' && d.reclameNota != null && <span className="tag">RA {numBr(d.reclameNota)}/10 · {d.reclameReput}</span>}
               {d.reclameResolvidas !== '' && <span className="tag">{d.reclameResolvidas}% resolv.</span>}
               <span className="tag honey">{nCars} carro{nCars === 1 ? '' : 's'}</span>
             </div>
