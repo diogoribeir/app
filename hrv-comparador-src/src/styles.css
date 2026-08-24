@@ -91,6 +91,8 @@ nav.tabs button.active{color:var(--honey);background:color-mix(in srgb,var(--hon
 .st-favorito{background:var(--amber-bg);color:var(--amber)}
 .st-descartado{background:var(--red-bg);color:var(--red)}
 .st-fechado{background:var(--green-bg);color:var(--green)}
+.dl-ok{background:var(--green-bg);color:var(--green)}
+.dl-wait{background:var(--amber-bg);color:var(--amber)}
 
 .card .lists{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
 .card .lists .box{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:9px 11px}

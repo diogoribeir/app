@@ -22,6 +22,13 @@ const statusMeta = (v) => STATUS.find((s) => s.v === v) || STATUS[0]
 
 const YESNO = { sim: 'Sim', nao: 'Não', parcial: 'Parcial', vao: 'Vão trocar' }
 
+// Status de cadastro da concessionária (o quanto dos dados já foi confirmado)
+const DEALER_STATUS = [
+  { v: 'ok', l: 'Dados completos', cls: 'dl-ok' },
+  { v: 'aguardando', l: 'Aguardando dados', cls: 'dl-wait' }
+]
+const dealerStatusMeta = (v) => DEALER_STATUS.find((s) => s.v === v)
+
 export default function App() {
   const [tab, setTab] = useState('carros')
   const [dealers, setDealers, dealersReady] = useSynced('dealers', SEED_DEALERS)
@@ -38,9 +45,14 @@ export default function App() {
     migrated.current = true
     if (seedRev >= SEED_DEALERS_REV) return
     setDealers((prev) => {
-      const ids = new Set(prev.map((d) => d.id))
+      const seedById = Object.fromEntries(SEED_DEALERS.map((d) => [d.id, d]))
+      // backfill do status (não sobrescreve escolha do usuário)
+      const patched = prev.map((d) =>
+        d.status == null && seedById[d.id] ? { ...d, status: seedById[d.id].status } : d
+      )
+      const ids = new Set(patched.map((d) => d.id))
       const faltando = SEED_DEALERS.filter((d) => !ids.has(d.id))
-      return faltando.length ? [...prev, ...faltando] : prev
+      return [...patched, ...faltando]
     })
     setSeedRev(SEED_DEALERS_REV)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -208,6 +220,7 @@ function newDealer() {
     reclameReput: 'Regular',
     reclameResolvidas: '',
     confiabilidade: 'Média',
+    status: 'aguardando',
     pontosFortes: '',
     pontosAtencao: ''
   }
@@ -325,7 +338,12 @@ function ConcessionariasView({ dealers, cars, onAdd, onEdit, onRemove }) {
                 <h3>{d.nome || 'Sem nome'}</h3>
                 <div className="sub">{d.tipo}{d.endereco ? ' · ' + d.endereco : ''}</div>
               </div>
-              <span className={'tag ' + confCls}>{d.confiabilidade}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+                <span className={'tag ' + confCls}>{d.confiabilidade}</span>
+                {dealerStatusMeta(d.status) && (
+                  <span className={'pill-status ' + dealerStatusMeta(d.status).cls}>{dealerStatusMeta(d.status).l}</span>
+                )}
+              </div>
             </div>
             <div className="meta">
               {d.telefone && <span className="tag">📞 {d.telefone}</span>}
@@ -649,6 +667,12 @@ function DealerForm({ value, onChange, onSave, onCancel }) {
             <label>Confiabilidade (manual)</label>
             <select value={v.confiabilidade} onChange={(e) => set('confiabilidade', e.target.value)}>
               {['Alta', 'Média', 'Baixa'].map((x) => <option key={x} value={x}>{x}</option>)}
+            </select>
+          </div>
+          <div className="field">
+            <label>Status do cadastro</label>
+            <select value={v.status || 'aguardando'} onChange={(e) => set('status', e.target.value)}>
+              {DEALER_STATUS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
             </select>
           </div>
         </div>
