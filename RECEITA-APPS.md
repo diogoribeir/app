@@ -18,7 +18,7 @@
 | ✈️ Paris Trip Planner (Tati) | https://diogoribeir.github.io/app/paris-planner/ | `paris-planner/` (build) + `paris-planner-src/` (fonte) | RTDB `planos/paris-planner-dt2026` |
 | 🎮 Perfil Gamer | https://diogoribeir.github.io/app/perfil-gamer/ | `perfil-gamer/` (app) + `perfil-gamer-src/` (dados) | RTDB `planos/perfil-gamer-dt2026` (nuvem = fonte da verdade; `dados.js` = seed) |
 | 🚗 Comparador HR-V | https://diogoribeir.github.io/app/hrv-comparador/ | `hrv-comparador/` (build) + `hrv-comparador-src/` (fonte Vite + React) | RTDB `planos/hrv-comparador-dt2026` (localStorage = offline; seed embutido no código) |
-| 🇫🇷 Lingo (francês) | https://diogoribeir.github.io/app/lingo/ | `lingo-src/` (fonte Next.js, exportada estática) | Sem nuvem de dados (progresso local) · **GitHub Pages** (estático; migrado do Vercel em ago/2026 — o workflow builda `lingo-src/` e publica em `/app/lingo/`). Tutor roda no navegador, modo demonstração |
+| 🇫🇷 Lingo (francês) | https://diogoribeir.github.io/app/lingo/ | `lingo-src/` (fonte Next.js, exportada estática) | RTDB `planos/lingo-dt2026` (pacote único de todas as chaves `lingo:*`; `lib/nuvem.ts`) · **GitHub Pages** (estático; migrado do Vercel em ago/2026). Tutor roda no navegador, modo demonstração |
 
 ### Infraestrutura fixa
 - **Repositório:** `diogoribeir/app` (https://github.com/diogoribeir/app) · branch principal `master`

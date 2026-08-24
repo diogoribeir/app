@@ -14,6 +14,7 @@ import LicaoGramatica from "@/components/LicaoGramatica";
 import TutorChat from "@/components/TutorChat";
 import Perfil from "@/components/Perfil";
 import { lerUsuario, salvarUsuario } from "@/lib/estadoLocal";
+import { carregarDaNuvem, iniciarSyncVolta } from "@/lib/nuvem";
 import { licaoPorId, itensDaLicao, itemPorId, proximaAposLicao } from "@/lib/curso";
 import { gerarFilaLicao, gerarFilaRevisao } from "@/lib/exercicios";
 import { XP_LICAO, XP_REVISAO } from "@/lib/jogo";
@@ -45,8 +46,17 @@ export default function Pagina() {
   const [versao, setVersao] = useState(0);
 
   useEffect(() => {
-    setUsuario(lerUsuario());
-    setPronto(true);
+    let vivo = true;
+    // carrega o progresso da nuvem ANTES de renderizar (cai pro local se offline)
+    carregarDaNuvem().finally(() => {
+      if (!vivo) return;
+      setUsuario(lerUsuario());
+      setPronto(true);
+      iniciarSyncVolta(); // recarrega se outro aparelho gravar depois
+    });
+    return () => {
+      vivo = false;
+    };
   }, []);
 
   if (!pronto) return null;
