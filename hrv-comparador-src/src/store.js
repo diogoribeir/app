@@ -162,7 +162,7 @@ export const SEED_DEALERS = [
     tipo: 'Honda autorizada',
     endereco: 'Av. Jabaquara, 2371 - Mirandópolis, São Paulo - SP',
     telefone: '(11) 5591-0140',
-    googleNota: '',
+    googleNota: 4.2,
     googleAval: 35,
     reclameNota: '',
     reclameReput: '',
@@ -171,7 +171,7 @@ export const SEED_DEALERS = [
     status: 'aguardando',
     pontosFortes: 'Honda autorizada do grupo Daitan (rede com várias unidades na capital).',
     pontosAtencao:
-      'Nota-estrela do Google (só o nº de avaliações ~35 foi achado), Reclame Aqui e % resolvidas ainda NÃO confirmados — conferir.'
+      'Google 4,2 (35 avaliações). Reclame Aqui e % resolvidas ainda NÃO confirmados — conferir.'
   },
   {
     id: 'd-daitan-pompeia',
@@ -230,7 +230,7 @@ export const SEED_DEALERS = [
 // (App.jsx) insere no nó da nuvem as lojas do seed que faltarem (por id) e
 // preenche o campo `status` nas que ainda não têm — uma única vez, sem
 // sobrescrever escolhas do usuário nem duplicar as que já existem.
-export const SEED_DEALERS_REV = 3
+export const SEED_DEALERS_REV = 4
 
 export const SEED_CARS = [
   {

@@ -46,10 +46,17 @@ export default function App() {
     if (seedRev >= SEED_DEALERS_REV) return
     setDealers((prev) => {
       const seedById = Object.fromEntries(SEED_DEALERS.map((d) => [d.id, d]))
-      // backfill do status (não sobrescreve escolha do usuário)
-      const patched = prev.map((d) =>
-        d.status == null && seedById[d.id] ? { ...d, status: seedById[d.id].status } : d
-      )
+      const empty = (v) => v === '' || v == null
+      // backfill: preenche só campos vazios a partir do seed (nunca sobrescreve o que o usuário digitou)
+      const patched = prev.map((d) => {
+        const seed = seedById[d.id]
+        if (!seed) return d
+        const next = { ...d }
+        for (const k of ['googleNota', 'googleAval', 'status']) {
+          if (empty(next[k]) && !empty(seed[k])) next[k] = seed[k]
+        }
+        return next
+      })
       const ids = new Set(patched.map((d) => d.id))
       const faltando = SEED_DEALERS.filter((d) => !ids.has(d.id))
       return [...patched, ...faltando]
@@ -328,42 +335,57 @@ function ConcessionariasView({ dealers, cars, onAdd, onEdit, onRemove }) {
         <button className="btn" onClick={onAdd}>+ Loja</button>
       </div>
       {dealers.length === 0 && <div className="empty">Nenhuma concessionária ainda.</div>}
-      {dealers.map((d) => {
-        const nCars = cars.filter((c) => c.dealershipId === d.id).length
-        const confCls = d.confiabilidade === 'Alta' ? 'green' : d.confiabilidade === 'Baixa' ? 'red' : 'amber'
-        return (
-          <div className="card" key={d.id}>
-            <div className="row">
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h3>{d.nome || 'Sem nome'}</h3>
-                <div className="sub">{d.tipo}{d.endereco ? ' · ' + d.endereco : ''}</div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
-                <span className={'tag ' + confCls}>{d.confiabilidade}</span>
-                {dealerStatusMeta(d.status) && (
-                  <span className={'pill-status ' + dealerStatusMeta(d.status).cls}>{dealerStatusMeta(d.status).l}</span>
-                )}
-              </div>
-            </div>
-            <div className="meta">
-              {d.telefone && <span className="tag">📞 {d.telefone}</span>}
-              {d.googleNota !== '' && d.googleNota != null && (
-                <span className="tag">⭐ Google {numBr(d.googleNota)}{d.googleAval ? ` (${Number(d.googleAval).toLocaleString('pt-BR')})` : ''}</span>
-              )}
-              {d.reclameNota !== '' && d.reclameNota != null && <span className="tag">RA {numBr(d.reclameNota)}/10{d.reclameReput ? ` · ${d.reclameReput}` : ''}</span>}
-              {d.reclameResolvidas !== '' && <span className="tag">{d.reclameResolvidas}% resolv.</span>}
-              <span className="tag honey">{nCars} carro{nCars === 1 ? '' : 's'}</span>
-            </div>
-            {d.pontosFortes && <div className="free"><b>Pontos fortes</b>{d.pontosFortes}</div>}
-            {d.pontosAtencao && <div className="free"><b>Pontos de atenção</b>{d.pontosAtencao}</div>}
-            <div className="card-actions">
-              <button className="btn ghost sm" onClick={() => onEdit(d)}>✏️ Editar</button>
-              <button className="btn danger sm" onClick={() => onRemove(d.id)}>Excluir</button>
-            </div>
-          </div>
-        )
-      })}
+      {dealers.map((d) => (
+        <DealerCard
+          key={d.id}
+          d={d}
+          nCars={cars.filter((c) => c.dealershipId === d.id).length}
+          onEdit={() => onEdit(d)}
+          onRemove={() => onRemove(d.id)}
+        />
+      ))}
     </>
+  )
+}
+
+function DealerCard({ d, nCars, onEdit, onRemove }) {
+  const [open, setOpen] = useState(false)
+  const confCls = d.confiabilidade === 'Alta' ? 'green' : d.confiabilidade === 'Baixa' ? 'red' : 'amber'
+  const sm = dealerStatusMeta(d.status)
+  const hasGoogle = d.googleNota !== '' && d.googleNota != null
+  const hasRA = d.reclameNota !== '' && d.reclameNota != null
+  const hasDetails = d.pontosFortes || d.pontosAtencao
+  const bairro = (d.endereco || '').split(' - ')[1] || d.endereco || ''
+  return (
+    <div className="card dealer-card">
+      <div className="dl-head" onClick={() => hasDetails && setOpen((o) => !o)}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3>{d.nome || 'Sem nome'}</h3>
+          <div className="sub">{d.tipo}{bairro ? ' · ' + bairro : ''}{nCars ? ` · ${nCars} carro${nCars === 1 ? '' : 's'}` : ''}</div>
+        </div>
+        {sm && <span className={'pill-status ' + sm.cls}>{sm.l}</span>}
+      </div>
+      <div className="meta">
+        <span className={'tag ' + confCls}>Confiab. {d.confiabilidade}</span>
+        {hasGoogle && <span className="tag">⭐ {numBr(d.googleNota)}{d.googleAval ? ` (${Number(d.googleAval).toLocaleString('pt-BR')})` : ''}</span>}
+        {hasRA && <span className="tag">RA {numBr(d.reclameNota)}/10</span>}
+        {d.telefone && <a className="tag honey" href={`tel:${d.telefone.replace(/[^0-9+]/g, '')}`} onClick={(e) => e.stopPropagation()}>📞 {d.telefone}</a>}
+      </div>
+      {open && (
+        <>
+          {d.endereco && <div className="free"><b>Endereço</b>{d.endereco}</div>}
+          {d.pontosFortes && <div className="free"><b>Pontos fortes</b>{d.pontosFortes}</div>}
+          {d.pontosAtencao && <div className="free"><b>Pontos de atenção</b>{d.pontosAtencao}</div>}
+        </>
+      )}
+      <div className="card-actions">
+        {hasDetails && (
+          <button className="btn ghost sm" onClick={() => setOpen((o) => !o)}>{open ? '▲ menos' : '▼ detalhes'}</button>
+        )}
+        <button className="btn ghost sm" onClick={onEdit}>✏️ Editar</button>
+        <button className="btn danger sm" onClick={onRemove}>Excluir</button>
+      </div>
+    </div>
   )
 }
 
