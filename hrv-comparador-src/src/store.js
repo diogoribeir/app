@@ -99,6 +99,7 @@ export const SEED_DEALERS = [
     reclameReput: 'Regular',
     reclameResolvidas: 70,
     confiabilidade: 'Média',
+    status: 'ok',
     pontosFortes:
       'Honda autorizada de verdade (faz fluido do CVT no padrão original); vendas e atendimento geralmente bem avaliados; volume alto de avaliações (nota sólida, 4,2 com 1.700 avaliações).',
     pontosAtencao:
@@ -116,6 +117,7 @@ export const SEED_DEALERS = [
     reclameReput: '',
     reclameResolvidas: '',
     confiabilidade: 'Média',
+    status: 'aguardando',
     pontosFortes: 'Honda autorizada (faz o fluido do CVT no padrão original de fábrica).',
     pontosAtencao:
       'Nota do Google, Reclame Aqui e % de reclamações resolvidas ainda NÃO confirmados — conferir antes de decidir (preencher no cadastro depois de ligar/visitar).'
@@ -132,6 +134,7 @@ export const SEED_DEALERS = [
     reclameReput: '',
     reclameResolvidas: '',
     confiabilidade: 'Média',
+    status: 'aguardando',
     pontosFortes: 'Honda autorizada; grande estrutura na região da Berrini/Brooklin (mesmo grupo da unidade Nações Unidas).',
     pontosAtencao:
       'Nota Google ~4,2 (nº de avaliações a confirmar). Reclame Aqui e % resolvidas ainda não confirmados; há relatos mistos sobre recall/pós-venda — conferir.'
@@ -148,16 +151,86 @@ export const SEED_DEALERS = [
     reclameReput: '',
     reclameResolvidas: '',
     confiabilidade: 'Média',
+    status: 'aguardando',
     pontosFortes: 'Honda autorizada; mesmo grupo Dealer da unidade Berrini.',
     pontosAtencao:
       'Nota do Google, Reclame Aqui e % resolvidas ainda NÃO confirmados — conferir antes de decidir.'
+  },
+  {
+    id: 'd-daitan-jabaquara',
+    nome: 'Honda Daitan - Jabaquara',
+    tipo: 'Honda autorizada',
+    endereco: 'Av. Jabaquara, 2371 - Mirandópolis, São Paulo - SP',
+    telefone: '(11) 5591-0140',
+    googleNota: '',
+    googleAval: 35,
+    reclameNota: '',
+    reclameReput: '',
+    reclameResolvidas: '',
+    confiabilidade: 'Média',
+    status: 'aguardando',
+    pontosFortes: 'Honda autorizada do grupo Daitan (rede com várias unidades na capital).',
+    pontosAtencao:
+      'Nota-estrela do Google (só o nº de avaliações ~35 foi achado), Reclame Aqui e % resolvidas ainda NÃO confirmados — conferir.'
+  },
+  {
+    id: 'd-daitan-pompeia',
+    nome: 'Honda Daitan - Pompéia',
+    tipo: 'Honda autorizada',
+    endereco: 'R. Carlos Vicari, 154 - Barra Funda, São Paulo - SP',
+    telefone: '(11) 2102-0999',
+    googleNota: '',
+    googleAval: 37,
+    reclameNota: '',
+    reclameReput: '',
+    reclameResolvidas: '',
+    confiabilidade: 'Média',
+    status: 'aguardando',
+    pontosFortes: 'Honda autorizada do grupo Daitan.',
+    pontosAtencao:
+      'Nota-estrela do Google (só o nº de avaliações ~37 foi achado), Reclame Aqui e % resolvidas ainda NÃO confirmados — conferir.'
+  },
+  {
+    id: 'd-daitan-sumare',
+    nome: 'Honda Daitan - Sumaré',
+    tipo: 'Honda autorizada',
+    endereco: 'Av. Sumaré, 1744 - Perdizes, São Paulo - SP',
+    telefone: '(11) 3675-0655',
+    googleNota: '',
+    googleAval: 18,
+    reclameNota: '',
+    reclameReput: '',
+    reclameResolvidas: '',
+    confiabilidade: 'Média',
+    status: 'aguardando',
+    pontosFortes: 'Honda autorizada do grupo Daitan.',
+    pontosAtencao:
+      'Nota-estrela do Google (só o nº de avaliações ~18 foi achado), Reclame Aqui e % resolvidas ainda NÃO confirmados — conferir.'
+  },
+  {
+    id: 'd-daitan-ibirapuera',
+    nome: 'Honda Daitan - Ibirapuera',
+    tipo: 'Honda autorizada',
+    endereco: 'Av. Ibirapuera, 2771 - Indianópolis, São Paulo - SP',
+    telefone: '(11) 5536-9966',
+    googleNota: '',
+    googleAval: '',
+    reclameNota: '',
+    reclameReput: '',
+    reclameResolvidas: '',
+    confiabilidade: 'Média',
+    status: 'aguardando',
+    pontosFortes: 'Honda autorizada do grupo Daitan.',
+    pontosAtencao:
+      'Nota do Google, Reclame Aqui e % resolvidas ainda NÃO confirmados — conferir.'
   }
 ]
 
 // Revisão do seed de concessionárias: ao subir, a migração idempotente
-// (App.jsx) insere no nó da nuvem as lojas do seed que faltarem (por id),
-// uma única vez — sem sobrescrever nem duplicar as que já existem.
-export const SEED_DEALERS_REV = 2
+// (App.jsx) insere no nó da nuvem as lojas do seed que faltarem (por id) e
+// preenche o campo `status` nas que ainda não têm — uma única vez, sem
+// sobrescrever escolhas do usuário nem duplicar as que já existem.
+export const SEED_DEALERS_REV = 3
 
 export const SEED_CARS = [
   {
