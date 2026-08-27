@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  useSynced, uid, SEED_CARS, SEED_DEALERS, SEED_DEALERS_REV, DEFAULT_WEIGHTS
+  useSynced, uid, SEED_CARS, SEED_CARS_REV, SEED_DEALERS, SEED_DEALERS_REV, DEFAULT_WEIGHTS
 } from './store.js'
 // SEED_CARS/SEED_DEALERS sao os dados iniciais pre-cadastrados (usados como seed nos hooks)
 import { CRITERIA, custoEfetivo, scoreAll } from './scoring.js'
@@ -33,7 +33,8 @@ export default function App() {
   const [tab, setTab] = useState('carros')
   const [dealers, setDealers, dealersReady] = useSynced('dealers', SEED_DEALERS)
   const [seedRev, setSeedRev, seedRevReady] = useSynced('dealerSeedRev', 0)
-  const [cars, setCars] = useSynced('cars', SEED_CARS)
+  const [cars, setCars, carsReady] = useSynced('cars', SEED_CARS)
+  const [carSeedRev, setCarSeedRev, carSeedRevReady] = useSynced('carSeedRev', 0)
   const [weights, setWeights] = useSynced('weights', DEFAULT_WEIGHTS)
 
   // Migração única: insere no nó da nuvem as concessionárias do seed que
@@ -52,7 +53,7 @@ export default function App() {
         const seed = seedById[d.id]
         if (!seed) return d
         const next = { ...d }
-        for (const k of ['googleNota', 'googleAval', 'status']) {
+        for (const k of ['grupo', 'googleNota', 'googleAval', 'status']) {
           if (empty(next[k]) && !empty(seed[k])) next[k] = seed[k]
         }
         return next
@@ -64,6 +65,22 @@ export default function App() {
     setSeedRev(SEED_DEALERS_REV)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dealersReady, seedRevReady])
+
+  // Migração única de carros: adiciona ao nó da nuvem os carros do seed que
+  // faltarem (por id). Roda só quando SEED_CARS_REV sobe; apagados não voltam.
+  const carsMigrated = useRef(false)
+  useEffect(() => {
+    if (!carsReady || !carSeedRevReady || carsMigrated.current) return
+    carsMigrated.current = true
+    if (carSeedRev >= SEED_CARS_REV) return
+    setCars((prev) => {
+      const ids = new Set(prev.map((c) => c.id))
+      const faltando = SEED_CARS.filter((c) => !ids.has(c.id))
+      return faltando.length ? [...prev, ...faltando] : prev
+    })
+    setCarSeedRev(SEED_CARS_REV)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carsReady, carSeedRevReady])
 
   const [carForm, setCarForm] = useState(null) // objeto em edicao ou null
   const [dealerForm, setDealerForm] = useState(null)
@@ -218,6 +235,7 @@ function newDealer() {
   return {
     id: uid(),
     nome: '',
+    grupo: '',
     tipo: 'Honda autorizada',
     endereco: '',
     telefone: '',
@@ -327,30 +345,109 @@ function CarCard({ car, dealer, score, onEdit, onRemove, onStatus }) {
 }
 
 // ======================= CONCESSIONARIAS =======================
+function grupoKey(d) {
+  return (d.grupo && d.grupo.trim()) || d.nome || 'Sem grupo'
+}
+function unitLabel(d) {
+  const parts = (d.nome || '').split(' - ')
+  if (parts.length > 1) return parts.slice(1).join(' - ')
+  return (d.endereco || '').split(' - ')[1] || d.nome || 'Unidade'
+}
+const confClsOf = (d) => (d.confiabilidade === 'Alta' ? 'green' : d.confiabilidade === 'Baixa' ? 'red' : 'amber')
+const telHref = (t) => `tel:${(t || '').replace(/[^0-9+]/g, '')}`
+
 function ConcessionariasView({ dealers, cars, onAdd, onEdit, onRemove }) {
+  const carsCountFor = (id) => cars.filter((c) => c.dealershipId === id).length
+  const groups = useMemo(() => {
+    const m = new Map()
+    dealers.forEach((d) => {
+      const k = grupoKey(d)
+      if (!m.has(k)) m.set(k, [])
+      m.get(k).push(d)
+    })
+    return [...m.entries()]
+  }, [dealers])
+
   return (
     <>
       <div className="sec-head">
-        <h2>Concessionárias ({dealers.length})</h2>
+        <h2>Concessionárias ({groups.length})</h2>
         <button className="btn" onClick={onAdd}>+ Loja</button>
       </div>
       {dealers.length === 0 && <div className="empty">Nenhuma concessionária ainda.</div>}
-      {dealers.map((d) => (
-        <DealerCard
-          key={d.id}
-          d={d}
-          nCars={cars.filter((c) => c.dealershipId === d.id).length}
-          onEdit={() => onEdit(d)}
-          onRemove={() => onRemove(d.id)}
-        />
-      ))}
+      {groups.map(([grupo, units]) =>
+        units.length > 1 ? (
+          <GroupCard key={grupo} grupo={grupo} units={units} carsCountFor={carsCountFor} onEdit={onEdit} onRemove={onRemove} />
+        ) : (
+          <SingleDealerCard key={grupo} d={units[0]} nCars={carsCountFor(units[0].id)} onEdit={() => onEdit(units[0])} onRemove={() => onRemove(units[0].id)} />
+        )
+      )}
     </>
   )
 }
 
-function DealerCard({ d, nCars, onEdit, onRemove }) {
+// Card de uma REDE com várias lojas: uma linha por unidade
+function GroupCard({ grupo, units, carsCountFor, onEdit, onRemove }) {
+  const totalCars = units.reduce((n, u) => n + carsCountFor(u.id), 0)
+  const tipo = units[0]?.tipo
+  const pend = units.filter((u) => u.status === 'aguardando').length
+  return (
+    <div className="card dealer-card group-card">
+      <div className="dl-head" style={{ cursor: 'default' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3>{grupo}</h3>
+          <div className="sub">{tipo} · {units.length} unidades{totalCars ? ` · ${totalCars} carro${totalCars === 1 ? '' : 's'}` : ''}</div>
+        </div>
+        {pend > 0 && <span className="pill-status dl-wait">{pend} s/ dados</span>}
+      </div>
+      <div className="units">
+        {units.map((u) => (
+          <UnitRow key={u.id} d={u} nCars={carsCountFor(u.id)} onEdit={() => onEdit(u)} onRemove={() => onRemove(u.id)} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function UnitRow({ d, nCars, onEdit, onRemove }) {
   const [open, setOpen] = useState(false)
-  const confCls = d.confiabilidade === 'Alta' ? 'green' : d.confiabilidade === 'Baixa' ? 'red' : 'amber'
+  const sm = dealerStatusMeta(d.status)
+  const hasGoogle = d.googleNota !== '' && d.googleNota != null
+  const hasRA = d.reclameNota !== '' && d.reclameNota != null
+  const hasDetails = d.pontosFortes || d.pontosAtencao || d.endereco
+  return (
+    <div className="unit-row">
+      <div className="unit-head" onClick={() => hasDetails && setOpen((o) => !o)}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="unit-name">{unitLabel(d)}{nCars ? ` · ${nCars} carro${nCars === 1 ? '' : 's'}` : ''}</div>
+          <div className="meta">
+            <span className={'tag ' + confClsOf(d)}>Confiab. {d.confiabilidade}</span>
+            {hasGoogle && <span className="tag">⭐ {numBr(d.googleNota)}{d.googleAval ? ` (${Number(d.googleAval).toLocaleString('pt-BR')})` : ''}</span>}
+            {hasRA && <span className="tag">RA {numBr(d.reclameNota)}/10</span>}
+            {d.telefone && <a className="tag honey" href={telHref(d.telefone)} onClick={(e) => e.stopPropagation()}>📞 {d.telefone}</a>}
+          </div>
+        </div>
+        {sm && <span className={'pill-status ' + sm.cls}>{sm.l}</span>}
+      </div>
+      {open && (
+        <>
+          {d.endereco && <div className="free"><b>Endereço</b>{d.endereco}</div>}
+          {d.pontosFortes && <div className="free"><b>Pontos fortes</b>{d.pontosFortes}</div>}
+          {d.pontosAtencao && <div className="free"><b>Pontos de atenção</b>{d.pontosAtencao}</div>}
+        </>
+      )}
+      <div className="unit-actions">
+        {hasDetails && <button className="btn ghost sm" onClick={() => setOpen((o) => !o)}>{open ? '▲ menos' : '▼ detalhes'}</button>}
+        <button className="btn ghost sm" onClick={onEdit}>✏️ Editar</button>
+        <button className="btn danger sm" onClick={onRemove}>Excluir</button>
+      </div>
+    </div>
+  )
+}
+
+// Card de uma loja única (rede com 1 unidade)
+function SingleDealerCard({ d, nCars, onEdit, onRemove }) {
+  const [open, setOpen] = useState(false)
   const sm = dealerStatusMeta(d.status)
   const hasGoogle = d.googleNota !== '' && d.googleNota != null
   const hasRA = d.reclameNota !== '' && d.reclameNota != null
@@ -366,10 +463,10 @@ function DealerCard({ d, nCars, onEdit, onRemove }) {
         {sm && <span className={'pill-status ' + sm.cls}>{sm.l}</span>}
       </div>
       <div className="meta">
-        <span className={'tag ' + confCls}>Confiab. {d.confiabilidade}</span>
+        <span className={'tag ' + confClsOf(d)}>Confiab. {d.confiabilidade}</span>
         {hasGoogle && <span className="tag">⭐ {numBr(d.googleNota)}{d.googleAval ? ` (${Number(d.googleAval).toLocaleString('pt-BR')})` : ''}</span>}
         {hasRA && <span className="tag">RA {numBr(d.reclameNota)}/10</span>}
-        {d.telefone && <a className="tag honey" href={`tel:${d.telefone.replace(/[^0-9+]/g, '')}`} onClick={(e) => e.stopPropagation()}>📞 {d.telefone}</a>}
+        {d.telefone && <a className="tag honey" href={telHref(d.telefone)} onClick={(e) => e.stopPropagation()}>📞 {d.telefone}</a>}
       </div>
       {open && (
         <>
@@ -379,9 +476,7 @@ function DealerCard({ d, nCars, onEdit, onRemove }) {
         </>
       )}
       <div className="card-actions">
-        {hasDetails && (
-          <button className="btn ghost sm" onClick={() => setOpen((o) => !o)}>{open ? '▲ menos' : '▼ detalhes'}</button>
-        )}
+        {hasDetails && <button className="btn ghost sm" onClick={() => setOpen((o) => !o)}>{open ? '▲ menos' : '▼ detalhes'}</button>}
         <button className="btn ghost sm" onClick={onEdit}>✏️ Editar</button>
         <button className="btn danger sm" onClick={onRemove}>Excluir</button>
       </div>
@@ -645,6 +740,10 @@ function DealerForm({ value, onChange, onSave, onCancel }) {
         <div className="field">
           <label>Nome</label>
           <input value={v.nome} onChange={(e) => set('nome', e.target.value)} />
+        </div>
+        <div className="field">
+          <label>Grupo / rede (agrupa unidades no mesmo card)</label>
+          <input value={v.grupo || ''} onChange={(e) => set('grupo', e.target.value)} placeholder="Ex.: Honda Daitan, Dealer Honda…" />
         </div>
         <div className="grid2">
           <div className="field">

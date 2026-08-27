@@ -90,6 +90,7 @@ export const SEED_DEALERS = [
   {
     id: 'd-honda-jafet',
     nome: 'Honda SP Japan - Ricardo Jafet',
+    grupo: 'Honda SP Japan',
     tipo: 'Honda autorizada',
     endereco: 'Av. Dr. Ricardo Jafet, 1920 (unidade 1450) - Ipiranga, São Paulo - SP',
     telefone: '(11) 2179-7000',
@@ -108,6 +109,7 @@ export const SEED_DEALERS = [
   {
     id: 'd-flora-motors',
     nome: 'Honda Flora Motors',
+    grupo: 'Flora Motors',
     tipo: 'Honda autorizada',
     endereco: 'Av. Washington Luís, 3709 - Chácara Monte Alegre (Santo Amaro), São Paulo - SP',
     telefone: '(11) 5685-7100',
@@ -125,6 +127,7 @@ export const SEED_DEALERS = [
   {
     id: 'd-dealer-berrini',
     nome: 'Dealer Honda - Berrini',
+    grupo: 'Dealer Honda',
     tipo: 'Honda autorizada',
     endereco: 'Av. Dr. Chucri Zaidan, 45 - Vila Cordeiro (Brooklin/Berrini), São Paulo - SP',
     telefone: '(11) 2112-2555',
@@ -142,6 +145,7 @@ export const SEED_DEALERS = [
   {
     id: 'd-dealer-nacoes',
     nome: 'Dealer Honda - Nações Unidas',
+    grupo: 'Dealer Honda',
     tipo: 'Honda autorizada',
     endereco: 'Av. das Nações Unidas, 21621 - Jurubatuba (Brooklin), São Paulo - SP',
     telefone: '(11) 3585-9393',
@@ -159,6 +163,7 @@ export const SEED_DEALERS = [
   {
     id: 'd-daitan-jabaquara',
     nome: 'Honda Daitan - Jabaquara',
+    grupo: 'Honda Daitan',
     tipo: 'Honda autorizada',
     endereco: 'Av. Jabaquara, 2371 - Mirandópolis, São Paulo - SP',
     telefone: '(11) 5591-0140',
@@ -176,6 +181,7 @@ export const SEED_DEALERS = [
   {
     id: 'd-daitan-pompeia',
     nome: 'Honda Daitan - Pompéia',
+    grupo: 'Honda Daitan',
     tipo: 'Honda autorizada',
     endereco: 'R. Carlos Vicari, 154 - Barra Funda, São Paulo - SP',
     telefone: '(11) 2102-0999',
@@ -193,6 +199,7 @@ export const SEED_DEALERS = [
   {
     id: 'd-daitan-sumare',
     nome: 'Honda Daitan - Sumaré',
+    grupo: 'Honda Daitan',
     tipo: 'Honda autorizada',
     endereco: 'Av. Sumaré, 1744 - Perdizes, São Paulo - SP',
     telefone: '(11) 3675-0655',
@@ -210,6 +217,7 @@ export const SEED_DEALERS = [
   {
     id: 'd-daitan-ibirapuera',
     nome: 'Honda Daitan - Ibirapuera',
+    grupo: 'Honda Daitan',
     tipo: 'Honda autorizada',
     endereco: 'Av. Ibirapuera, 2771 - Indianópolis, São Paulo - SP',
     telefone: '(11) 5536-9966',
@@ -223,14 +231,51 @@ export const SEED_DEALERS = [
     pontosFortes: 'Honda autorizada do grupo Daitan.',
     pontosAtencao:
       'Nota do Google, Reclame Aqui e % resolvidas ainda NÃO confirmados — conferir.'
+  },
+  {
+    id: 'd-hpoint',
+    nome: 'H Point (Honda)',
+    grupo: 'H Point',
+    tipo: 'Honda autorizada',
+    endereco: '',
+    telefone: '',
+    googleNota: '',
+    googleAval: '',
+    reclameNota: '',
+    reclameReput: '',
+    reclameResolvidas: '',
+    confiabilidade: 'Média',
+    status: 'aguardando',
+    pontosFortes: 'Rede Honda autorizada (H Point) — unidades na capital de SP a cadastrar.',
+    pontosAtencao:
+      'FALTAM DADOS: endereço, telefone, nota do Google, Reclame Aqui e % resolvidas das unidades H Point. A busca web bateu o limite; completar depois (ou pelo site oficial da Honda).'
+  },
+  {
+    id: 'd-quest',
+    nome: 'Quest Multimarcas',
+    grupo: 'Quest Multimarcas',
+    tipo: 'Multimarcas',
+    endereco: '',
+    telefone: '',
+    googleNota: '',
+    googleAval: '',
+    reclameNota: '',
+    reclameReput: '',
+    reclameResolvidas: '',
+    confiabilidade: 'Média',
+    status: 'aguardando',
+    pontosFortes:
+      'Vendedor José Roberto. O HR-V EXL anunciado tem laudo cautelar 100% aprovado e garantia da loja de 3 meses (motor e câmbio).',
+    pontosAtencao:
+      'É MULTIMARCAS (não Honda autorizada) — o fluido do CVT precisa ser confirmado/feito no padrão Honda. Endereço, telefone, Google e Reclame Aqui a preencher.'
   }
 ]
 
 // Revisão do seed de concessionárias: ao subir, a migração idempotente
 // (App.jsx) insere no nó da nuvem as lojas do seed que faltarem (por id) e
-// preenche o campo `status` nas que ainda não têm — uma única vez, sem
-// sobrescrever escolhas do usuário nem duplicar as que já existem.
-export const SEED_DEALERS_REV = 4
+// preenche campos vazios (grupo/status/googleNota/googleAval) a partir do
+// seed — uma única vez, sem sobrescrever o que o usuário digitou.
+export const SEED_DEALERS_REV = 5
 
 export const SEED_CARS = [
   {
@@ -270,8 +315,46 @@ export const SEED_CARS = [
       'Ponto crítico é confirmar o fluido do CVT na revisão (nunca trocado em 107k) e exigir discriminado na nota. ' +
       'Levar mecânico de confiança para avaliar no pátio antes de fechar.',
     status: 'favorito'
+  },
+  {
+    id: 'c-exl-quest',
+    dealershipId: 'd-quest',
+    versao: 'EXL',
+    anoModelo: '2017',
+    cor: '',
+    km: 81000,
+    preco: '',
+    custoExtra: 0,
+    unicoDono: 'sim',
+    historicoManutencao: 'sim',
+    cvtTrocado: 'nao',
+    garantia: '3 meses motor e câmbio (garantia da loja)',
+    reparos: 'Nada relatado. Sem sinistro, sem batidas; laudo cautelar 100% aprovado.',
+    pros: [
+      'Único dono',
+      'Laudo cautelar 100% aprovado (sem sinistro, sem batidas)',
+      'Revisões feitas na concessionária até 81.000 km',
+      'Bancos bem conservados',
+      'Versão EXL: já vem com couro, multimídia e câmera de fábrica (não precisa gastar extra)',
+      'Garantia da loja de 3 meses (motor e câmbio)'
+    ],
+    contras: [
+      'Loja multimarcas (não Honda autorizada) — fluido do CVT precisa ser conferido/feito no padrão Honda',
+      'Preço ainda a confirmar',
+      'Cor a confirmar'
+    ],
+    obs:
+      'HONDA HR-V 1.8 16V FLEX EXL 4P AUTOMÁTICO 2017. Vendedor José Roberto (Quest Multimarcas). ' +
+      'KM de referência 81.000 (revisões na concessionária até essa marca) — confirmar a KM atual. ' +
+      'Fluido do CVT: confirmar se/quando foi trocado. Manuais + laudo cautelar recebidos (laudo aprovado).',
+    status: 'analise'
   }
 ]
+
+// Revisão do seed de carros: a migração (App.jsx) insere no nó da nuvem os
+// carros do seed que faltarem (por id), uma única vez — sem duplicar nem
+// ressuscitar os apagados de propósito.
+export const SEED_CARS_REV = 1
 
 export const DEFAULT_WEIGHTS = {
   // do mais importante ao menos importante (peso 1 a 5)

@@ -106,6 +106,19 @@ nav.tabs button.active{color:var(--honey);background:color-mix(in srgb,var(--hon
 .dealer-card .card-actions{margin-top:9px;gap:6px}
 .dealer-card .card-actions .btn.sm{padding:5px 9px;font-size:.74rem}
 
+/* Card de rede (varias unidades) */
+.group-card h3{font-size:1rem}
+.group-card .units{margin-top:8px;display:flex;flex-direction:column;gap:8px}
+.unit-row{border:1px solid var(--line);border-radius:12px;padding:9px 10px;background:var(--paper)}
+.unit-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;cursor:pointer}
+.unit-name{font-weight:800;font-size:.86rem;line-height:1.2}
+.unit-row .meta{margin-top:6px;gap:5px}
+.unit-row .tag{padding:2px 8px;font-size:.7rem}
+.unit-row a.tag{text-decoration:none}
+.unit-row .pill-status{font-size:.62rem;padding:2px 6px}
+.unit-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.unit-actions .btn.sm{padding:4px 9px;font-size:.72rem}
+
 .card .lists{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
 .card .lists .box{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:9px 11px}
 .card .lists .box b{font-size:.74rem;text-transform:uppercase;letter-spacing:.03em}
