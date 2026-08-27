@@ -321,7 +321,7 @@ export const SEED_CARS = [
     dealershipId: 'd-quest',
     versao: 'EXL',
     anoModelo: '2017',
-    cor: '',
+    cor: 'Preta',
     km: 81000,
     preco: '',
     custoExtra: 0,
@@ -329,32 +329,35 @@ export const SEED_CARS = [
     historicoManutencao: 'sim',
     cvtTrocado: 'nao',
     garantia: '3 meses motor e câmbio (garantia da loja)',
-    reparos: 'Nada relatado. Sem sinistro, sem batidas; laudo cautelar 100% aprovado.',
+    reparos: 'Nada relatado. Laudo cautelar (SVConsulta) 100% limpo: sem sinistro, sem leilão, sem gravame, sem restrições, sem recall, sem histórico de roubo/furto.',
     pros: [
-      'Único dono',
-      'Laudo cautelar 100% aprovado (sem sinistro, sem batidas)',
-      'Revisões feitas na concessionária até 81.000 km',
+      'Único dono CONFIRMADO no laudo (1 proprietário, 1 transferência; emplacado novo em 25/05/2017)',
+      'Laudo cautelar 100% aprovado — todos os itens "nada consta"; sem multas (RENAINF)',
+      'Revisões feitas na concessionária até 81.000 km (etiquetas Honda no manual)',
       'Bancos bem conservados',
-      'Versão EXL: já vem com couro, multimídia e câmera de fábrica (não precisa gastar extra)',
+      'Versão EXL: já vem com couro, multimídia e câmera de fábrica (não precisa gastar extra ~R$ 2.500)',
       'Garantia da loja de 3 meses (motor e câmbio)'
     ],
     contras: [
       'Loja multimarcas (não Honda autorizada) — fluido do CVT precisa ser conferido/feito no padrão Honda',
-      'Preço ainda a confirmar',
-      'Cor a confirmar'
+      'Preço ainda a confirmar (site da loja não abriu aqui)',
+      'KM atual a confirmar (81.000 é a referência das revisões)'
     ],
     obs:
-      'HONDA HR-V 1.8 16V FLEX EXL 4P AUTOMÁTICO 2017. Vendedor José Roberto (Quest Multimarcas). ' +
-      'KM de referência 81.000 (revisões na concessionária até essa marca) — confirmar a KM atual. ' +
-      'Fluido do CVT: confirmar se/quando foi trocado. Manuais + laudo cautelar recebidos (laudo aprovado).',
+      'HONDA HR-V 1.8 16V FLEX EXL 4P AUTOMÁTICO 2017 (CVT). Placa FYT-7H54, cor Preta (Preto Cristal Perolizado), ' +
+      'São Caetano do Sul/SP. Vendedor José Roberto (Quest Multimarcas). Laudo SVConsulta 19/06/2026: 1 proprietário ' +
+      '(José Antonio Monzani, desde 2017), 1 transferência, sem multas, tudo "nada consta". ' +
+      'Fluido do CVT: as etiquetas Honda registram "fluido de transmissão" por volta de 40.000 km — CONFIRMAR se foi ' +
+      'refeito depois disso (aos ~80k já pede nova troca). Preço e KM atual a confirmar (site da loja bloqueado aqui).',
     status: 'analise'
   }
 ]
 
 // Revisão do seed de carros: a migração (App.jsx) insere no nó da nuvem os
-// carros do seed que faltarem (por id), uma única vez — sem duplicar nem
-// ressuscitar os apagados de propósito.
-export const SEED_CARS_REV = 1
+// carros do seed que faltarem (por id) e preenche campos vazios (ex.: cor) a
+// partir do seed — uma única vez, sem sobrescrever o que o usuário digitou
+// nem ressuscitar carros apagados de propósito.
+export const SEED_CARS_REV = 2
 
 export const DEFAULT_WEIGHTS = {
   // do mais importante ao menos importante (peso 1 a 5)

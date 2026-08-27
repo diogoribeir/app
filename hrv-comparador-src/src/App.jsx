@@ -74,9 +74,20 @@ export default function App() {
     carsMigrated.current = true
     if (carSeedRev >= SEED_CARS_REV) return
     setCars((prev) => {
-      const ids = new Set(prev.map((c) => c.id))
+      const seedById = Object.fromEntries(SEED_CARS.map((c) => [c.id, c]))
+      const empty = (v) => v === '' || v == null
+      const patched = prev.map((c) => {
+        const seed = seedById[c.id]
+        if (!seed) return c
+        const next = { ...c }
+        for (const k of ['cor', 'km']) {
+          if (empty(next[k]) && !empty(seed[k])) next[k] = seed[k]
+        }
+        return next
+      })
+      const ids = new Set(patched.map((c) => c.id))
       const faltando = SEED_CARS.filter((c) => !ids.has(c.id))
-      return faltando.length ? [...prev, ...faltando] : prev
+      return [...patched, ...faltando]
     })
     setCarSeedRev(SEED_CARS_REV)
     // eslint-disable-next-line react-hooks/exhaustive-deps
