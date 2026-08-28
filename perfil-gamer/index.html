@@ -65,13 +65,22 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
   position:relative;overflow:hidden;box-shadow:var(--shadow)}
 .hero::after{content:"";position:absolute;right:-30px;top:-40px;width:140px;height:140px;border-radius:50%;
   background:radial-gradient(circle,rgba(77,141,255,.25),transparent 70%)}
-.hero .tagline{font-size:.6rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8FB4FF}
+.hero .tagline{font-size:.6rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8FB4FF;margin-bottom:2px}
 .hero .hname{font-size:1.12rem;font-weight:800;margin:3px 0 2px;line-height:1.25}
 .hero .hmeta{font-size:.74rem;color:#AAB6CE}
 .hero .hrow{display:flex;align-items:center;gap:12px}
 .hero .hicon{font-size:1.6rem}
 .hero .hbody{flex:1;min-width:0}
 .hero .hgo{font-size:1.3rem;color:#8FB4FF;font-weight:800}
+/* modo compacto: até 3 jogos em andamento, cada um numa linha */
+.hero.multi .hrow{gap:10px;padding:8px 0;border-top:1px solid rgba(143,180,255,.14)}
+.hero.multi .hrow:first-of-type{border-top:0;padding-top:3px}
+.hero.multi .hrow:last-of-type{padding-bottom:1px}
+.hero.multi .hicon{font-size:1.15rem}
+.hero.multi .hname{font-size:.9rem;margin:0;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hero.multi .hmeta{font-size:.68rem}
+.hero.multi .hgo{font-size:1.1rem}
+.hero .heromore{font-size:.64rem;font-weight:800;letter-spacing:.05em;color:#8FB4FF;margin:7px 0 0 2px}
 
 /* ---------- faixa de stats ---------- */
 .strip{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:16px;
@@ -807,17 +816,19 @@ function viewJogos(){
   const tot=J.length;
   const comp=J.filter(g=>g.enc==="S").length, drop=J.filter(g=>g.enc==="N").length;
   const agora = J.filter(g=>g.enc==="#");
-  const hero = agora.length ? `
-    <div class="hero" data-editar-hero="${agora[0].id}">
-      <div class="hrow">
+  const heroRow = g => `<div class="hrow" data-editar-hero="${g.id}">
         <span class="hicon">🕹️</span>
         <div class="hbody">
-          <div class="tagline">Jogando agora</div>
-          <div class="hname">${esc(agora[0].nome)}</div>
-          <div class="hmeta num">${horasOcultas(agora[0])?"":`⏱ ${totalHoras(agora[0])}h`}${nRuns(agora[0])>1?` · ${runsResumo(agora[0])}`:""}${agora.length>1?` · +${agora.length-1} em progresso`:""}</div>
+          <div class="hname">${esc(g.nome)}</div>
+          <div class="hmeta num">${horasOcultas(g)?"":`⏱ ${totalHoras(g)}h`}${nRuns(g)>1?` · ${runsResumo(g)}`:""}</div>
         </div>
         <span class="hgo">›</span>
-      </div>
+      </div>`;
+  const hero = agora.length ? `
+    <div class="hero ${agora.length>1?"multi":""}">
+      <div class="tagline">Jogando agora${agora.length>1?` · ${agora.length}`:""}</div>
+      ${agora.slice(0,3).map(heroRow).join("")}
+      ${agora.length>3?`<div class="heromore">+${agora.length-3} em progresso</div>`:""}
     </div>` : "";
 
   const nActive = fStatus.size + fVer.size + fAno.size + fAnoJog.size;
