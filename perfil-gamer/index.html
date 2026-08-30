@@ -358,6 +358,11 @@ details.wkbox[open]>summary .schev{transform:rotate(90deg)}
 .phint{font-size:.72rem;font-weight:700;margin:7px 2px 0;line-height:1.35;min-height:1em;color:var(--muted)}
 .phint.rejogar{color:var(--accent)}
 .phint.novo{color:var(--mb)}
+.pjogo-wrap{position:relative}
+.psugest{position:absolute;left:0;right:0;top:calc(100% + 2px);background:var(--card);border:1.5px solid var(--border);border-radius:10px;max-height:220px;overflow-y:auto;z-index:200;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.psugest .psitem{padding:11px 14px;font-size:.9rem;cursor:pointer;border-bottom:1px solid var(--border)}
+.psugest .psitem:last-child{border-bottom:none}
+.psugest .psitem:active,.psugest .psitem.pshover{background:var(--accent);color:#fff;border-radius:8px}
 .mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mrow4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .mactions{display:flex;gap:10px;margin-top:18px}
@@ -440,8 +445,10 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
   <div class="mbox">
     <h2 id="pTitle">Jogo planejado</h2>
     <label for="pJogo">Jogo * <span class="lhint">(escolha da biblioteca ou digite um novo)</span></label>
-    <input id="pJogo" type="text" autocomplete="off" list="pJogoList" placeholder="Buscar na biblioteca ou digitar…" />
-    <datalist id="pJogoList"></datalist>
+    <div class="pjogo-wrap">
+      <input id="pJogo" type="text" autocomplete="off" placeholder="Buscar na biblioteca ou digitar…" />
+      <div id="pSugestoes" class="psugest hidden"></div>
+    </div>
     <div id="pHint" class="phint"></div>
     <div class="mrow">
       <div><label for="pData">Data (quando pretende jogar)</label><input id="pData" type="date" /></div>
@@ -1223,23 +1230,44 @@ function pRefreshHint(){
   }
   el.textContent="✓ Está na sua biblioteca";
 }
+// dropdown customizado — confiável em mobile
+let _pBlurTimer = null;
+function pShowSugestoes(query){
+  const el = $("#pSugestoes");
+  const q = (query||"").trim().toLowerCase();
+  const lista = J.map(g=>g.nome).filter(Boolean).sort((a,b)=>a.localeCompare(b,"pt"));
+  const filtrado = q ? lista.filter(n=>n.toLowerCase().includes(q)) : lista;
+  if(!filtrado.length){ el.classList.add("hidden"); return; }
+  el.innerHTML = filtrado.slice(0,30).map(n=>`<div class="psitem" data-pnome="${esc(n)}">${esc(n)}</div>`).join("");
+  el.classList.remove("hidden");
+}
+function pHideSugestoes(){ $("#pSugestoes").classList.add("hidden"); }
 function openPlano(idx){
   pEditIdx = (idx==null) ? null : idx;
   const p = (idx==null) ? null : P[idx];
   $("#pTitle").textContent = p ? "Editar jogo planejado" : "Adicionar jogo planejado";
-  // datalist dinâmico com a biblioteca atual (A–Z)
-  $("#pJogoList").innerHTML = J.map(g=>g.nome).filter(Boolean)
-    .sort((a,b)=>a.localeCompare(b,"pt")).map(n=>`<option value="${esc(n)}"></option>`).join("");
   $("#pJogo").value = p?.jogo || "";
   $("#pData").value = p?.data || "";
   $("#pEst").value = p ? (estH(p.est)||"") : "";
+  pHideSugestoes();
   pRefreshHint();
   $("#pmodal").classList.remove("hidden");
   setTimeout(()=>$("#pJogo").focus(), 60);
 }
-function closePlano(){ $("#pmodal").classList.add("hidden"); pEditIdx = null; }
+function closePlano(){ $("#pmodal").classList.add("hidden"); pHideSugestoes(); pEditIdx = null; }
 $("#pCancel").addEventListener("click", closePlano);
-$("#pJogo").addEventListener("input", pRefreshHint);
+$("#pJogo").addEventListener("focus", ()=>{ pShowSugestoes($("#pJogo").value); });
+$("#pJogo").addEventListener("input", ()=>{ pShowSugestoes($("#pJogo").value); pRefreshHint(); });
+$("#pJogo").addEventListener("blur", ()=>{ _pBlurTimer = setTimeout(pHideSugestoes, 180); });
+$("#pSugestoes").addEventListener("mousedown", e=>e.preventDefault()); // evita blur antes do click
+$("#pSugestoes").addEventListener("click", e=>{
+  const item = e.target.closest(".psitem"); if(!item) return;
+  clearTimeout(_pBlurTimer);
+  $("#pJogo").value = item.dataset.pnome;
+  pHideSugestoes();
+  pRefreshHint();
+  $("#pEst").focus();
+});
 $("#pmodal").addEventListener("click", e=>{ if (e.target === $("#pmodal")) closePlano(); });
 $("#pSave").addEventListener("click", ()=>{
   const jogo = $("#pJogo").value.trim();
