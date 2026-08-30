@@ -17,7 +17,7 @@ import { lerUsuario, salvarUsuario } from "@/lib/estadoLocal";
 import { carregarDaNuvem, iniciarSyncVolta } from "@/lib/nuvem";
 import { licaoPorId, itensDaLicao, itemPorId, proximaAposLicao } from "@/lib/curso";
 import { gerarFilaLicao, gerarFilaRevisao } from "@/lib/exercicios";
-import { XP_LICAO, XP_REVISAO } from "@/lib/jogo";
+import { XP_LICAO, XP_REVISAO, concluirLicao } from "@/lib/jogo";
 import type { Usuario, Exercicio } from "@/lib/types";
 
 type Aba = "viagem" | "vocab" | "frases" | "tutor" | "perfil";
@@ -94,6 +94,12 @@ export default function Pagina() {
     else voltar();
   }
 
+  /** Marca a lição como feita SEM praticar (para quem já sabe) — 0 pontos. */
+  function pularLicao(licaoId: string) {
+    concluirLicao(licaoId, 0);
+    setVersao((v) => v + 1);
+  }
+
   // ── telas em cima das abas ────────────────────────────────────────
   if (tela.tipo === "licao") {
     const achado = licaoPorId(tela.licaoId);
@@ -162,6 +168,7 @@ export default function Pagina() {
           aoAbrirCena={(dialogoId) => setTela({ tipo: "cena", dialogoId })}
           aoAbrirGramatica={(topicoId) => setTela({ tipo: "gramatica", topicoId })}
           aoRevisar={(ids) => setTela({ tipo: "revisao", ids })}
+          aoPular={pularLicao}
         />
       )}
       {aba === "vocab" && (

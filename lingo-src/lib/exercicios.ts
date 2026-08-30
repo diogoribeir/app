@@ -1,6 +1,8 @@
 // Gerador DETERMINÍSTICO de exercícios (sem IA, sem custo): tudo sai das
 // frases verificadas da camada B. Estilos: apresentar, escolher (PT↔FR),
-// montar a frase com peças, e ouvir (áudio → texto).
+// montar a frase com peças, ouvir (áudio → texto) e completar a lacuna.
+// Distratores vêm de frases do MESMO contexto (opções erradas plausíveis) e
+// a fila evita dois exercícios do mesmo tipo em seguida (menos repetitivo).
 
 import { itensVerificados } from "./camadaB";
 import type { Exercicio, ItemConteudo, Nivel } from "./types";
@@ -27,13 +29,21 @@ function normalizarToken(t: string): string {
   return t.toLowerCase();
 }
 
-/** Frases verificadas que servem de "distrator" (excluindo o próprio item). */
+/**
+ * Frases verificadas que servem de "distrator" (excluindo o próprio item).
+ * Prioriza frases do MESMO contexto (ex.: restaurante) — assim as opções
+ * erradas são plausíveis de verdade, não um sorteio aleatório fácil.
+ */
 function poolDistratores(exceto: ItemConteudo): ItemConteudo[] {
-  return itensVerificados().filter((i) => i.tipo === "frase" && i.id !== exceto.id);
+  const todas = itensVerificados().filter((i) => i.tipo === "frase" && i.id !== exceto.id);
+  const mesmoCtx = todas.filter((i) => i.contexto === exceto.contexto);
+  const outros = todas.filter((i) => i.contexto !== exceto.contexto);
+  // mesmo contexto primeiro (embaralhado), depois o resto como reserva
+  return [...embaralhar(mesmoCtx), ...embaralhar(outros)];
 }
 
 function opcoesDe(item: ItemConteudo, campo: "alvo" | "traducao", n: number): string[] {
-  const outras = embaralhar(poolDistratores(item))
+  const outras = poolDistratores(item)
     .map((i) => i[campo])
     .filter((t) => t !== item[campo])
     .slice(0, n - 1);
@@ -73,6 +83,51 @@ function exOuvir(item: ItemConteudo, nOpcoes: number): Exercicio {
   return { tipo: "ouvir", item, opcoes: opcoesDe(item, "alvo", nOpcoes), correta: item.alvo };
 }
 
+/** Palavras "pequenas" que não valem a pena esconder numa lacuna. */
+const PALAVRINHAS = new Set([
+  "je", "tu", "il", "un", "une", "le", "la", "les", "de", "du", "à", "a",
+  "et", "ou", "ne", "pas", "ce", "en", "s'il", "vous",
+]);
+
+/**
+ * Completar a lacuna: esconde UMA palavra "de conteúdo" da frase e pede para
+ * o aluno escolher qual é. Distratores são palavras de outras frases (mesmo
+ * tamanho de desafio, sem virar caça-palavra).
+ */
+function exCompletar(item: ItemConteudo, nOpcoes: number): Exercicio | null {
+  const tokens = tokenizar(item.alvo);
+  if (tokens.length < 3) return null;
+
+  // candidatas a esconder: palavras com ≥3 letras e que não sejam "palavrinhas"
+  const candidatas = tokens
+    .map((t, i) => ({ t, i }))
+    .filter(({ t }) => t.length >= 3 && !PALAVRINHAS.has(t.toLowerCase()));
+  const alvo = (candidatas.length > 0 ? embaralhar(candidatas)[0] : null);
+  if (!alvo) return null;
+
+  const correta = alvo.t;
+  const usada = new Set([correta.toLowerCase()]);
+  const distratores: string[] = [];
+  for (const d of poolDistratores(item).flatMap((i) => tokenizar(i.alvo))) {
+    const n = d.toLowerCase();
+    if (d.length >= 3 && !PALAVRINHAS.has(n) && !usada.has(n)) {
+      usada.add(n);
+      distratores.push(d);
+      if (distratores.length >= nOpcoes - 1) break;
+    }
+  }
+  if (distratores.length === 0) return null;
+
+  return {
+    tipo: "completar",
+    item,
+    tokens,
+    lacuna: alvo.i,
+    opcoes: embaralhar([correta, ...distratores]),
+    correta,
+  };
+}
+
 /** Nº de opções e mistura de direções conforme o nível do aluno. */
 function configNivel(nivel: Nivel): { nOpcoes: number; usaFRPT: boolean } {
   if (nivel === "iniciante") return { nOpcoes: 3, usaFRPT: false };
@@ -85,29 +140,37 @@ function configNivel(nivel: Nivel): { nOpcoes: number; usaFRPT: boolean } {
  * possíveis para aquele item (evita cair sempre no mesmo estilo). Recebe o
  * tipo usado na rodada anterior para não repetir dois iguais em seguida.
  */
-function tiposPossiveis(
-  item: ItemConteudo,
-  nivel: Nivel
-): ("escolher-pt-fr" | "escolher-fr-pt" | "montar" | "ouvir")[] {
-  const { usaFRPT } = configNivel(nivel);
-  const tipos: ("escolher-pt-fr" | "escolher-fr-pt" | "montar" | "ouvir")[] = [
-    "escolher-pt-fr",
-    "ouvir",
-  ];
+type TipoTeste = "escolher-pt-fr" | "escolher-fr-pt" | "montar" | "ouvir" | "completar";
+
+function tiposPossiveis(item: ItemConteudo, nivel: Nivel): TipoTeste[] {
+  const { usaFRPT, nOpcoes } = configNivel(nivel);
+  const tipos: TipoTeste[] = ["escolher-pt-fr", "ouvir"];
   if (usaFRPT) tipos.push("escolher-fr-pt");
-  // só oferece montar se a frase render peças suficientes
+  // só oferece montar/completar se a frase render peças suficientes
   if (exMontar(item)) tipos.push("montar");
+  if (exCompletar(item, nOpcoes)) tipos.push("completar");
   return tipos;
 }
 
-function exDoTipo(
-  item: ItemConteudo,
-  tipo: "escolher-pt-fr" | "escolher-fr-pt" | "montar" | "ouvir",
-  nOpcoes: number
-): Exercicio {
+function exDoTipo(item: ItemConteudo, tipo: TipoTeste, nOpcoes: number): Exercicio {
   if (tipo === "montar") return exMontar(item)!;
+  if (tipo === "completar") return exCompletar(item, nOpcoes)!;
   if (tipo === "ouvir") return exOuvir(item, nOpcoes);
   return exEscolher(item, tipo === "escolher-fr-pt" ? "fr-pt" : "pt-fr", nOpcoes);
+}
+
+/** Reordena para nunca deixar dois exercícios do MESMO tipo em seguida. */
+function espalharTipos(fila: Exercicio[]): Exercicio[] {
+  const restante = [...fila];
+  const saida: Exercicio[] = [];
+  while (restante.length > 0) {
+    const anterior = saida[saida.length - 1];
+    // acha o próximo cujo tipo é diferente do último colocado
+    let idx = restante.findIndex((e) => !anterior || e.tipo !== anterior.tipo);
+    if (idx === -1) idx = 0; // só sobrou o mesmo tipo: deixa passar
+    saida.push(restante.splice(idx, 1)[0]);
+  }
+  return saida;
 }
 
 /**
@@ -133,7 +196,7 @@ export function gerarFilaLicao(itens: ItemConteudo[], nivel: Nivel): Exercicio[]
     }
   });
 
-  const filaQuiz = embaralhar(quiz);
+  const filaQuiz = espalharTipos(embaralhar(quiz));
   // Fala fica por último: é opcional (pulável) e fecha a lição falando.
   const falar: Exercicio[] = frases.length > 0 ? [{ tipo: "falar", item: frases[0] }] : [];
 
@@ -143,14 +206,13 @@ export function gerarFilaLicao(itens: ItemConteudo[], nivel: Nivel): Exercicio[]
 /** Fila de REVISÃO (SRS): sem apresentação, direto aos exercícios. */
 export function gerarFilaRevisao(itens: ItemConteudo[], nivel: Nivel): Exercicio[] {
   const frases = itens.filter((i) => i.tipo !== "regra");
-  const { nOpcoes, usaFRPT } = configNivel(nivel);
+  const { nOpcoes } = configNivel(nivel);
 
   const fila: Exercicio[] = [];
   frases.forEach((item, idx) => {
-    const escolhaMontar = exMontar(item);
-    if (idx % 3 === 2 && escolhaMontar) fila.push(escolhaMontar);
-    else if (idx % 3 === 1) fila.push(exOuvir(item, nOpcoes));
-    else fila.push(exEscolher(item, usaFRPT && idx % 2 === 1 ? "fr-pt" : "pt-fr", nOpcoes));
+    // roda entre os formatos possíveis daquela frase (varia a cada revisão)
+    const opcoes = embaralhar(tiposPossiveis(item, nivel));
+    fila.push(exDoTipo(item, opcoes[idx % opcoes.length], nOpcoes));
   });
-  return embaralhar(fila);
+  return espalharTipos(embaralhar(fila));
 }

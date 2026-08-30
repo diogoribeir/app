@@ -96,7 +96,8 @@ export default function Sessao({
 
   function respostaAtualCorreta(): boolean {
     if (!ex) return false;
-    if (ex.tipo === "escolher" || ex.tipo === "ouvir") return escolha === ex.correta;
+    if (ex.tipo === "escolher" || ex.tipo === "ouvir" || ex.tipo === "completar")
+      return escolha === ex.correta;
     if (ex.tipo === "montar") {
       const seq = montagem.map((i) => ex.pecas[i]);
       if (seq.length !== ex.alvoTokens.length) return false;
@@ -137,10 +138,20 @@ export default function Sessao({
     if (indice > 0) setIndice((i) => i - 1);
   }
 
+  // "já sei, pular": marca a lição como feita (sem pontos) e segue a trilha
+  function pularLicaoAgora() {
+    if (licaoId && !registrou.current) {
+      registrou.current = true;
+      concluirLicao(licaoId, 0);
+    }
+    (aoProxima ?? aoSair)();
+  }
+
   const podeVerificar =
     ex &&
     (ex.tipo === "apresentar" ||
-      ((ex.tipo === "escolher" || ex.tipo === "ouvir") && escolha !== null) ||
+      ((ex.tipo === "escolher" || ex.tipo === "ouvir" || ex.tipo === "completar") &&
+        escolha !== null) ||
       (ex.tipo === "montar" && montagem.length > 0) ||
       ex.tipo === "falar");
 
@@ -234,7 +245,7 @@ export default function Sessao({
       {confirmaSaida && (
         <div className="cartao surgir mb-4 px-4 py-3 text-sm font-bold">
           Sair agora perde o progresso desta lição. Sair mesmo?
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex flex-wrap gap-2">
             <button onClick={aoSair} className="botao vermelho px-4 py-2 text-xs">
               Sair
             </button>
@@ -244,6 +255,11 @@ export default function Sessao({
             >
               Ficar
             </button>
+            {licaoId && (
+              <button onClick={pularLicaoAgora} className="botao px-4 py-2 text-xs">
+                Já sei — pular ✓
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -256,6 +272,9 @@ export default function Sessao({
         )}
         {ex.tipo === "montar" && (
           <ExMontar ex={ex} montagem={montagem} setMontagem={setMontagem} checado={checado} />
+        )}
+        {ex.tipo === "completar" && (
+          <ExCompletar ex={ex} escolha={escolha} setEscolha={setEscolha} checado={checado} />
         )}
         {ex.tipo === "falar" && <ExFalar ex={ex} aoTentar={() => patchAtual({ falou: true })} />}
       </div>
@@ -462,6 +481,68 @@ function ExMontar({
             {peca}
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function ExCompletar({
+  ex,
+  escolha,
+  setEscolha,
+  checado,
+}: {
+  ex: Extract<Exercicio, { tipo: "completar" }>;
+  escolha: string | null;
+  setEscolha: (s: string) => void;
+  checado: Checagem;
+}) {
+  return (
+    <div>
+      <h3 className="text-xl font-black">Complete a frase 🧩</h3>
+      <p className="mt-3 text-lg font-bold text-[var(--suave)]">“{ex.item.traducao}”</p>
+
+      {/* frase com a lacuna */}
+      <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-1 text-2xl font-black leading-relaxed">
+        {ex.tokens.map((tok, i) =>
+          i === ex.lacuna ? (
+            <span
+              key={i}
+              className="inline-flex min-w-16 items-center justify-center rounded-lg border-b-4 px-2 py-0.5"
+              style={
+                checado === "certo"
+                  ? { borderColor: "var(--verde)", color: "var(--verde-escuro)" }
+                  : checado === "errado"
+                  ? { borderColor: "var(--vermelho)", color: "var(--vermelho-escuro)" }
+                  : { borderColor: "var(--borda-forte)" }
+              }
+            >
+              {checado === null ? escolha ?? "___" : ex.correta}
+            </span>
+          ) : (
+            <span key={i}>{tok}</span>
+          )
+        )}
+      </div>
+
+      {/* opções de palavra */}
+      <div className="mt-6 space-y-3">
+        {ex.opcoes.map((op) => {
+          let cls = "";
+          if (checado === null) cls = escolha === op ? "selecionada" : "";
+          else if (op === ex.correta) cls = "certa";
+          else if (op === escolha) cls = "errada";
+          return (
+            <button
+              key={op}
+              onClick={() => checado === null && setEscolha(op)}
+              disabled={checado !== null}
+              className={`opcao ${cls}`}
+            >
+              {op}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
