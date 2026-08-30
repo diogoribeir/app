@@ -133,15 +133,13 @@ export function itemPorId(id: string): ItemConteudo | null {
 }
 
 /**
- * Trilha linear: uma lição está desbloqueada se for a primeira ainda não
- * feita (ou se já foi feita — repetir é sempre permitido).
+ * TUDO LIBERADO (ago/2026): o aluno escolhe por onde começar — nenhuma lição
+ * ou capítulo fica travado por outro. (Antes era trilha linear; o Diogo pediu
+ * acesso livre, útil pra quem já sabe partes e quer ir direto ao que precisa.)
+ * Mantida a assinatura para não quebrar quem chama.
  */
-export function estaDesbloqueada(licaoId: string, feitas: Set<string>): boolean {
-  for (const { licao } of todasLicoes()) {
-    if (licao.id === licaoId) return true; // é a próxima não-feita ou anterior
-    if (!feitas.has(licao.id)) return false; // achou uma pendente antes dela
-  }
-  return false;
+export function estaDesbloqueada(_licaoId: string, _feitas: Set<string>): boolean {
+  return true;
 }
 
 /** A próxima lição não concluída (para o botão "Continuar"). */
