@@ -354,6 +354,10 @@ details.wkbox[open]>summary .schev{transform:rotate(90deg)}
   background:var(--bg);color:var(--ink);font:inherit;font-size:.95rem}
 .mbox textarea{min-height:64px;resize:vertical}
 .mbox input:focus-visible,.mbox select:focus-visible,.mbox textarea:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
+.mbox label .lhint{font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted);opacity:.8}
+.phint{font-size:.72rem;font-weight:700;margin:7px 2px 0;line-height:1.35;min-height:1em;color:var(--muted)}
+.phint.rejogar{color:var(--accent)}
+.phint.novo{color:var(--mb)}
 .mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mrow4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .mactions{display:flex;gap:10px;margin-top:18px}
@@ -435,8 +439,10 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
 <div id="pmodal" class="modal hidden" role="dialog" aria-modal="true">
   <div class="mbox">
     <h2 id="pTitle">Jogo planejado</h2>
-    <label for="pJogo">Nome do jogo *</label>
-    <input id="pJogo" type="text" autocomplete="off" />
+    <label for="pJogo">Jogo * <span class="lhint">(escolha da biblioteca ou digite um novo)</span></label>
+    <input id="pJogo" type="text" autocomplete="off" list="pJogoList" placeholder="Buscar na biblioteca ou digitar…" />
+    <datalist id="pJogoList"></datalist>
+    <div id="pHint" class="phint"></div>
     <div class="mrow">
       <div><label for="pData">Data (quando pretende jogar)</label><input id="pData" type="date" /></div>
       <div><label for="pEst">Estimativa (horas)</label><input id="pEst" type="number" min="0" step="1" /></div>
@@ -1044,13 +1050,15 @@ function viewPlano(){
   });
   const rows = fila.length ? fila.map(({p,i})=>{
     const est=estH(p.est), g=linked(p), falta=faltaH(p);
+    const rejogar = p.rejogar && !p.iniciado;
     let sub = est?est+"h":"—";
     if (g && g.enc==="#") sub = `${jogadasAtual(g)}h de ${est}h · faltam ${Math.round(falta)}h`;
+    else if (rejogar) sub = `🔁 rejogar${est?` · ${est}h estimadas`:""}`;
     else if (g && g.enc==="S") sub = `✅ zerado (${totalHoras(g)}h)`;
     else if (g && g.enc==="N") sub = `❌ dropado (${totalHoras(g)}h)`;
     return `<div class="pitem">
       <span class="pwhen ${p.data?'':'nodate'}">${esc(fmtData(p.data))}</span>
-      <div class="pbody"><div class="t">${p.iniciado?'🎮 ':''}${esc(p.jogo)}</div>
+      <div class="pbody"><div class="t">${p.iniciado?'🎮 ':(rejogar?'🔁 ':'')}${esc(p.jogo)}</div>
         <div class="s num">${sub}</div></div>
       <div class="pacts">
         ${p.iniciado?'':`<button type="button" class="pbtn" data-pjogar="${i}" title="Marcar como jogando agora">▶️</button>`}
@@ -1196,26 +1204,52 @@ $("#mAddRun").addEventListener("click", ()=>{
 
 /* ---------- modal do plano ---------- */
 let pEditIdx = null;
+// jogo da biblioteca com nome exatamente igual (sem diferenciar maiúsc/acento simples)
+function libPorNome(nome){
+  const k=(nome||"").trim().toLowerCase(); if(!k) return null;
+  return J.find(x=>(x.nome||"").trim().toLowerCase()===k) || null;
+}
+// atualiza a dica embaixo do campo conforme o que foi digitado/escolhido
+function pRefreshHint(){
+  const el=$("#pHint"); const g=libPorNome($("#pJogo").value);
+  el.className="phint";
+  if(!$("#pJogo").value.trim()){ el.textContent=""; return; }
+  if(!g){ el.classList.add("novo"); el.textContent="➕ Jogo novo (não está na biblioteca)"; return; }
+  if(g.enc==="#"){ el.textContent="🎮 Já está marcado como jogando agora"; return; }
+  if(g.enc==="S"||g.enc==="N"){
+    el.classList.add("rejogar");
+    el.textContent=`🔁 Já na biblioteca (${g.enc==="S"?"zerado":"dropado"}${horasOcultas(g)?"":` · ${totalHoras(g)}h`}) — entra como nova jogatina (rejogar)`;
+    return;
+  }
+  el.textContent="✓ Está na sua biblioteca";
+}
 function openPlano(idx){
   pEditIdx = (idx==null) ? null : idx;
   const p = (idx==null) ? null : P[idx];
   $("#pTitle").textContent = p ? "Editar jogo planejado" : "Adicionar jogo planejado";
+  // datalist dinâmico com a biblioteca atual (A–Z)
+  $("#pJogoList").innerHTML = J.map(g=>g.nome).filter(Boolean)
+    .sort((a,b)=>a.localeCompare(b,"pt")).map(n=>`<option value="${esc(n)}"></option>`).join("");
   $("#pJogo").value = p?.jogo || "";
   $("#pData").value = p?.data || "";
   $("#pEst").value = p ? (estH(p.est)||"") : "";
+  pRefreshHint();
   $("#pmodal").classList.remove("hidden");
   setTimeout(()=>$("#pJogo").focus(), 60);
 }
 function closePlano(){ $("#pmodal").classList.add("hidden"); pEditIdx = null; }
 $("#pCancel").addEventListener("click", closePlano);
+$("#pJogo").addEventListener("input", pRefreshHint);
 $("#pmodal").addEventListener("click", e=>{ if (e.target === $("#pmodal")) closePlano(); });
 $("#pSave").addEventListener("click", ()=>{
   const jogo = $("#pJogo").value.trim();
   if (!jogo){ $("#pJogo").focus(); return; }
   const h = $("#pEst").value;
   const prev = (pEditIdx!=null && P[pEditIdx]) ? P[pEditIdx] : {};
+  const g = libPorNome(jogo);                       // liga ao jogo real, se existir
+  const rejogar = !!(g && (g.enc==="S" || g.enc==="N"));  // replay de um jogo já terminado
   const reg = { jogo, data: $("#pData").value || "", est: h==="" ? "" : (Number(h)+"h"),
-                iniciado: !!prev.iniciado, jid: prev.jid };
+                iniciado: !!prev.iniciado, jid: g ? g.id : prev.jid, rejogar };
   if (pEditIdx!=null && P[pEditIdx]) P[pEditIdx] = reg; else P.push(reg);
   closePlano(); savePlano(); render();
 });
@@ -1284,9 +1318,10 @@ document.addEventListener("click", e=>{
   if (px){ const i=Number(px.dataset.pexcluir); if (P[i]){ P.splice(i,1); savePlano(); render(); } return; }
   const pj = e.target.closest("[data-pjogar]");
   if (pj){ const i=Number(pj.dataset.pjogar); const p=P[i]; if (!p) return;
-    // liga como "jogando agora": reaproveita jogo existente (nome igual OU parecido) ou cria na biblioteca
+    // liga como "jogando agora": usa o jid (escolhido da biblioteca) ou acha por nome igual/parecido; senão cria
     const key = (p.jogo||"").trim().toLowerCase();
-    let g = J.find(x=>(x.nome||"").trim().toLowerCase()===key)
+    let g = (p.jid!=null ? J.find(x=>x.id===p.jid) : null)
+         || J.find(x=>(x.nome||"").trim().toLowerCase()===key)
          || (key.length>=4 ? J.find(x=>{ const n=(x.nome||"").trim().toLowerCase(); return n && (n.includes(key)||key.includes(n)); }) : null);
     if (g){
       if (g.enc==="S"||g.enc==="N"){ (g.runs=g.runs||[]).push({horas:0}); } // já terminou → nova jogatina (NG+), só horas
