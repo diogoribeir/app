@@ -136,6 +136,15 @@ export type Exercicio =
     }
   | { tipo: "montar"; item: ItemConteudo; pecas: string[]; alvoTokens: string[] }
   | { tipo: "ouvir"; item: ItemConteudo; opcoes: string[]; correta: string }
+  | {
+      // completar a lacuna: a frase em francês com UMA palavra escondida
+      tipo: "completar";
+      item: ItemConteudo;
+      tokens: string[]; // a frase inteira em peças
+      lacuna: number; // índice da peça escondida em `tokens`
+      opcoes: string[]; // palavras candidatas (inclui a certa)
+      correta: string; // a palavra que preenche a lacuna
+    }
   | { tipo: "falar"; item: ItemConteudo };
 
 // ── Estrutura de uma resposta do tutor (camada C, já validada) ──────

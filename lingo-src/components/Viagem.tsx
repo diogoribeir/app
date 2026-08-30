@@ -36,12 +36,15 @@ export default function Viagem({
   aoAbrirCena,
   aoAbrirGramatica,
   aoRevisar,
+  aoPular,
 }: {
   usuario: Usuario;
   aoAbrirLicao: (licaoId: string) => void;
   aoAbrirCena: (dialogoId: string) => void;
   aoAbrirGramatica: (topicoId: string) => void;
   aoRevisar: (ids: string[]) => void;
+  /** Marca uma lição como feita sem praticar (para quem já sabe). */
+  aoPular: (licaoId: string) => void;
 }) {
   const [gaveta, setGaveta] = useState<Unidade | null>(null);
   const [vencidos, setVencidos] = useState<string[]>([]);
@@ -228,32 +231,43 @@ export default function Viagem({
               const ok = estaDesbloqueada(licao.id, feitas);
               const cor = corDe(gaveta.cor);
               return (
-                <button
-                  key={licao.id}
-                  onClick={() => ok && aoAbrirLicao(licao.id)}
-                  disabled={!ok}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
-                    ok ? "hover:bg-[var(--azul-claro)]" : "cursor-not-allowed opacity-40"
-                  }`}
-                >
-                  <span
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                    style={
-                      feita
-                        ? { background: cor.base, color: "#fff" }
-                        : { border: "2px solid var(--borda-forte)", color: "var(--suave)" }
-                    }
+                <div key={licao.id} className="flex items-center gap-1">
+                  <button
+                    onClick={() => ok && aoAbrirLicao(licao.id)}
+                    disabled={!ok}
+                    className={`flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
+                      ok ? "hover:bg-[var(--azul-claro)]" : "cursor-not-allowed opacity-40"
+                    }`}
                   >
-                    {feita ? "✓" : ""}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold">{licao.titulo}</span>
-                    <span className="block text-xs text-[var(--suave)]">
-                      {licao.tipo === "gramatica" ? "gramática-ponte" : "frases + áudio"}
+                    <span
+                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                      style={
+                        feita
+                          ? { background: cor.base, color: "#fff" }
+                          : { border: "2px solid var(--borda-forte)", color: "var(--suave)" }
+                      }
+                    >
+                      {feita ? "✓" : ""}
                     </span>
-                  </span>
-                  {feita && <span className="text-xs font-semibold text-[var(--suave)]">rever</span>}
-                </button>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold">{licao.titulo}</span>
+                      <span className="block text-xs text-[var(--suave)]">
+                        {licao.tipo === "gramatica" ? "gramática-ponte" : "frases + áudio"}
+                      </span>
+                    </span>
+                    {feita && <span className="text-xs font-semibold text-[var(--suave)]">rever</span>}
+                  </button>
+                  {/* pular: para quem já sabe (marca feita sem praticar) */}
+                  {ok && !feita && (
+                    <button
+                      onClick={() => aoPular(licao.id)}
+                      className="shrink-0 rounded-lg px-2 py-2 text-xs font-bold text-[var(--suave)] transition hover:bg-[var(--azul-claro)] hover:text-[var(--texto)]"
+                      title="Já sei — marcar como feita sem praticar"
+                    >
+                      já sei ✓
+                    </button>
+                  )}
+                </div>
               );
             })}
           </div>

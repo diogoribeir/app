@@ -255,9 +255,14 @@ caso um dia o Tutor volte a rodar num servidor.
   editorial própria (§7). Publicado no Vercel (jul) e depois **migrado para o
   GitHub Pages** como site estático (ago/2026, §5b).
 - **Feito (ago/2026) — melhorias no player:** exercícios menos repetitivos
-  (2 formatos distintos por frase), botão VOLTAR (‹) para rever exercícios, e
-  "Próxima lição →" encadeando a trilha ao concluir (`Sessao.tsx`,
-  `LicaoGramatica.tsx`, `curso.ts#proximaAposLicao`).
+  (2 formatos distintos por frase, **novo tipo "completar a lacuna"**,
+  distratores do MESMO contexto e nunca dois formatos iguais em seguida —
+  `espalharTipos`), botão VOLTAR (‹) para rever exercícios **em TODAS as
+  lições** (frases e gramática — cada resposta guardada por índice/página),
+  "Próxima lição →" encadeando a trilha, e opção **PULAR** ("já sei") na
+  gaveta da trilha e dentro da lição, que marca feita sem pontos
+  (`Sessao.tsx`, `LicaoGramatica.tsx`, `Viagem.tsx`, `exercicios.ts`,
+  `curso.ts#proximaAposLicao`, `jogo.ts#concluirLicao(…,0)`).
 - **Feito (ago/2026) — sincronização na nuvem** (`lib/nuvem.ts`): progresso deixa
   de ser só local e passa a subir para o RTDB (nó `planos/lingo-dt2026`),
   sincronizando entre aparelhos como os outros apps. Resolve o "sumiu meu

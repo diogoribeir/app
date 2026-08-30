@@ -33,8 +33,15 @@ export default function LicaoGramatica({
 }) {
   const topico = topicoPorId(topicoId);
   const [indice, setIndice] = useState(0);
-  const [escolha, setEscolha] = useState<number | null>(null);
-  const [checado, setChecado] = useState(false);
+  // resposta do quiz guardada por página (permite voltar e rever)
+  const [respostas, setRespostas] = useState<Record<number, { escolha: number | null; checado: boolean }>>({});
+  const respAtual = respostas[indice] ?? { escolha: null, checado: false };
+  const escolha = respAtual.escolha;
+  const checado = respAtual.checado;
+  const setEscolha = (n: number) =>
+    setRespostas((m) => ({ ...m, [indice]: { ...(m[indice] ?? { escolha: null, checado: false }), escolha: n } }));
+  const setChecado = (v: boolean) =>
+    setRespostas((m) => ({ ...m, [indice]: { ...(m[indice] ?? { escolha: null, checado: false }), checado: v } }));
   const [erros, setErros] = useState(0);
   const [fim, setFim] = useState(false);
   const registrou = useRef(false);
@@ -63,8 +70,7 @@ export default function LicaoGramatica({
   const xpGanho = XP_LICAO + (perfeita ? XP_BONUS_PERFEITA : 0);
 
   function continuar() {
-    setEscolha(null);
-    setChecado(false);
+    // não zera nada: cada página guarda a própria resposta (dá para voltar).
     if (indice + 1 >= paginas.length) {
       if (!registrou.current) {
         registrou.current = true;
@@ -75,6 +81,19 @@ export default function LicaoGramatica({
     } else {
       setIndice((i) => i + 1);
     }
+  }
+
+  function voltarPagina() {
+    if (indice > 0) setIndice((i) => i - 1);
+  }
+
+  // "já sei, pular": marca a lição como feita (sem pontos) e segue a trilha
+  function pularAgora() {
+    if (licaoId && !registrou.current) {
+      registrou.current = true;
+      concluirLicao(licaoId, 0);
+    }
+    (aoProxima ?? aoSair)();
   }
 
   if (fim) {
@@ -123,12 +142,33 @@ export default function LicaoGramatica({
         >
           ✕
         </button>
+        <button
+          onClick={voltarPagina}
+          disabled={indice === 0}
+          aria-label="Página anterior"
+          className={`text-2xl font-black transition ${
+            indice === 0
+              ? "cursor-not-allowed text-[var(--borda)]"
+              : "text-[var(--suave)] hover:text-[var(--texto)]"
+          }`}
+        >
+          ‹
+        </button>
         <div className="h-4 flex-1 overflow-hidden rounded-full bg-[var(--borda)]">
           <div
             className="h-full rounded-full transition-all duration-300"
             style={{ width: `${(indice / paginas.length) * 100}%`, background: cor.base }}
           />
         </div>
+        {licaoId && (
+          <button
+            onClick={pularAgora}
+            className="shrink-0 text-xs font-bold text-[var(--suave)] transition hover:text-[var(--texto)]"
+            title="Já sei — marcar como feita e seguir"
+          >
+            pular ✓
+          </button>
+        )}
       </div>
 
       <p className="text-sm font-extrabold uppercase tracking-wide" style={{ color: cor.escuro }}>
