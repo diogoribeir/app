@@ -1,20 +1,20 @@
 "use client";
 
-// 🗼 A VIAGEM: a home do Lingo. Nada de listas roladas — cada capítulo é
-// um CARTÃO-CENA em tela cheia; você desliza para o lado (como stories)
-// e cada cartão tem UMA ação principal. Lições detalhadas ficam numa
-// gaveta; a gramática-ponte é o último cartão da viagem.
+// 🗼 A VIAGEM: a home do Lingo. Lista VERTICAL de capítulos — dá para ver
+// todos os módulos de uma vez (sem arrastar um carrossel). Cada capítulo é um
+// cartão que EXPANDE para mostrar suas lições (acordeão). TUDO LIBERADO: o
+// aluno estuda na ordem que quiser, e qualquer lição tem "pular" (já sei).
 
 import { useEffect, useState } from "react";
-import { UNIDADES, estaDesbloqueada, proximaLicao } from "@/lib/curso";
+import { UNIDADES, proximaLicao } from "@/lib/curso";
 import { dialogoDoContexto } from "@/lib/dialogos";
 import { topicosGramatica } from "@/lib/gramatica";
 import { corDe } from "@/lib/cores";
 import { cenasFeitas, licoesFeitas, ofensiva, xpHoje } from "@/lib/jogo";
 import { idsVencidos } from "@/lib/srs";
-import type { Unidade, Usuario } from "@/lib/types";
+import type { Usuario } from "@/lib/types";
 
-/** Contexto-cenário de cada unidade (para diálogo e clima visual). */
+/** Contexto-cenário de cada unidade (para o diálogo da cena ao vivo). */
 const CONTEXTO_DA_UNIDADE: Record<string, string> = {
   "u-restaurante": "restaurante",
   "u-hotel": "hotel",
@@ -22,12 +22,12 @@ const CONTEXTO_DA_UNIDADE: Record<string, string> = {
 };
 
 const CLIMA: Record<string, string> = {
-  verde: "radial-gradient(420px 300px at 80% 0%, rgba(52,201,142,.22), transparent 65%)",
-  azul: "radial-gradient(420px 300px at 80% 0%, rgba(91,124,250,.24), transparent 65%)",
-  roxo: "radial-gradient(420px 300px at 80% 0%, rgba(168,132,245,.24), transparent 65%)",
-  laranja: "radial-gradient(420px 300px at 80% 0%, rgba(245,158,88,.22), transparent 65%)",
-  vermelho: "radial-gradient(420px 300px at 80% 0%, rgba(240,99,122,.2), transparent 65%)",
-  ciano: "radial-gradient(420px 300px at 80% 0%, rgba(76,196,217,.22), transparent 65%)",
+  verde: "radial-gradient(320px 160px at 90% 0%, rgba(52,201,142,.20), transparent 70%)",
+  azul: "radial-gradient(320px 160px at 90% 0%, rgba(91,124,250,.22), transparent 70%)",
+  roxo: "radial-gradient(320px 160px at 90% 0%, rgba(168,132,245,.22), transparent 70%)",
+  laranja: "radial-gradient(320px 160px at 90% 0%, rgba(245,158,88,.20), transparent 70%)",
+  vermelho: "radial-gradient(320px 160px at 90% 0%, rgba(240,99,122,.18), transparent 70%)",
+  ciano: "radial-gradient(320px 160px at 90% 0%, rgba(76,196,217,.20), transparent 70%)",
 };
 
 export default function Viagem({
@@ -46,16 +46,31 @@ export default function Viagem({
   /** Marca uma lição como feita sem praticar (para quem já sabe). */
   aoPular: (licaoId: string) => void;
 }) {
-  const [gaveta, setGaveta] = useState<Unidade | null>(null);
-  const [vencidos, setVencidos] = useState<string[]>([]);
-  useEffect(() => setVencidos([...idsVencidos()]), []);
-
   const feitas = licoesFeitas();
   const cenas = cenasFeitas();
   const proxima = proximaLicao(feitas);
   const pts = xpHoje();
   const meta = usuario.metaDiariaXP;
   const dias = ofensiva();
+
+  // capítulo aberto por padrão: o que tem a próxima lição pendente.
+  const unidadeDaProxima =
+    proxima && UNIDADES.find((u) => u.licoes.some((l) => l.id === proxima.licao.id));
+  const [abertos, setAbertos] = useState<Set<string>>(
+    () => new Set(unidadeDaProxima ? [unidadeDaProxima.id] : [UNIDADES[0].id])
+  );
+  const [gramAberta, setGramAberta] = useState(false);
+  const [vencidos, setVencidos] = useState<string[]>([]);
+  useEffect(() => setVencidos([...idsVencidos()]), []);
+
+  function alternar(id: string) {
+    setAbertos((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  }
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -85,194 +100,170 @@ export default function Viagem({
       {vencidos.length > 0 && (
         <button
           onClick={() => aoRevisar(vencidos)}
-          className="mx-5 mb-1 flex items-center justify-between rounded-2xl bg-[var(--ouro-claro)] px-4 py-2.5 text-sm font-bold text-[var(--ouro)]"
+          className="mx-4 mb-1 flex items-center justify-between rounded-2xl bg-[var(--ouro-claro)] px-4 py-2.5 text-sm font-bold text-[var(--ouro)]"
         >
           🧠 {vencidos.length} {vencidos.length === 1 ? "frase" : "frases"} para revisar
           <span>→</span>
         </button>
       )}
 
-      {/* o carrossel da viagem */}
-      <div
-        className="flex flex-1 snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 pt-3"
-        style={{ scrollbarWidth: "none" }}
-      >
-        {UNIDADES.map((unidade, idx) => {
+      <p className="px-5 pb-1 pt-1 text-[11px] font-semibold text-[var(--suave)]">
+        Tudo liberado — estude na ordem que quiser. Toque num capítulo para ver as lições.
+      </p>
+
+      {/* LISTA VERTICAL de capítulos (acordeão) */}
+      <div className="flex flex-col gap-2.5 px-4 pb-4">
+        {UNIDADES.map((unidade) => {
           const cor = corDe(unidade.cor);
           const concluidas = unidade.licoes.filter((l) => feitas.has(l.id)).length;
           const total = unidade.licoes.length;
           const completa = concluidas === total;
-          const aberta = estaDesbloqueada(unidade.licoes[0].id, feitas);
-          const atualAqui = proxima && unidade.licoes.some((l) => l.id === proxima.licao.id);
-          const proximaDaUnidade =
-            unidade.licoes.find((l) => !feitas.has(l.id)) ?? unidade.licoes[0];
+          const aberto = abertos.has(unidade.id);
           const dialogo = dialogoDoContexto(CONTEXTO_DA_UNIDADE[unidade.id] ?? "");
-          const cenaLiberada = dialogo && concluidas > 0;
 
           return (
             <section
               key={unidade.id}
-              className={`cartao flex w-[82vw] max-w-sm shrink-0 snap-center flex-col p-5 ${
-                aberta ? "" : "opacity-55"
-              }`}
+              className="cartao overflow-hidden p-0"
               style={{ backgroundImage: CLIMA[unidade.cor] }}
             >
-              {/* cenário */}
-              <div className="flex items-start justify-between">
-                <span className="text-6xl drop-shadow-[0_8px_24px_rgba(0,0,0,.4)]">{unidade.emoji}</span>
+              {/* cabeçalho clicável do capítulo */}
+              <button
+                onClick={() => alternar(unidade.id)}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left"
+              >
+                <span className="text-3xl">{unidade.emoji}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2">
+                    <span className="truncate text-lg font-extrabold leading-tight">
+                      {unidade.titulo}
+                    </span>
+                    {completa && (
+                      <span className="shrink-0 text-xs font-black" style={{ color: cor.escuro }}>
+                        ✓
+                      </span>
+                    )}
+                  </span>
+                  {/* progresso do capítulo */}
+                  <span className="mt-1.5 flex items-center gap-2">
+                    <span className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--borda)]">
+                      <span
+                        className="block h-full rounded-full transition-all duration-500"
+                        style={{ width: `${(concluidas / total) * 100}%`, background: cor.base }}
+                      />
+                    </span>
+                    <span className="shrink-0 text-xs font-bold text-[var(--suave)]">
+                      {concluidas}/{total}
+                    </span>
+                  </span>
+                </span>
                 <span
-                  className="rounded-full px-2.5 py-1 text-xs font-extrabold"
-                  style={{ background: cor.claro, color: cor.escuro }}
+                  className="shrink-0 text-lg font-black text-[var(--suave)] transition-transform"
+                  style={{ transform: aberto ? "rotate(180deg)" : "none" }}
                 >
-                  {idx + 1} / {UNIDADES.length}
+                  ▾
                 </span>
-              </div>
+              </button>
 
-              <h2 className="mt-4 text-2xl font-extrabold leading-tight">{unidade.titulo}</h2>
-              <p className="mt-1 text-sm text-[var(--suave)]">{unidade.descricao}</p>
+              {/* lições do capítulo (expandido) */}
+              {aberto && (
+                <div className="surgir border-t border-[var(--borda)] px-3 pb-3 pt-1">
+                  {unidade.licoes.map((licao) => {
+                    const feita = feitas.has(licao.id);
+                    return (
+                      <div key={licao.id} className="flex items-center gap-1">
+                        <button
+                          onClick={() => aoAbrirLicao(licao.id)}
+                          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition hover:bg-[var(--azul-claro)]"
+                        >
+                          <span
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                            style={
+                              feita
+                                ? { background: cor.base, color: "#fff" }
+                                : { border: "2px solid var(--borda-forte)", color: "var(--suave)" }
+                            }
+                          >
+                            {feita ? "✓" : ""}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-semibold">{licao.titulo}</span>
+                            <span className="block text-xs text-[var(--suave)]">
+                              {licao.tipo === "gramatica" ? "gramática-ponte" : "frases + áudio"}
+                            </span>
+                          </span>
+                          {feita && (
+                            <span className="shrink-0 text-xs font-semibold text-[var(--suave)]">
+                              rever
+                            </span>
+                          )}
+                        </button>
+                        {/* pular: em TODA lição não-feita (para quem já sabe) */}
+                        {!feita && (
+                          <button
+                            onClick={() => aoPular(licao.id)}
+                            className="shrink-0 rounded-lg px-2 py-2 text-xs font-bold text-[var(--suave)] transition hover:bg-[var(--azul-claro)] hover:text-[var(--texto)]"
+                            title="Já sei — marcar como feita sem praticar"
+                          >
+                            já sei ✓
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
 
-              {/* progresso do capítulo */}
-              <div className="mt-4 flex items-center gap-2">
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--borda)]">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${(concluidas / total) * 100}%`, background: cor.base }}
-                  />
-                </div>
-                <span className="text-xs font-bold text-[var(--suave)]">
-                  {concluidas}/{total}
-                </span>
-              </div>
-
-              <div className="flex-1" />
-
-              {/* ações: UMA principal + extras */}
-              {aberta ? (
-                <>
-                  <button
-                    onClick={() => aoAbrirLicao(proximaDaUnidade.id)}
-                    className="botao mt-4 w-full"
-                  >
-                    {completa ? "Rever capítulo" : atualAqui ? "Continuar" : "Estudar"} ·{" "}
-                    {proximaDaUnidade.titulo}
-                  </button>
+                  {/* cena ao vivo do capítulo (também liberada) */}
                   {dialogo && (
                     <button
-                      onClick={() => cenaLiberada && aoAbrirCena(dialogo.id)}
-                      disabled={!cenaLiberada}
-                      className={`botao claro mt-2 w-full ${cenaLiberada ? "" : "opacity-60"}`}
-                      title={cenaLiberada ? "" : "Complete 1 lição do capítulo para liberar a cena"}
+                      onClick={() => aoAbrirCena(dialogo.id)}
+                      className="mt-1 flex w-full items-center gap-2 rounded-xl px-2.5 py-2.5 text-left text-sm font-bold text-[var(--suave)] transition hover:bg-[var(--azul-claro)] hover:text-[var(--texto)]"
                     >
                       🎭 Cena ao vivo: {dialogo.titulo}
-                      {cenas.has(dialogo.id) ? " ✓" : cenaLiberada ? "" : " 🔒"}
+                      {cenas.has(dialogo.id) && <span>✓</span>}
                     </button>
                   )}
-                  <button
-                    onClick={() => setGaveta(unidade)}
-                    className="mt-2 w-full py-1.5 text-center text-xs font-bold text-[var(--suave)]"
-                  >
-                    ver as {total} lições ▾
-                  </button>
-                </>
-              ) : (
-                <p className="mt-4 rounded-xl bg-[var(--azul-claro)] px-3 py-2.5 text-center text-sm font-semibold text-[var(--suave)]">
-                  🔒 Termine o capítulo anterior para desbloquear
-                </p>
+                </div>
               )}
             </section>
           );
         })}
 
-        {/* último cartão: as pontes do português */}
-        <section
-          className="cartao flex w-[82vw] max-w-sm shrink-0 snap-center flex-col p-5"
-          style={{ backgroundImage: CLIMA.azul }}
-        >
-          <span className="text-6xl">📚</span>
-          <h2 className="mt-4 text-2xl font-extrabold leading-tight">Pontes do português</h2>
-          <p className="mt-1 text-sm text-[var(--suave)]">
-            O francês explicado pelo que você já sabe — consulte quando quiser.
-          </p>
-          <div className="mt-4 grid flex-1 grid-cols-2 content-start gap-2 overflow-y-auto">
-            {topicosGramatica().map((t) => (
-              <button
-                key={t.id}
-                onClick={() => aoAbrirGramatica(t.id)}
-                className="rounded-xl border border-[var(--borda)] bg-[rgba(255,255,255,.04)] px-3 py-2.5 text-left text-[13px] font-bold leading-tight transition hover:border-[var(--borda-forte)]"
-              >
-                <span className="block text-lg">{t.emoji}</span>
-                {t.titulo}
-              </button>
-            ))}
-          </div>
+        {/* Pontes do português (gramática) — também em acordeão */}
+        <section className="cartao overflow-hidden p-0" style={{ backgroundImage: CLIMA.azul }}>
+          <button
+            onClick={() => setGramAberta((v) => !v)}
+            className="flex w-full items-center gap-3 px-4 py-3 text-left"
+          >
+            <span className="text-3xl">📚</span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-lg font-extrabold leading-tight">Pontes do português</span>
+              <span className="block text-xs text-[var(--suave)]">
+                O francês explicado pelo que você já sabe — consulte quando quiser.
+              </span>
+            </span>
+            <span
+              className="shrink-0 text-lg font-black text-[var(--suave)] transition-transform"
+              style={{ transform: gramAberta ? "rotate(180deg)" : "none" }}
+            >
+              ▾
+            </span>
+          </button>
+          {gramAberta && (
+            <div className="surgir grid grid-cols-2 gap-2 border-t border-[var(--borda)] p-3">
+              {topicosGramatica().map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => aoAbrirGramatica(t.id)}
+                  className="rounded-xl border border-[var(--borda)] bg-[rgba(255,255,255,.04)] px-3 py-2.5 text-left text-[13px] font-bold leading-tight transition hover:border-[var(--borda-forte)]"
+                >
+                  <span className="block text-lg">{t.emoji}</span>
+                  {t.titulo}
+                </button>
+              ))}
+            </div>
+          )}
         </section>
       </div>
-
-      <p className="pb-2 text-center text-[11px] text-[var(--suave)]">← deslize pela viagem →</p>
-
-      {/* gaveta de lições do capítulo */}
-      {gaveta && (
-        <div className="fixed inset-0 z-50" onClick={() => setGaveta(null)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-          <div
-            className="cartao surgir absolute inset-x-3 bottom-3 max-h-[70dvh] overflow-y-auto rounded-3xl p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-lg font-extrabold">
-                {gaveta.emoji} {gaveta.titulo}
-              </h3>
-              <button onClick={() => setGaveta(null)} className="text-xl text-[var(--suave)]">
-                ✕
-              </button>
-            </div>
-            {gaveta.licoes.map((licao) => {
-              const feita = feitas.has(licao.id);
-              const ok = estaDesbloqueada(licao.id, feitas);
-              const cor = corDe(gaveta.cor);
-              return (
-                <div key={licao.id} className="flex items-center gap-1">
-                  <button
-                    onClick={() => ok && aoAbrirLicao(licao.id)}
-                    disabled={!ok}
-                    className={`flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
-                      ok ? "hover:bg-[var(--azul-claro)]" : "cursor-not-allowed opacity-40"
-                    }`}
-                  >
-                    <span
-                      className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                      style={
-                        feita
-                          ? { background: cor.base, color: "#fff" }
-                          : { border: "2px solid var(--borda-forte)", color: "var(--suave)" }
-                      }
-                    >
-                      {feita ? "✓" : ""}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold">{licao.titulo}</span>
-                      <span className="block text-xs text-[var(--suave)]">
-                        {licao.tipo === "gramatica" ? "gramática-ponte" : "frases + áudio"}
-                      </span>
-                    </span>
-                    {feita && <span className="text-xs font-semibold text-[var(--suave)]">rever</span>}
-                  </button>
-                  {/* pular: para quem já sabe (marca feita sem praticar) */}
-                  {ok && !feita && (
-                    <button
-                      onClick={() => aoPular(licao.id)}
-                      className="shrink-0 rounded-lg px-2 py-2 text-xs font-bold text-[var(--suave)] transition hover:bg-[var(--azul-claro)] hover:text-[var(--texto)]"
-                      title="Já sei — marcar como feita sem praticar"
-                    >
-                      já sei ✓
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

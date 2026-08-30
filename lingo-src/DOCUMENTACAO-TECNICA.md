@@ -263,6 +263,12 @@ caso um dia o Tutor volte a rodar num servidor.
   gaveta da trilha e dentro da lição, que marca feita sem pontos
   (`Sessao.tsx`, `LicaoGramatica.tsx`, `Viagem.tsx`, `exercicios.ts`,
   `curso.ts#proximaAposLicao`, `jogo.ts#concluirLicao(…,0)`).
+- **Feito (ago/2026) — trilha livre + home vertical:** removido o bloqueio linear
+  (`curso.ts#estaDesbloqueada` agora sempre `true`) — todo capítulo/lição fica
+  liberado, com "já sei ✓" (pular) em TODA lição não-feita. A home (`Viagem.tsx`)
+  deixou de ser carrossel horizontal (stories) e virou **lista vertical em
+  acordeão**: dá para ver todos os capítulos de uma vez e expandir cada um para
+  as lições + a cena ao vivo (também liberada). Gramática num acordeão no fim.
 - **Feito (ago/2026) — sincronização na nuvem** (`lib/nuvem.ts`): progresso deixa
   de ser só local e passa a subir para o RTDB (nó `planos/lingo-dt2026`),
   sincronizando entre aparelhos como os outros apps. Resolve o "sumiu meu
