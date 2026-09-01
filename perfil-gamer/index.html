@@ -356,11 +356,11 @@ details.wkbox[open]>summary .schev{transform:rotate(90deg)}
 .mbox textarea{min-height:64px;resize:vertical}
 .mbox input:focus-visible,.mbox select:focus-visible,.mbox textarea:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
 .mbox label .lhint{font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted);opacity:.8}
-.phint{font-size:.72rem;font-weight:700;margin:7px 2px 0;line-height:1.35;min-height:1em;color:var(--muted)}
+.phint{font-size:.72rem;font-weight:700;margin:4px 2px 0;line-height:1.35;color:var(--muted)}
 .phint.rejogar{color:var(--accent)}
 .phint.novo{color:var(--mb)}
 .pjogo-wrap{position:relative}
-.psugest{position:absolute;left:0;right:0;top:calc(100% + 2px);background:var(--card);border:1.5px solid var(--border);border-radius:10px;max-height:220px;overflow-y:auto;z-index:200;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.psugest{position:absolute;left:0;right:0;bottom:calc(100% + 2px);background:var(--card);border:1.5px solid var(--border);border-radius:10px;max-height:180px;overflow-y:auto;z-index:200;box-shadow:0 -4px 20px rgba(0,0,0,.25)}
 .psugest .psitem{padding:11px 14px;font-size:.9rem;cursor:pointer;border-bottom:1px solid var(--border)}
 .psugest .psitem:last-child{border-bottom:none}
 .psugest .psitem:active,.psugest .psitem.pshover{background:var(--accent);color:#fff;border-radius:8px}
@@ -446,7 +446,7 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
 <div id="pmodal" class="modal hidden" role="dialog" aria-modal="true">
   <div class="mbox">
     <h2 id="pTitle">Jogo planejado</h2>
-    <label for="pJogo">Jogo * <span class="lhint">(escolha da biblioteca ou digite um novo)</span></label>
+    <label for="pJogo">Jogo *</label>
     <div class="pjogo-wrap">
       <input id="pJogo" type="text" autocomplete="off" placeholder="Buscar na biblioteca ou digitar…" />
       <div id="pSugestoes" class="psugest hidden"></div>
@@ -1269,13 +1269,20 @@ $("#pJogo").addEventListener("input", ()=>{ pShowSugestoes($("#pJogo").value); p
 $("#pJogo").addEventListener("keyup", ()=>{ pShowSugestoes($("#pJogo").value); pRefreshHint(); });
 $("#pJogo").addEventListener("blur", ()=>{ _pBlurTimer = setTimeout(pHideSugestoes, 180); });
 $("#pSugestoes").addEventListener("mousedown", e=>e.preventDefault()); // evita blur antes do click
+$("#pSugestoes").addEventListener("touchstart", e=>e.preventDefault(), {passive:false}); // mobile
 $("#pSugestoes").addEventListener("click", e=>{
   const item = e.target.closest(".psitem"); if(!item) return;
   clearTimeout(_pBlurTimer);
   $("#pJogo").value = item.dataset.pnome;
   pHideSugestoes();
   pRefreshHint();
-  $("#pEst").focus();
+  // rola o mbox para mostrar DATA e ESTIMATIVA após selecionar o jogo
+  setTimeout(()=>{
+    const mbox = document.querySelector("#pmodal .mbox");
+    const row = $("#pData").closest(".mrow");
+    if(mbox && row) mbox.scrollTop = row.offsetTop;
+    $("#pEst").focus();
+  }, 80);
 });
 $("#pmodal").addEventListener("click", e=>{ if (e.target === $("#pmodal")) closePlano(); });
 $("#pSave").addEventListener("click", ()=>{
@@ -1290,6 +1297,17 @@ $("#pSave").addEventListener("click", ()=>{
   if (pEditIdx!=null && P[pEditIdx]) P[pEditIdx] = reg; else P.push(reg);
   closePlano(); savePlano(); render();
 });
+
+// ajusta altura do modal do plano quando o teclado do Android sobe/desce
+if(window.visualViewport){
+  window.visualViewport.addEventListener("resize", ()=>{
+    const modal = $("#pmodal");
+    if(modal.classList.contains("hidden")) return;
+    const mbox = modal.querySelector(".mbox");
+    const avail = window.visualViewport.height;
+    mbox.style.maxHeight = Math.round(avail * 0.92) + "px";
+  });
+}
 
 /* ---------- backup export / import ---------- */
 function openBackup(){ $("#bmodal").classList.remove("hidden"); }
