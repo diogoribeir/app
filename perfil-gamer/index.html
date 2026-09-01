@@ -364,6 +364,7 @@ details.wkbox[open]>summary .schev{transform:rotate(90deg)}
 .psugest .psitem{padding:11px 14px;font-size:.9rem;cursor:pointer;border-bottom:1px solid var(--border)}
 .psugest .psitem:last-child{border-bottom:none}
 .psugest .psitem:active,.psugest .psitem.pshover{background:var(--accent);color:#fff;border-radius:8px}
+.psugest .psitem-novo{color:#4caf87;font-weight:700;border-bottom:1px solid var(--border)}
 .mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mrow4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .mactions{display:flex;gap:10px;margin-top:18px}
@@ -1235,11 +1236,17 @@ function pRefreshHint(){
 let _pBlurTimer = null;
 function pShowSugestoes(query){
   const el = $("#pSugestoes");
-  const q = (query||"").trim().toLowerCase();
+  const qRaw = (query||"").trim();
+  const q = qRaw.toLowerCase();
   const lista = J.map(g=>g.nome).filter(Boolean).sort((a,b)=>a.localeCompare(b,"pt"));
   const filtrado = q ? lista.filter(n=>n.toLowerCase().includes(q)) : lista;
-  if(!filtrado.length){ el.classList.add("hidden"); return; }
-  el.innerHTML = filtrado.slice(0,30).map(n=>`<div class="psitem" data-pnome="${esc(n)}">${esc(n)}</div>`).join("");
+  let html = "";
+  if(qRaw && !lista.some(n=>n.toLowerCase()===q)){
+    html += `<div class="psitem psitem-novo" data-pnome="${esc(qRaw)}">➕ Adicionar "<b>${esc(qRaw)}</b>" (jogo novo)</div>`;
+  }
+  html += filtrado.slice(0,30).map(n=>`<div class="psitem" data-pnome="${esc(n)}">${esc(n)}</div>`).join("");
+  if(!html){ el.classList.add("hidden"); return; }
+  el.innerHTML = html;
   el.classList.remove("hidden");
 }
 function pHideSugestoes(){ $("#pSugestoes").classList.add("hidden"); }
@@ -1259,6 +1266,7 @@ function closePlano(){ $("#pmodal").classList.add("hidden"); pHideSugestoes(); p
 $("#pCancel").addEventListener("click", closePlano);
 $("#pJogo").addEventListener("focus", ()=>{ pShowSugestoes($("#pJogo").value); });
 $("#pJogo").addEventListener("input", ()=>{ pShowSugestoes($("#pJogo").value); pRefreshHint(); });
+$("#pJogo").addEventListener("keyup", ()=>{ pShowSugestoes($("#pJogo").value); pRefreshHint(); });
 $("#pJogo").addEventListener("blur", ()=>{ _pBlurTimer = setTimeout(pHideSugestoes, 180); });
 $("#pSugestoes").addEventListener("mousedown", e=>e.preventDefault()); // evita blur antes do click
 $("#pSugestoes").addEventListener("click", e=>{
