@@ -1223,7 +1223,7 @@ function pRefreshHint(){
   const el=$("#pHint"); const g=libPorNome($("#pJogo").value);
   el.className="phint";
   if(!$("#pJogo").value.trim()){ el.textContent=""; return; }
-  if(!g){ el.classList.add("novo"); el.textContent="➕ Jogo novo (não está na biblioteca)"; return; }
+  if(!g){ el.textContent=""; return; }
   if(g.enc==="#"){ el.textContent="🎮 Já está marcado como jogando agora"; return; }
   if(g.enc==="S"||g.enc==="N"){
     el.classList.add("rejogar");
