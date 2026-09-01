@@ -167,31 +167,9 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Agente de apoio:** `.claude/agents/perfil-gamer.md` (psicólogo comportamental + estatístico +
   especialista em jogos) — usar para registrar jogos, propor veredictos e análises.
 
-## App 6 — 🚗 Comparador HR-V (o do Diogo, React)
-- **URL:** https://diogoribeir.github.io/app/hrv-comparador/
-- **Pastas:** `hrv-comparador-src/` (fonte Vite + React puro, sem Tailwind) e `hrv-comparador/`
-  (build publicado — index.html + assets/).
-- **O que faz:** apoia a compra de um Honda HR-V usado em São Paulo — cadastra **carros** e
-  **concessionárias**, compara todos numa **matriz** (linhas = atributos, colunas = carros) e ranqueia
-  por um **score configurável** (pesos definidos pelo Diogo). Interface por abas (🚗 Carros · 🏢 Lojas ·
-  📊 Comparar · 🏆 Ranking), mobile-first, tema claro/escuro. Botões de exportar JSON e imprimir a matriz.
-- **Score:** média ponderada de 5 sub-notas 0-100 (`scoring.js`): Procedência/CVT (único dono +
-  histórico + fluido do CVT, absoluta), KM e Preço/custo efetivo (relativas ao grupo, menor = melhor),
-  Equipamento (LX<EX<EXL<Touring) e Confiabilidade da loja (mistura o campo manual com Google + Reclame
-  Aqui). Pesos padrão: Procedência 5 > KM 4 > Preço 3 > Equipamento 2 > Confiab. 1 (editáveis na aba Ranking).
-- **Matriz:** destaca menor KM e menor custo efetivo em verde, "Fluido CVT não trocado" em vermelho e
-  "único dono = não" em amarelo; filtro para esconder descartados. Custo efetivo = preço + custo extra (auto).
-- **Sincronização:** localStorage é a fonte offline + RTDB via REST (Receita 1), nó
-  **`planos/hrv-comparador-dt2026`**; recarrega ao voltar se houver gravação mais nova (mesmo padrão do
-  paris-planner). Dados iniciais (concessionárias Honda da capital + 1 carro LX) ficam como **seed** em
-  `store.js`. ⚠️ Como a nuvem é a fonte da verdade, adicionar loja nova ao `SEED_DEALERS` não aparece
-  sozinho para quem já usou o app; por isso há uma **migração idempotente** no `App.jsx`: quando
-  `SEED_DEALERS_REV` sobe, o app insere no nó da nuvem as concessionárias do seed que faltarem (por id),
-  uma única vez (chave `dealerSeedRev`), sem duplicar nem ressuscitar as apagadas de propósito. Ao
-  acrescentar lojas ao seed, **subir `SEED_DEALERS_REV`**.
-- **Edição:** mexer em `hrv-comparador-src/`, depois `cd hrv-comparador-src && npm install && npm run build`
-  e publicar o build: `rm -rf ../hrv-comparador/assets ../hrv-comparador/index.html && cp -r dist/. ../hrv-comparador/`.
-  ⚠️ `vite.config.js` tem `base: "/app/hrv-comparador/"` — se o repositório for renomeado, atualizar e recompilar.
+## App 6 — 🚗 Comparador HR-V — ❌ REMOVIDO (set/2026)
+- Removido a pedido do Diogo. Código no histórico do git. Não recriar sem o Diogo pedir.
+- O nó Firebase `planos/hrv-comparador-dt2026` pode ser apagado no console Firebase.
 
 ## App 5 — 🇫🇷 Lingo (curso de francês, Next.js no Vercel)
 - **URL:** https://diogoribeir.github.io/app/lingo/ — hospedado no **GitHub Pages** como **site
