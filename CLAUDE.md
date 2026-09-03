@@ -113,11 +113,19 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **PWA:** instalável (manifest + `sw.js` network-first) e abre offline; ícones `icon-192/512.png`
   gerados por canvas. Menu **⋯** no cabeçalho = backup exportar/importar (`.json` com jogos + plano).
 - **Jogatinas (playthroughs):** cada jogo pode ter mais de uma jogatina (rejogar/NG+) — guarda-se as
-  **horas** e o **ano jogado** de cada uma: a 1ª é o campo `horas`/`anoJog` base e as demais ficam em
-  `g.runs[]` (`{horas, anoJog}`). **Veredicto e status são únicos por jogo** (não por jogatina). Botão
-  "🔁 Nova jogatina" no card e no Editar (pede horas + ano); o card mostra "🔁 W1 Xh · W2 Yh". Horas
-  totais e estatísticas somam todas as jogatinas. Helpers: `runHoras/totalHoras/runsResumo`.
-  (Não há campo Observação.)
+  **horas**, o **ano jogado** e o **status** de cada uma: a 1ª é o campo `horas`/`anoJog`/`enc` base e as
+  demais ficam em `g.runs[]` (`{horas, anoJog, enc}`). **O veredicto é único por jogo; o status é por
+  jogatina** (set/2026) — dá pra ter dropado o W1 e estar jogando o W2 (ex.: Kingdom Come 2) sem que um
+  apague o outro. Botão "🔁 Nova jogatina" no card e no Editar (pede horas + ano + status); o card mostra
+  "🔁 W1 ❌16h · W2 🔄12h". Horas totais e estatísticas somam todas as jogatinas.
+  Helpers: `runHoras/totalHoras/runsResumo` · **status:** `runStatus(g)` (lista `[W1, W2, …]`, `enc`
+  ausente numa run = `"S"`), `temStatus(g,e)` (alguma jogatina nesse status) e `statusJogo(g)`
+  (status principal, prioridade **jogando > zerado > dropado**).
+  Onde cada um vale: **`temStatus`** → seção "Jogando agora" (qualquer jogatina em andamento destaca o
+  jogo), filtro de status (dropado acha o jogo mesmo se só o W1 foi dropado), ❌ no Top 10, motivo do
+  drop, lista de motivos, "faltam Xh" do Plano · **`statusJogo`** → o texto do card e os contadores de
+  zerados/dropados. O ▶️ "estou jogando" do Plano **abre uma jogatina nova** (`{horas:0, enc:"#"}`) em vez
+  de sobrescrever `g.enc`. (Não há campo Observação.)
 - **Ano jogado (`g.anoJog` / `run.anoJog`):** ano em que cada jogatina foi jogada — **diferente do ano de
   lançamento** (`g.ano`), pois dá pra rejogar o mesmo jogo em anos distintos (ex.: Death Stranding 2 —
   W1 num ano, W2 em 2026). Editável no card (campo "🎮 Joguei em (ano)" p/ o W1 + input de ano em cada
