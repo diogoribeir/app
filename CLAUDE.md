@@ -100,7 +100,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - ⚠️ `paris-planner-src/vite.config.js` tem `base: "/app/paris-planner/"` — se o
   repositório for renomeado um dia, **atualizar essa base** e recompilar.
 
-## App 4 — 🎮 Perfil Gamer (o do Diogo)
+## App 4 — 🎮 Perfil (o do Diogo) — *era "Perfil Gamer" até set/2026*
 - **URL:** https://diogoribeir.github.io/app/perfil-gamer/
 - **Pastas:** `perfil-gamer/` (app publicado: `index.html` + `dados.js` gerado) e
   `perfil-gamer-src/` (dados mestres: `biblioteca_jogos.xlsx` + geradores + docs).
@@ -141,10 +141,10 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   A aba 🗓 **Plano 2026** é editável: cada jogo planejado tem só **nome + estimativa de horas + data
   (calendário)**; a fila fica **ordenada por data**. As **horas disponíveis** vão de hoje até
   **31/jan/2027**: cada semana vale um **padrão editável** de horas — `padraoSemana`, que começa em
-  `HORAS_SEMANA` (10, o padrão de fábrica p/ o ↺) — com exceções por dia (`PERIODOS`: 21–24/set 10h/dia;
+  `HORAS_SEMANA` (**7** desde set/2026, o padrão de fábrica p/ o ↺) — com exceções por dia (`PERIODOS`: 21–24/set 10h/dia;
   sem jogatina 10–19/set) e horizonte `PLANO_FIM`. O painel recolhível **⚙️ Ajustar horas por semana**
   (`details.wkbox`, estado `wkOpen`) tem no topo o **Padrão de todas as semanas** (`#padSemana`) — mudar
-  ali troca **todas** as semanas de uma vez (ex.: 10→8) — e abaixo lista cada semana (segunda→domingo, via
+  ali troca **todas** as semanas de uma vez (ex.: 7→5) — e abaixo lista cada semana (segunda→domingo, via
   `semanasPlano()`/`segunda()`) com um input editável p/ **subir/baixar as horas da respectiva semana**; o
   total "disponível" recalcula e ↺ volta ao padrão. Ajustes por semana ficam em `HS` (`{ "<segunda ISO>":
   nº }`), sobrepondo o padrão global; o app mostra se a fila cabe (sobra/falta). Cada
@@ -153,6 +153,21 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   horas). Na aba 📊
   **Estatísticas**, o "Top 10 — mais horas" tem chips para filtrar por veredicto (Masterpiece, Muito Bom…)
   e uma marca discreta **❌** ao lado do nome dos jogos que foram dropados (`enc==="N"`).
+- **Nome (set/2026):** o app se chama **"Perfil"** (era "Perfil Gamer") — `<title>`, `<h1>`, `manifest.json`
+  (`name`/`short_name`), `apple-mobile-web-app-title` e o card da `home/index.html`. ⚠️ **A pasta, a URL
+  (`/app/perfil-gamer/`) e o nó do Firebase (`planos/perfil-gamer-dt2026`) continuam com o nome antigo** —
+  renomear quebraria o link salvo no celular e a sincronização; só mexer nisso se o Diogo pedir.
+- **Semana em curso é proporcional:** as horas disponíveis da semana atual contam só os **dias que ainda
+  faltam** (ex.: 7h/semana e hoje é sábado → sobram sáb+dom = 2h). `semanasPlano()` devolve por semana o
+  valor **cheio** (`def`, o que a linha mostra e edita) e a fração `frac` (horas restantes ÷ horas da
+  semana cheia, sempre 1 nas semanas futuras); `horasDaSemana(w)` = valor cheio · `horasEfetivas(w)` =
+  cheio × `frac` = o que ainda dá pra jogar; `horasDisponiveis()` soma as **efetivas**. Vale também pro
+  **ajuste manual** (`HS`): 14h numa semana já em curso com 2 de 7 dias restantes contam 4h. A linha da
+  semana parcial mostra a dica "faltam 2d · 2h" embaixo do intervalo (rótulo = a semana inteira, p/ bater
+  com o valor do input). A fração é ponderada por hora (não por dia), então respeita os `PERIODOS`.
+- **Migração única `migPadrao7`:** o padrão semanal caiu de 10h → 7h (set/2026), mas a nuvem guardava
+  `padraoSemana: 10` — mudar só a constante não adiantaria. O `boot()` troca **uma vez** 10 → `HORAS_SEMANA`
+  e grava o marcador `migPadrao7=true` na nuvem; se o Diogo já tiver escolhido outro valor, não mexe.
 - **Sincronização:** Realtime Database via REST, nó **`planos/perfil-gamer-dt2026`** — a nuvem é a
   fonte da verdade; `perfil-gamer/dados.js` é só a carga inicial (seed). localStorage = cópia offline;
   recarrega ao voltar se houver gravação mais nova (mesma receita 1 do paris-planner). O **Plano 2026**

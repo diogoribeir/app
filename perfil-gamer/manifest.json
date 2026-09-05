@@ -1,6 +1,6 @@
 {
-  "name": "Perfil Gamer",
-  "short_name": "Perfil Gamer",
+  "name": "Perfil",
+  "short_name": "Perfil",
   "description": "Biblioteca de jogos PS4/PS5 com veredictos, estatísticas e Plano 2026.",
   "start_url": ".",
   "scope": "./",
