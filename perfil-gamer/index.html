@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#0B0E14" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://apps-4b887-default-rtdb.firebaseio.com; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';" />
 <meta name="color-scheme" content="light dark" />
-<title>Perfil Gamer — Biblioteca de Jogos</title>
+<title>Perfil — Biblioteca de Jogos</title>
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Perfil Gamer" />
+<meta name="apple-mobile-web-app-title" content="Perfil" />
 <style>
 :root{
   color-scheme:light dark;
@@ -313,6 +313,7 @@ details.wkbox[open]>summary .schev{transform:rotate(90deg)}
 .wkrow:last-child{border-bottom:0}
 .wkrow.wkpad{border-bottom:2px solid var(--line);margin-bottom:3px;padding-bottom:9px}
 .wklbl{flex:1;min-width:0;font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wkpar{display:block;font-size:.66rem;font-weight:700;color:var(--muted)}
 .wkinp{width:60px;text-align:center;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);font:inherit;font-size:.85rem;font-weight:800}
 .wkinp:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
 .wkinp.on{border-color:var(--accent);color:var(--accent)}
@@ -397,7 +398,7 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
   <header class="top">
     <div class="brand">
       <div class="logo">🎮</div>
-      <h1>Perfil Gamer<small>Biblioteca de jogos</small></h1>
+      <h1>Perfil<small>Biblioteca de jogos</small></h1>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
       <span class="synctag off" id="syncTag">conectando…</span>
@@ -565,7 +566,7 @@ const estH = s => { const m = String(s??"").match(/[\d.]+/); return m ? parseFlo
 
 /* --- orçamento de horas: calculado automaticamente a partir de hoje até 31/01/2027 --- */
 const PLANO_FIM = "2027-01-31";           // horizonte do plano
-const HORAS_SEMANA = 10;                  // padrão de fábrica (↺ volta pra cá)
+const HORAS_SEMANA = 7;                   // padrão de fábrica (↺ volta pra cá)
 let padraoSemana = HORAS_SEMANA;          // horas/semana padrão — editável globalmente (vale pra todas as semanas sem ajuste)
 const PERIODOS = [                        // exceções (por dia) — independem do padrão semanal
   { de:"2026-09-10", ate:"2026-09-19", hDia:0  },  // sem jogatina (viagem)
@@ -585,24 +586,35 @@ function semanasPlano(){
   const out = [];
   for (let ws = segunda(hoje); ws <= fim; ws.setDate(ws.getDate()+7)){
     const we = new Date(ws); we.setDate(we.getDate()+6);
-    const de = ws < hoje ? new Date(hoje) : new Date(ws);
-    const ate = we > fim ? new Date(fim) : new Date(we);
-    let def = 0;
-    for (let d = new Date(de); d <= ate; d.setDate(d.getDate()+1)) def += horasDoDia(ymd(d));
-    out.push({ key: ymd(ws), de, ate, def: Math.round(def) });
+    const ate = we > fim ? new Date(fim) : new Date(we);   // fim da semana (ou do horizonte)
+    const de  = ws < hoje ? new Date(hoje) : new Date(ws); // 1º dia que ainda conta (hoje, na semana atual)
+    // "cheio" = a semana toda (é o valor que aparece/edita na linha);
+    // "rest"  = só os dias que ainda faltam (na semana atual, de hoje em diante)
+    let cheio = 0, rest = 0, diasRest = 0, diasCheio = 0;
+    for (let d = new Date(ws); d <= ate; d.setDate(d.getDate()+1)){
+      const h = horasDoDia(ymd(d));
+      cheio += h; diasCheio++;
+      if (d >= de){ rest += h; diasRest++; }
+    }
+    out.push({ key: ymd(ws), ini: new Date(ws), de, ate, def: Math.round(cheio),
+               frac: cheio>0 ? rest/cheio : 0, diasRest, diasCheio,
+               parcial: diasRest < diasCheio });
   }
   return out;
 }
-// horas efetivas da semana: o ajuste manual (se houver) ou o padrão
+// valor da semana CHEIA: o ajuste manual (se houver) ou o padrão — é o que a linha mostra e edita
 function horasDaSemana(w){ return HS[w.key] != null ? HS[w.key] : w.def; }
-function horasDisponiveis(){ return Math.round(semanasPlano().reduce((s,w)=>s+horasDaSemana(w),0)); }
+// o que ainda dá pra jogar nessa semana: na semana em curso, proporcional aos dias que faltam
+// (ex.: 7h/semana e já é sábado → só sáb+dom contam). Vale também pro ajuste manual.
+function horasEfetivas(w){ return horasDaSemana(w) * w.frac; }
+function horasDisponiveis(){ return Math.round(semanasPlano().reduce((s,w)=>s+horasEfetivas(w),0)); }
 const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function fmtData(iso){
   if (!iso) return "s/ data";
   const [a,m,dd] = iso.split("-"); return `${dd}/${MESES[Number(m)-1]}`;
 }
 function fmtSemana(w){
-  const a=w.de, b=w.ate, ma=MESES[a.getMonth()], mb=MESES[b.getMonth()];
+  const a=w.ini||w.de, b=w.ate, ma=MESES[a.getMonth()], mb=MESES[b.getMonth()];
   return ma===mb ? `${a.getDate()}–${b.getDate()}/${ma}` : `${a.getDate()}/${ma} – ${b.getDate()}/${mb}`;
 }
 function savePlano(){
@@ -667,6 +679,17 @@ async function boot(){
   if (P.length === 0 && Array.isArray(window.PLANO)) P = window.PLANO.slice();
   // migração: itens antigos ({lanc,status}) → garante campo data
   P.forEach(p=>{ if (p.data === undefined) p.data = ""; });
+  // migração ÚNICA (marcador na nuvem): padrão semanal 10h → 7h (a nuvem guarda o antigo)
+  if (cloudOK){
+    try {
+      const mr = await fetch(`${SYNC_URL}/migPadrao7.json`, { cache:"no-store" });
+      const done = mr.ok ? await mr.json() : null;
+      if (!done){
+        if (padraoSemana === 10){ padraoSemana = HORAS_SEMANA; savePlano(); }
+        fetch(`${SYNC_URL}/migPadrao7.json`, { method:"PUT", body:"true" }).catch(()=>{});
+      }
+    } catch(e){}
+  }
   try { const r = await fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" });
     const v = await r.json(); if (typeof v === "number") syncStamp = v; } catch(e){}
   render();
@@ -1108,8 +1131,9 @@ function viewPlano(){
     </div>`;
   const wkRows = semanas.map(w=>{
     const ef = horasDaSemana(w), on = HS[w.key]!=null;
+    const par = w.parcial ? `<small class="wkpar">faltam ${w.diasRest}d · ${Math.round(horasEfetivas(w))}h</small>` : "";
     return `<div class="wkrow">
-      <span class="wklbl">${fmtSemana(w)}</span>
+      <span class="wklbl">${fmtSemana(w)}${par}</span>
       <input class="wkinp${on?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-wk="${w.key}" value="${ef}">
       <span class="wkun">h</span>
       ${on?`<button type="button" class="wkrst" data-wkreset="${w.key}" title="Voltar ao padrão (${w.def}h)">↺</button>`:'<span class="wkrst-ph"></span>'}
@@ -1118,7 +1142,7 @@ function viewPlano(){
   const wkSub = nAjust ? `padrão ${padraoSemana}h · ${nAjust} ajustada${nAjust>1?"s":""}` : `padrão ${padraoSemana}h`;
   const wkSec = `<details class="wkbox" ${wkOpen?"open":""}>
     <summary><span>⚙️ Ajustar horas por semana</span><span class="wksub">${wkSub}</span><span class="schev">▸</span></summary>
-    <div class="wkbody"><p class="wknote">Mude o <b>padrão</b> pra trocar todas as semanas de uma vez (ex.: 10 → 8). Depois dá pra ajustar semanas específicas por baixo — o total <b>disponível</b> recalcula sozinho.</p>${padRow}${wkRows}</div>
+    <div class="wkbody"><p class="wknote">Mude o <b>padrão</b> pra trocar todas as semanas de uma vez (ex.: 7 → 5). A semana em curso conta <b>proporcional</b> aos dias que faltam. Depois dá pra ajustar semanas específicas por baixo — o total <b>disponível</b> recalcula sozinho.</p>${padRow}${wkRows}</div>
   </details>`;
   return `<p class="lead">Fila até <b>31/jan/2027</b> · ${padraoSemana}h por semana (ajuste no ⚙️ abaixo). O "falta" já desconta o que você jogou do jogo atual.</p>
     <h2>⏳ Horas disponíveis</h2>
