@@ -301,12 +301,14 @@ details.sec>summary:active{background:var(--surface2)}
 .pbtn.del{color:var(--mr)}
 .pbtn:active{transform:scale(.93)}
 /* ajustar horas por semana */
-details.wkbox{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-details.wkbox>summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:800}
-details.wkbox>summary::-webkit-details-marker{display:none}
-details.wkbox>summary .wksub{margin-left:auto;font-size:.66rem;color:var(--muted);font-weight:700}
-details.wkbox>summary .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
-details.wkbox[open]>summary .schev{transform:rotate(90deg)}
+details.wkbox,details.bkbox{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+details.wkbox>summary,details.bkbox>summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:800}
+details.wkbox>summary::-webkit-details-marker,details.bkbox>summary::-webkit-details-marker{display:none}
+details.wkbox>summary .wksub,details.bkbox>summary .wksub{margin-left:auto;font-size:.66rem;color:var(--muted);font-weight:700}
+details.wkbox>summary .schev,details.bkbox>summary .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
+details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:rotate(90deg)}
+.bkbody{padding:0 14px 10px}
+.pitem.bk .pwhen,.pitem.bk .pbody{opacity:.62}
 .wkbody{padding:2px 14px 12px}
 .wknote{font-size:.68rem;color:var(--muted);line-height:1.5;margin:2px 0 8px;font-weight:600}
 .wkrow{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line)}
@@ -588,33 +590,24 @@ function semanasPlano(){
     const we = new Date(ws); we.setDate(we.getDate()+6);
     const ate = we > fim ? new Date(fim) : new Date(we);   // fim da semana (ou do horizonte)
     const de  = ws < hoje ? new Date(hoje) : new Date(ws); // 1º dia que ainda conta (hoje, na semana atual)
-    // "cheio" = a semana toda (é o valor que aparece/edita na linha);
-    // "rest"  = só os dias que ainda faltam (na semana atual, de hoje em diante)
-    let cheio = 0, rest = 0, diasRest = 0, diasCheio = 0;
-    for (let d = new Date(ws); d <= ate; d.setDate(d.getDate()+1)){
-      const h = horasDoDia(ymd(d));
-      cheio += h; diasCheio++;
-      if (d >= de){ rest += h; diasRest++; }
-    }
-    out.push({ key: ymd(ws), ini: new Date(ws), de, ate, def: Math.round(cheio),
-               frac: cheio>0 ? rest/cheio : 0, diasRest, diasCheio,
-               parcial: diasRest < diasCheio });
+    // dias que JÁ PASSARAM não contam: na semana em curso soma-se só de hoje em diante
+    let horas = 0, dias = 0;
+    for (let d = new Date(de); d <= ate; d.setDate(d.getDate()+1)){ horas += horasDoDia(ymd(d)); dias++; }
+    out.push({ key: ymd(ws), de, ate, def: Math.round(horas), dias,
+               parcial: de > ws });   // semana em curso (começou antes de hoje)
   }
   return out;
 }
-// valor da semana CHEIA: o ajuste manual (se houver) ou o padrão — é o que a linha mostra e edita
+// horas da semana: o ajuste manual (se houver) ou o padrão — já contando só os dias que faltam
 function horasDaSemana(w){ return HS[w.key] != null ? HS[w.key] : w.def; }
-// o que ainda dá pra jogar nessa semana: na semana em curso, proporcional aos dias que faltam
-// (ex.: 7h/semana e já é sábado → só sáb+dom contam). Vale também pro ajuste manual.
-function horasEfetivas(w){ return horasDaSemana(w) * w.frac; }
-function horasDisponiveis(){ return Math.round(semanasPlano().reduce((s,w)=>s+horasEfetivas(w),0)); }
+function horasDisponiveis(){ return Math.round(semanasPlano().reduce((s,w)=>s+horasDaSemana(w),0)); }
 const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
 function fmtData(iso){
   if (!iso) return "s/ data";
   const [a,m,dd] = iso.split("-"); return `${dd}/${MESES[Number(m)-1]}`;
 }
 function fmtSemana(w){
-  const a=w.ini||w.de, b=w.ate, ma=MESES[a.getMonth()], mb=MESES[b.getMonth()];
+  const a=w.de, b=w.ate, ma=MESES[a.getMonth()], mb=MESES[b.getMonth()];
   return ma===mb ? `${a.getDate()}–${b.getDate()}/${ma}` : `${a.getDate()}/${ma} – ${b.getDate()}/${mb}`;
 }
 function savePlano(){
@@ -712,6 +705,7 @@ let ordem = "horas";
 let filtersOpen = false;   // painel de filtros recolhido por padrão (mais espaço p/ a lista no celular)
 let sortOpen = false;      // mini-painel de ordenação (separado dos filtros), recolhido por padrão
 let wkOpen = false;        // painel "ajustar horas por semana" (Plano) recolhido por padrão
+let bkOpen = false;        // painel "backlog" (Plano) recolhido por padrão
 let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
 let statDim = "ver";     // dimensão do gráfico "Distribuição": ver | lanc | jogou
 let openGame = null;     // id do card expandido (edição inline, sem modal)
@@ -1090,7 +1084,8 @@ function viewPlano(){
   const faltaH = p => { const est=estH(p.est); const g=linked(p);
     if (g) return temStatus(g,"#") ? Math.max(est-jogadasAtual(g),0) : 0;
     return est; };
-  const somaEst = P.reduce((s,p)=>s+faltaH(p),0);
+  // itens no backlog ficam de fora da conta (mas seguem guardados, é só um toque pra voltar)
+  const somaEst = P.reduce((s,p)=>s+(p.backlog?0:faltaH(p)),0);
   const rest = disp - somaEst;
   const cabe = rest >= 0;
   const cor = cabe ? "var(--mb)" : "var(--mr)";
@@ -1100,25 +1095,36 @@ function viewPlano(){
     const da=a.p.data||"9999", db=b.p.data||"9999";
     return da<db?-1:da>db?1:0;
   });
-  const rows = fila.length ? fila.map(({p,i})=>{
+  const pItem = ({p,i})=>{
     const est=estH(p.est), g=linked(p), falta=faltaH(p);
     const rejogar = p.rejogar && !p.iniciado;
     let sub = est?est+"h":"—";
-    if (g && temStatus(g,"#")) sub = `${jogadasAtual(g)}h de ${est}h · faltam ${Math.round(falta)}h`;
+    if (p.backlog) sub = `📥 backlog${est?` · ${est}h`:""} — não conta no planejamento`;
+    else if (g && temStatus(g,"#")) sub = `${jogadasAtual(g)}h de ${est}h · faltam ${Math.round(falta)}h`;
     else if (rejogar) sub = `🔁 rejogar${est?` · ${est}h estimadas`:""}`;
     else if (g && statusJogo(g)==="S") sub = `✅ zerado (${totalHoras(g)}h)`;
     else if (g && statusJogo(g)==="N") sub = `❌ dropado (${totalHoras(g)}h)`;
-    return `<div class="pitem">
+    return `<div class="pitem${p.backlog?" bk":""}">
       <span class="pwhen ${p.data?'':'nodate'}">${esc(fmtData(p.data))}</span>
       <div class="pbody"><div class="t">${p.iniciado?'🎮 ':(rejogar?'🔁 ':'')}${esc(p.jogo)}</div>
         <div class="s num">${sub}</div></div>
       <div class="pacts">
-        ${p.iniciado?'':`<button type="button" class="pbtn" data-pjogar="${i}" title="Marcar como jogando agora">▶️</button>`}
+        ${p.backlog
+          ? `<button type="button" class="pbtn" data-pbacklog="${i}" title="Voltar pra fila">↩️</button>`
+          : `${p.iniciado?'':`<button type="button" class="pbtn" data-pjogar="${i}" title="Marcar como jogando agora">▶️</button>`}
+             <button type="button" class="pbtn" data-pbacklog="${i}" title="Mandar pro backlog (para de contar no planejamento)">📥</button>`}
         <button type="button" class="pbtn" data-peditar="${i}" title="Editar">✏️</button>
         <button type="button" class="pbtn del" data-pexcluir="${i}" title="Excluir">🗑</button>
       </div>
     </div>`;
-  }).join("") : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
+  };
+  const ativos = fila.filter(x=>!x.p.backlog), naBacklog = fila.filter(x=>x.p.backlog);
+  const rows = ativos.length ? ativos.map(pItem).join("")
+    : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
+  const bkSec = naBacklog.length ? `<details class="bkbox" ${bkOpen?"open":""}>
+    <summary><span>📥 Backlog</span><span class="wksub">${naBacklog.length} jogo${naBacklog.length>1?"s":""} · fora da conta</span><span class="schev">▸</span></summary>
+    <div class="bkbody">${naBacklog.map(pItem).join("")}</div>
+  </details>` : "";
   // ajuste de horas por semana (padrão global editável; e por semana na respectiva linha)
   const semanas = semanasPlano();
   const nAjust = semanas.filter(w=>HS[w.key]!=null).length;
@@ -1131,7 +1137,7 @@ function viewPlano(){
     </div>`;
   const wkRows = semanas.map(w=>{
     const ef = horasDaSemana(w), on = HS[w.key]!=null;
-    const par = w.parcial ? `<small class="wkpar">faltam ${w.diasRest}d · ${Math.round(horasEfetivas(w))}h</small>` : "";
+    const par = w.parcial ? `<small class="wkpar">resto da semana · ${w.dias}d</small>` : "";
     return `<div class="wkrow">
       <span class="wklbl">${fmtSemana(w)}${par}</span>
       <input class="wkinp${on?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-wk="${w.key}" value="${ef}">
@@ -1142,7 +1148,7 @@ function viewPlano(){
   const wkSub = nAjust ? `padrão ${padraoSemana}h · ${nAjust} ajustada${nAjust>1?"s":""}` : `padrão ${padraoSemana}h`;
   const wkSec = `<details class="wkbox" ${wkOpen?"open":""}>
     <summary><span>⚙️ Ajustar horas por semana</span><span class="wksub">${wkSub}</span><span class="schev">▸</span></summary>
-    <div class="wkbody"><p class="wknote">Mude o <b>padrão</b> pra trocar todas as semanas de uma vez (ex.: 7 → 5). A semana em curso conta <b>proporcional</b> aos dias que faltam. Depois dá pra ajustar semanas específicas por baixo — o total <b>disponível</b> recalcula sozinho.</p>${padRow}${wkRows}</div>
+    <div class="wkbody"><p class="wknote">Mude o <b>padrão</b> pra trocar todas as semanas de uma vez (ex.: 7 → 5). A semana em curso conta só os <b>dias que ainda faltam</b>. Depois dá pra ajustar semanas específicas por baixo — o total <b>disponível</b> recalcula sozinho.</p>${padRow}${wkRows}</div>
   </details>`;
   return `<p class="lead">Fila até <b>31/jan/2027</b> · ${padraoSemana}h por semana (ajuste no ⚙️ abaixo). O "falta" já desconta o que você jogou do jogo atual.</p>
     <h2>⏳ Horas disponíveis</h2>
@@ -1157,7 +1163,7 @@ function viewPlano(){
     </div>
     ${wkSec}
     <button type="button" class="addbtn" id="btnAddPlano">➕ Adicionar jogo planejado</button>
-    <h2>🗓 Fila de jogos (por data)</h2><div class="card">${rows}</div>`;
+    <h2>🗓 Fila de jogos (por data)</h2><div class="card">${rows}</div>${bkSec}`;
 }
 
 /* ---------- render ---------- */
@@ -1179,6 +1185,8 @@ function render(){
   }));
   const wb = document.querySelector("details.wkbox");
   if (wb) wb.addEventListener("toggle", ()=>{ wkOpen = wb.open; });
+  const bb = document.querySelector("details.bkbox");
+  if (bb) bb.addEventListener("toggle", ()=>{ bkOpen = bb.open; });
 }
 
 /* ---------- registrar / editar / excluir ---------- */
@@ -1409,6 +1417,9 @@ document.addEventListener("click", e=>{
   if (e.target.closest("#btnAddPlano")){ openPlano(null); return; }
   const pe = e.target.closest("[data-peditar]");
   if (pe){ openPlano(Number(pe.dataset.peditar)); return; }
+  const pb = e.target.closest("[data-pbacklog]");
+  if (pb){ const i=Number(pb.dataset.pbacklog); const p=P[i];
+    if (p){ if (p.backlog) delete p.backlog; else p.backlog = true; savePlano(); render(); } return; }
   const px = e.target.closest("[data-pexcluir]");
   if (px){ const i=Number(px.dataset.pexcluir); if (P[i]){ P.splice(i,1); savePlano(); render(); } return; }
   const pj = e.target.closest("[data-pjogar]");
