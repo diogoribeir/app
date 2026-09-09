@@ -157,14 +157,20 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   (`name`/`short_name`), `apple-mobile-web-app-title` e o card da `home/index.html`. ⚠️ **A pasta, a URL
   (`/app/perfil-gamer/`) e o nó do Firebase (`planos/perfil-gamer-dt2026`) continuam com o nome antigo** —
   renomear quebraria o link salvo no celular e a sincronização; só mexer nisso se o Diogo pedir.
-- **Semana em curso é proporcional:** as horas disponíveis da semana atual contam só os **dias que ainda
-  faltam** (ex.: 7h/semana e hoje é sábado → sobram sáb+dom = 2h). `semanasPlano()` devolve por semana o
-  valor **cheio** (`def`, o que a linha mostra e edita) e a fração `frac` (horas restantes ÷ horas da
-  semana cheia, sempre 1 nas semanas futuras); `horasDaSemana(w)` = valor cheio · `horasEfetivas(w)` =
-  cheio × `frac` = o que ainda dá pra jogar; `horasDisponiveis()` soma as **efetivas**. Vale também pro
-  **ajuste manual** (`HS`): 14h numa semana já em curso com 2 de 7 dias restantes contam 4h. A linha da
-  semana parcial mostra a dica "faltam 2d · 2h" embaixo do intervalo (rótulo = a semana inteira, p/ bater
-  com o valor do input). A fração é ponderada por hora (não por dia), então respeita os `PERIODOS`.
+- **Dia que passou não conta:** a semana em curso vale só de **hoje em diante**. `semanasPlano()` soma
+  `horasDoDia` de `w.de` (= hoje, na semana atual; a segunda, nas futuras) até `w.ate`, e devolve
+  `def` (horas), `dias` e `parcial`. `horasDaSemana(w)` = ajuste manual (`HS`) ou `def`; `horasDisponiveis()`
+  soma isso. O rótulo da linha usa `w.de`→`w.ate`, então **bate com o valor do input** (ex.: numa quarta,
+  "9–13/set · resto da semana · 5d"), e o ajuste manual dessa semana também vale para os dias restantes.
+  ⚠️ Não rotular a linha com a semana cheia (segunda→domingo): o Diogo leu isso como "está contando um dia
+  que já passou". Como a soma é por dia via `horasDoDia`, os `PERIODOS` continuam valendo.
+- **Backlog do Plano (`p.backlog`):** cada item da fila tem **📥** para mandar pro backlog e **↩️** para
+  voltar — um toque, sem confirmação, e o item continua guardado com data/estimativa. Item no backlog
+  **não entra no `somaEst`** (some do "falta na fila" e da barra), sai da fila principal e aparece numa
+  seção recolhível `details.bkbox` embaixo ("📥 Backlog · N jogos · fora da conta", estado `bkOpen`),
+  com o texto "não conta no planejamento" e sem o ▶️. A flag é `delete`ada ao voltar (não fica `false`
+  sujando a nuvem). Renderização: helper `pItem({p,i})` desenha os dois casos; `ativos`/`naBacklog`
+  saem do mesmo `fila` já ordenado por data.
 - **Migração única `migPadrao7`:** o padrão semanal caiu de 10h → 7h (set/2026), mas a nuvem guardava
   `padraoSemana: 10` — mudar só a constante não adiantaria. O `boot()` troca **uma vez** 10 → `HORAS_SEMANA`
   e grava o marcador `migPadrao7=true` na nuvem; se o Diogo já tiver escolhido outro valor, não mexe.
