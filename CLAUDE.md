@@ -140,14 +140,20 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   motivo, jogatinas W2+, análise interna, Excluir) — salva ao sair de cada campo, sem abrir janela.
   A aba 🗓 **Plano 2026** é editável: cada jogo planejado tem só **nome + estimativa de horas + data
   (calendário)**; a fila fica **ordenada por data**. As **horas disponíveis** vão de hoje até
-  **31/jan/2027**: cada semana vale um **padrão editável** de horas — `padraoSemana`, que começa em
+  **31/dez/2027** (`PLANO_FIM`): cada semana vale um **padrão editável** de horas — `padraoSemana`, que começa em
   `HORAS_SEMANA` (**7** desde set/2026, o padrão de fábrica p/ o ↺) — com exceções por dia (`PERIODOS`: 21–24/set 10h/dia;
   sem jogatina 10–19/set) e horizonte `PLANO_FIM`. O painel recolhível **⚙️ Ajustar horas por semana**
-  (`details.wkbox`, estado `wkOpen`) tem no topo o **Padrão de todas as semanas** (`#padSemana`) — mudar
-  ali troca **todas** as semanas de uma vez (ex.: 7→5) — e abaixo lista cada semana (segunda→domingo, via
-  `semanasPlano()`/`segunda()`) com um input editável p/ **subir/baixar as horas da respectiva semana**; o
-  total "disponível" recalcula e ↺ volta ao padrão. Ajustes por semana ficam em `HS` (`{ "<segunda ISO>":
-  nº }`), sobrepondo o padrão global; o app mostra se a fila cabe (sobra/falta). Cada
+  (`details.wkbox`, estado `wkOpen`) tem **3 níveis**, do mais amplo pro mais específico:
+  **(1) padrão global** `padraoSemana` (`#padSemana`) → vale pra tudo · **(2) mês** `HM`
+  (`{ "AAAA-MM": nº }`, input `data-mes`) → "todas as semanas deste mês valem X" · **(3) semana solta**
+  `HS` (`{ "<segunda ISO>": nº }`, input `data-wk`) → vence os outros dois. Cada nível tem ↺
+  (`data-padreset`/`data-mesreset`/`data-wkreset`). ⚠️ Os níveis 1 e 2 entram pela **taxa diária** no
+  `horasDoDia(iso)` (`PERIODOS` > `HM[mês]/7` > `padraoSemana/7`), então semana parcial, virada de mês e
+  os `PERIODOS` saem certos de graça; só o `HS` é um valor de semana fechado. Com o horizonte até
+  dez/2027 são ~69 semanas, então as linhas ficam **agrupadas por mês** em `details.mesbox` (chave =
+  mês da segunda; só o mês atual abre no 1º render, estado em `mesOpen`), cada um com o total e um
+  resumo — sem isso viram um paredão de linhas no celular. O total "disponível" recalcula sozinho e o
+  app mostra se a fila cabe (sobra/falta). Cada
   item tem **▶️ "estou jogando"**, que marca o jogo como *jogando agora*: ele vira o card do topo da aba
   Jogos e entra na biblioteca; o "falta na fila" desconta as horas já jogadas desse jogo (estimativa −
   horas). Na aba 📊
@@ -170,7 +176,10 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   seção recolhível `details.bkbox` embaixo ("📥 Backlog · N jogos · fora da conta", estado `bkOpen`),
   com o texto "não conta no planejamento" e sem o ▶️. A flag é `delete`ada ao voltar (não fica `false`
   sujando a nuvem). Renderização: helper `pItem({p,i})` desenha os dois casos; `ativos`/`naBacklog`
-  saem do mesmo `fila` já ordenado por data.
+  saem do mesmo `fila` já ordenado por data. ⚠️ `bkOpen` começa **aberto**: com ele fechado o Diogo
+  achou que um jogo tinha sumido do plano (o 📥 fica ao lado do ✏️ e é fácil tocar sem querer).
+  ⚠️ O `#pSave` remonta o item do zero — **tem que copiar o `backlog` do `prev`**, senão editar um jogo
+  do backlog o devolve pra fila sozinho (era um bug).
 - **Migração única `migPadrao7`:** o padrão semanal caiu de 10h → 7h (set/2026), mas a nuvem guardava
   `padraoSemana: 10` — mudar só a constante não adiantaria. O `boot()` troca **uma vez** 10 → `HORAS_SEMANA`
   e grava o marcador `migPadrao7=true` na nuvem; se o Diogo já tiver escolhido outro valor, não mexe.
