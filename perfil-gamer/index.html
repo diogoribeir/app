@@ -308,6 +308,15 @@ details.wkbox>summary .wksub,details.bkbox>summary .wksub{margin-left:auto;font-
 details.wkbox>summary .schev,details.bkbox>summary .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
 details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:rotate(90deg)}
 .bkbody{padding:0 14px 10px}
+details.mesbox{border-top:1px solid var(--line)}
+details.mesbox:first-child{border-top:0}
+details.mesbox>summary{cursor:pointer;list-style:none;padding:10px 2px;display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:800}
+details.mesbox>summary::-webkit-details-marker{display:none}
+details.mesbox>summary .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
+details.mesbox[open]>summary .schev{transform:rotate(90deg)}
+.mesnm{text-transform:capitalize}
+.mesbody{padding:0 0 8px 10px;border-left:2px solid var(--line);margin-left:3px}
+.wkrow.wkmes{background:var(--surface2);border-radius:10px;padding:6px 8px;margin-bottom:2px;border-bottom:0}
 .pitem.bk .pwhen,.pitem.bk .pbody{opacity:.62}
 .wkbody{padding:2px 14px 12px}
 .wknote{font-size:.68rem;color:var(--muted);line-height:1.5;margin:2px 0 8px;font-weight:600}
@@ -533,6 +542,11 @@ document.addEventListener("change", e=>{
   if (e.target.id==="padSemana"){
     const v = Math.max(0, Math.round(Number(e.target.value)||0));
     padraoSemana = v; savePlano(); render(); return; }
+  const ms = e.target.closest("[data-mes]");
+  if (ms){ const k=ms.dataset.mes;
+    const v = ms.value==="" ? null : Math.max(0, Math.round(Number(ms.value)||0));
+    if (v==null) delete HM[k]; else HM[k]=v;
+    savePlano(); render(); return; }
   const wk = e.target.closest("[data-wk]");
   if (wk){ const k=wk.dataset.wk;
     const v = wk.value==="" ? null : Math.max(0, Math.round(Number(wk.value)||0));
@@ -563,11 +577,12 @@ document.addEventListener("change", e=>{
 /* ---------- plano 2026 (editável, sincronizado) ---------- */
 const LS_PLANO = "perfil-gamer:plano";
 let P = [];              // itens do plano [{jogo,est,data,iniciado,jid}]
-let HS = {};             // ajuste de horas por semana { "<segunda ISO>": nº } — quando vazio usa o padrão (10h)
+let HS = {};             // ajuste de UMA semana { "<segunda ISO>": nº } — vence sobre o mês e o padrão
+let HM = {};             // horas/semana de um MÊS inteiro { "AAAA-MM": nº } — vence sobre o padrão global
 const estH = s => { const m = String(s??"").match(/[\d.]+/); return m ? parseFloat(m[0]) : 0; };
 
 /* --- orçamento de horas: calculado automaticamente a partir de hoje até 31/01/2027 --- */
-const PLANO_FIM = "2027-01-31";           // horizonte do plano
+const PLANO_FIM = "2027-12-31";           // horizonte do plano
 const HORAS_SEMANA = 7;                   // padrão de fábrica (↺ volta pra cá)
 let padraoSemana = HORAS_SEMANA;          // horas/semana padrão — editável globalmente (vale pra todas as semanas sem ajuste)
 const PERIODOS = [                        // exceções (por dia) — independem do padrão semanal
@@ -577,7 +592,8 @@ const PERIODOS = [                        // exceções (por dia) — independem
 function ymd(d){ return d.toISOString().slice(0,10); }
 function horasDoDia(iso){
   for (const p of PERIODOS){ if (iso >= p.de && iso <= p.ate) return p.hDia; }
-  return padraoSemana/7;                   // média diária do padrão semanal
+  const hm = HM[iso.slice(0,7)];           // padrão do mês, se o Diogo tiver setado
+  return (hm != null ? hm : padraoSemana)/7;   // média diária
 }
 // semana = segunda→domingo; a chave do ajuste é a segunda-feira
 function segunda(d){ const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-((x.getDay()+6)%7)); return x; }
@@ -611,7 +627,7 @@ function fmtSemana(w){
   return ma===mb ? `${a.getDate()}–${b.getDate()}/${ma}` : `${a.getDate()}/${ma} – ${b.getDate()}/${mb}`;
 }
 function savePlano(){
-  const payload = { itens: P, horasSemana: HS, padraoSemana };
+  const payload = { itens: P, horasSemana: HS, horasMes: HM, padraoSemana };
   try { localStorage.setItem(LS_PLANO, JSON.stringify(payload)); } catch(e){}
   fetch(`${SYNC_URL}/plano2026.json`, { method:"PUT", body: JSON.stringify(payload) })
     .then(()=>{ cloudOK = true; syncStamp = Date.now();
@@ -625,6 +641,7 @@ async function boot(){
   try { const raw = localStorage.getItem(LS_PLANO); if (raw){ const p = JSON.parse(raw);
     if (p && Array.isArray(p.itens)) P = p.itens;
     if (p && p.horasSemana && typeof p.horasSemana==="object") HS = p.horasSemana;
+    if (p && p.horasMes && typeof p.horasMes==="object") HM = p.horasMes;
     if (p && Number.isFinite(p.padraoSemana)) padraoSemana = p.padraoSemana; } } catch(e){}
   render();  // 1ª pintura com a cópia do aparelho (evita "piscar" o seed antigo)
   try {
@@ -666,6 +683,7 @@ async function boot(){
       if (v && Array.isArray(v.itens)) P = v.itens;
       else if (P.length === 0 && Array.isArray(window.PLANO)) { P = window.PLANO.slice(); savePlano(); }
       if (v && v.horasSemana && typeof v.horasSemana==="object") HS = v.horasSemana;
+      if (v && v.horasMes && typeof v.horasMes==="object") HM = v.horasMes;
       if (v && Number.isFinite(v.padraoSemana)) padraoSemana = v.padraoSemana;
     }
   } catch(e){}
@@ -705,7 +723,8 @@ let ordem = "horas";
 let filtersOpen = false;   // painel de filtros recolhido por padrão (mais espaço p/ a lista no celular)
 let sortOpen = false;      // mini-painel de ordenação (separado dos filtros), recolhido por padrão
 let wkOpen = false;        // painel "ajustar horas por semana" (Plano) recolhido por padrão
-let bkOpen = false;        // painel "backlog" (Plano) recolhido por padrão
+let bkOpen = true;         // painel "backlog" (Plano) ABERTO por padrão — senão parece que o jogo sumiu
+const mesOpen = new Set(); // meses abertos no painel de horas (o mês atual entra no 1º render)
 let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
 let statDim = "ver";     // dimensão do gráfico "Distribuição": ver | lanc | jogou
 let openGame = null;     // id do card expandido (edição inline, sem modal)
@@ -1135,7 +1154,7 @@ function viewPlano(){
       <span class="wkun">h</span>
       ${padOn?`<button type="button" class="wkrst" data-padreset="1" title="Voltar ao padrão de fábrica (${HORAS_SEMANA}h)">↺</button>`:'<span class="wkrst-ph"></span>'}
     </div>`;
-  const wkRows = semanas.map(w=>{
+  const wkRow = w => {
     const ef = horasDaSemana(w), on = HS[w.key]!=null;
     const par = w.parcial ? `<small class="wkpar">resto da semana · ${w.dias}d</small>` : "";
     return `<div class="wkrow">
@@ -1144,13 +1163,36 @@ function viewPlano(){
       <span class="wkun">h</span>
       ${on?`<button type="button" class="wkrst" data-wkreset="${w.key}" title="Voltar ao padrão (${w.def}h)">↺</button>`:'<span class="wkrst-ph"></span>'}
     </div>`;
+  };
+  // agrupa por MÊS (o do começo da semana) — são ~68 semanas até dez/2027, soltas viram um paredão
+  const porMes = new Map();
+  semanas.forEach(w=>{ const m = w.key.slice(0,7); if(!porMes.has(m)) porMes.set(m,[]); porMes.get(m).push(w); });
+  if (!mesOpen.size) mesOpen.add(ymd(new Date()).slice(0,7));   // 1º render: só o mês atual aberto
+  const wkRows = [...porMes.entries()].map(([m,ws])=>{
+    const nome = `${MESES[Number(m.slice(5,7))-1]}/${m.slice(0,4)}`;
+    const total = Math.round(ws.reduce((s,w)=>s+horasDaSemana(w),0));
+    const mOn = HM[m]!=null, nAj = ws.filter(w=>HS[w.key]!=null).length;
+    const sub = `${total}h${mOn?` · mês ${HM[m]}h/sem`:""}${nAj?` · ${nAj} semana${nAj>1?"s":""}`:""}`;
+    return `<details class="mesbox" data-mes-k="${m}" ${mesOpen.has(m)?"open":""}>
+      <summary><span class="mesnm">${nome}</span><span class="wksub">${sub}</span><span class="schev">▸</span></summary>
+      <div class="mesbody">
+        <div class="wkrow wkmes">
+          <span class="wklbl"><b>Todas as semanas</b><small class="wkpar">deste mês</small></span>
+          <input class="wkinp${mOn?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-mes="${m}" value="${HM[m] ?? padraoSemana}">
+          <span class="wkun">h</span>
+          ${mOn?`<button type="button" class="wkrst" data-mesreset="${m}" title="Voltar ao padrão (${padraoSemana}h)">↺</button>`:'<span class="wkrst-ph"></span>'}
+        </div>
+        ${ws.map(wkRow).join("")}
+      </div>
+    </details>`;
   }).join("");
-  const wkSub = nAjust ? `padrão ${padraoSemana}h · ${nAjust} ajustada${nAjust>1?"s":""}` : `padrão ${padraoSemana}h`;
+  const nMes = Object.keys(HM).length;
+  const wkSub = `padrão ${padraoSemana}h${nMes?` · ${nMes} mês${nMes>1?"es":""}`:""}${nAjust?` · ${nAjust} semana${nAjust>1?"s":""}`:""}`;
   const wkSec = `<details class="wkbox" ${wkOpen?"open":""}>
     <summary><span>⚙️ Ajustar horas por semana</span><span class="wksub">${wkSub}</span><span class="schev">▸</span></summary>
-    <div class="wkbody"><p class="wknote">Mude o <b>padrão</b> pra trocar todas as semanas de uma vez (ex.: 7 → 5). A semana em curso conta só os <b>dias que ainda faltam</b>. Depois dá pra ajustar semanas específicas por baixo — o total <b>disponível</b> recalcula sozinho.</p>${padRow}${wkRows}</div>
+    <div class="wkbody"><p class="wknote">Três níveis, do mais amplo pro mais específico: o <b>padrão</b> vale pra tudo · abra um <b>mês</b> e mude "todas as semanas" pra dar o tom daquele mês de uma vez · e ainda dá pra ajustar uma <b>semana</b> solta, que vence os outros dois. A semana em curso conta só os <b>dias que ainda faltam</b>, e o total <b>disponível</b> recalcula sozinho.</p>${padRow}${wkRows}</div>
   </details>`;
-  return `<p class="lead">Fila até <b>31/jan/2027</b> · ${padraoSemana}h por semana (ajuste no ⚙️ abaixo). O "falta" já desconta o que você jogou do jogo atual.</p>
+  return `<p class="lead">Fila até <b>${fmtData(PLANO_FIM)}/${PLANO_FIM.slice(0,4)}</b> · ${padraoSemana}h por semana (ajuste no ⚙️ abaixo). O "falta" já desconta o que você jogou do jogo atual.</p>
     <h2>⏳ Horas disponíveis</h2>
     <div class="card">
       <div class="strip" style="margin:0">
@@ -1159,7 +1201,7 @@ function viewPlano(){
         <div class="cell"><div class="v num" style="color:${cor}">${cabe?"":"−"}${Math.abs(Math.round(rest))}h</div><div class="k">${cabe?"sobra":"falta"}</div></div>
       </div>
       <div class="bar" style="margin-top:12px"><div class="track"><div class="fill" style="width:${Math.max(pct,3)}%;background:${cor}">${Math.round(pct)}%</div></div></div>
-      <div class="lead" style="margin:8px 2px 0;color:${cor}">${cabe?`✓ Cabe no tempo — sobram ${Math.round(rest)}h até 31/jan.`:`⚠ Passou ${Math.abs(Math.round(rest))}h do disponível. Tire um jogo ou reduza estimativas.`}</div>
+      <div class="lead" style="margin:8px 2px 0;color:${cor}">${cabe?`✓ Cabe no tempo — sobram ${Math.round(rest)}h até ${fmtData(PLANO_FIM)}.`:`⚠ Passou ${Math.abs(Math.round(rest))}h do disponível. Tire um jogo ou reduza estimativas.`}</div>
     </div>
     ${wkSec}
     <button type="button" class="addbtn" id="btnAddPlano">➕ Adicionar jogo planejado</button>
@@ -1187,6 +1229,9 @@ function render(){
   if (wb) wb.addEventListener("toggle", ()=>{ wkOpen = wb.open; });
   const bb = document.querySelector("details.bkbox");
   if (bb) bb.addEventListener("toggle", ()=>{ bkOpen = bb.open; });
+  document.querySelectorAll("details.mesbox").forEach(d=>d.addEventListener("toggle", ()=>{
+    d.open ? mesOpen.add(d.dataset.mesK) : mesOpen.delete(d.dataset.mesK);
+  }));
 }
 
 /* ---------- registrar / editar / excluir ---------- */
@@ -1342,6 +1387,7 @@ $("#pSave").addEventListener("click", ()=>{
   const rejogar = !!(g && !temStatus(g,"#"));  // replay de um jogo sem jogatina em andamento
   const reg = { jogo, data: $("#pData").value || "", est: h==="" ? "" : (Number(h)+"h"),
                 iniciado: !!prev.iniciado, jid: g ? g.id : prev.jid, rejogar };
+  if (prev.backlog) reg.backlog = true;      // editar não pode tirar o jogo do backlog
   if (pEditIdx!=null && P[pEditIdx]) P[pEditIdx] = reg; else P.push(reg);
   closePlano(); savePlano(); render();
 });
@@ -1412,6 +1458,8 @@ document.addEventListener("click", e=>{
   const sd = e.target.closest("[data-statdim]");
   if (sd){ statDim = sd.dataset.statdim; render(); return; }
   if (e.target.closest("[data-padreset]")){ padraoSemana = HORAS_SEMANA; savePlano(); render(); return; }
+  const mr2 = e.target.closest("[data-mesreset]");
+  if (mr2){ delete HM[mr2.dataset.mesreset]; savePlano(); render(); return; }
   const wr = e.target.closest("[data-wkreset]");
   if (wr){ delete HS[wr.dataset.wkreset]; savePlano(); render(); return; }
   if (e.target.closest("#btnAddPlano")){ openPlano(null); return; }
