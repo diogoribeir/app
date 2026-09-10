@@ -180,6 +180,13 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   achou que um jogo tinha sumido do plano (o 📥 fica ao lado do ✏️ e é fácil tocar sem querer).
   ⚠️ O `#pSave` remonta o item do zero — **tem que copiar o `backlog` do `prev`**, senão editar um jogo
   do backlog o devolve pra fila sozinho (era um bug).
+- **Migração única `migPlanoAdd2027`:** 6 jogos que o Diogo pediu pra somar ao Plano (set/2026) — Fable
+  23/02/27 50h · Exodus 07/04/27 30h · Final Fantasy VII Revelations 08/04/27 80h · Lord of the Fallen 2,
+  Kena 2 e Tides of Annihilation sem data (35h/15h/40h). Entrou como migração porque **a nuvem é a fonte
+  da verdade**: mexer no `window.PLANO` do `dados.js` não muda o que aparece no celular. Compara por nome
+  normalizado antes de inserir, então não duplica o que o Diogo já tiver posto à mão, e grava o marcador
+  `migPlanoAdd2027=true`. 👉 **Receita pra quando ele pedir mais jogos no plano:** copiar esse bloco do
+  `boot()` com um marcador novo — não adianta editar o seed.
 - **Migração única `migPadrao7`:** o padrão semanal caiu de 10h → 7h (set/2026), mas a nuvem guardava
   `padraoSemana: 10` — mudar só a constante não adiantaria. O `boot()` troca **uma vez** 10 → `HORAS_SEMANA`
   e grava o marcador `migPadrao7=true` na nuvem; se o Diogo já tiver escolhido outro valor, não mexe.

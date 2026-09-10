@@ -701,6 +701,29 @@ async function boot(){
       }
     } catch(e){}
   }
+  // migração ÚNICA: 6 jogos que o Diogo pediu pra somar ao plano (set/2026).
+  // Vai por aqui porque a nuvem é a fonte da verdade — mexer no seed do dados.js não mudaria nada.
+  if (cloudOK){
+    try {
+      const mr = await fetch(`${SYNC_URL}/migPlanoAdd2027.json`, { cache:"no-store" });
+      const done = mr.ok ? await mr.json() : null;
+      if (!done){
+        const novos = [
+          { jogo:"Fable",                         data:"2027-02-23", est:"50h" },
+          { jogo:"Exodus",                        data:"2027-04-07", est:"30h" },
+          { jogo:"Final Fantasy VII Revelations", data:"2027-04-08", est:"80h" },
+          { jogo:"Lord of the Fallen 2",          data:"",           est:"35h" },
+          { jogo:"Kena 2",                        data:"",           est:"15h" },
+          { jogo:"Tides of Annihilation",         data:"",           est:"40h" },
+        ];
+        const norm = x => (x||"").trim().toLowerCase();
+        let add = false;
+        novos.forEach(n=>{ if (!P.some(p=>norm(p.jogo)===norm(n.jogo))){ P.push(n); add = true; } });
+        if (add) savePlano();
+        fetch(`${SYNC_URL}/migPlanoAdd2027.json`, { method:"PUT", body:"true" }).catch(()=>{});
+      }
+    } catch(e){}
+  }
   try { const r = await fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" });
     const v = await r.json(); if (typeof v === "number") syncStamp = v; } catch(e){}
   render();
