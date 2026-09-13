@@ -1021,11 +1021,11 @@ const defaultItinerary = [
     notes: "Segunda passada na Sabre pra comprar/ajustar o que faltou nas colheres. Aberta todo dia 11h-19h. Da Rue d'Aboukir (Sentier) são ~15-20 min até aqui (Haut-Marais), emendando com a manhã da terça.",
   },
   {
-    id: uid(), date: "2026-09-17", time: "13:00", title: "Musée d'Orsay (visita)", type: "passeio",
-    address: "Esplanade Valéry Giscard d'Estaing, 75007 Paris", lat: 48.8600, lng: 2.3266,
-    metro: "Solférino (M12) ou Musée d'Orsay (RER C), na saída",
-    costAmount: "35", costCurrency: "EUR",
-    notes: "Dessa vez entrando de verdade — a casa dos impressionistas (Monet, Renoir, Van Gogh, Degas) num antigo terminal de trem lindíssimo. Ficou na quinta porque não tinha vaga na terça (só 16 e 17, e dia 16 é Versailles). Depois do checkout (11h, malas na recepção): reservem o horário das ~13h (~R$210 os 2). Reservem ~2h. Daqui dá pra seguir pro Le Butter Shop (75015, ~15 min) no fim da tarde.",
+    id: uid(), date: "2026-09-15", time: "14:00", title: "Château de Vincennes", type: "passeio",
+    address: "1 Avenue de Paris, 94300 Vincennes", lat: 48.8428, lng: 2.4358,
+    metro: "Château de Vincennes (M1), na porta",
+    costAmount: "22", costCurrency: "EUR",
+    notes: "Castelo medieval de verdade dentro de Paris — o maior torreão (donjon) medieval da Europa + a Sainte-Chapelle real. Aberto todo dia 10h-18h (torreão/capela até ~17h30, ~€11/pessoa). Do Marais é M1 DIRETO (Saint-Paul → Château de Vincennes, ~20 min), emendando logo após a volta na Sabre.",
   }
 ];
 
@@ -1044,7 +1044,7 @@ const DAY_PLANS = {
   },
   "2026-09-15": {
     title: "Ter. — Parc Monceau + Saint-Germain",
-    narrative: "Manhã perto do hotel: lanche na Café Joyeux, piquenique no Parc Monceau e o rooftop grátis das Galeries Lafayette (La Terrasse — vista da Torre Eiffel e do Sacré-Cœur, logo ao lado). Depois, Rue d'Aboukir (vestidos de festa — o Sentier fecha domingo, por isso fica pra cá). À tarde, uma volta na Sabre (Haut-Marais, ~15 min dali). Depois, tarde livre.",
+    narrative: "Manhã perto do hotel: lanche na Café Joyeux, piquenique no Parc Monceau e o rooftop grátis das Galeries Lafayette (La Terrasse — vista da Torre Eiffel e do Sacré-Cœur, logo ao lado). Depois, Rue d'Aboukir (vestidos de festa — o Sentier fecha domingo, por isso fica pra cá). À tarde, uma volta na Sabre (Haut-Marais) e o Château de Vincennes — castelo medieval com o maior torreão da Europa e a Sainte-Chapelle real, a ~20 min de metrô (M1 direto do Marais).",
   },
   "2026-09-16": {
     title: "Qua. — Versailles (bate-volta)",
@@ -1052,7 +1052,7 @@ const DAY_PLANS = {
   },
   "2026-09-17": {
     title: "Qui. — Checkout + traslado",
-    narrative: "Checkout do LALA Hôtel às 11h, deixando as malas guardadas na recepção pra continuar aproveitando a cidade sem carregar nada. À tarde, a visita ao Musée d'Orsay (impressionistas, ~13h — reservado; o Orsay fecha 2ª e não tinha vaga na terça), o Le Butter Shop no fim da tarde, jantar tranquilo, e só à noite retira as malas e segue pro hotel do aeroporto pra dormir.",
+    narrative: "Checkout do LALA Hôtel às 11h, deixando as malas guardadas na recepção pra continuar aproveitando a cidade sem carregar nada. Le Butter Shop no fim da tarde, jantar tranquilo, e só à noite retira as malas e segue pro hotel do aeroporto pra dormir.",
   },
   "2026-09-18": {
     title: "Sex. — Volta ao Brasil",
@@ -1251,7 +1251,7 @@ export default function ParisTripPlanner() {
         loadKey("paris-trip:souvenirs", defaultSouvenirs),
         loadKey("paris-trip:gifts", defaultGifts),
         loadKey("paris-trip:favorites", {}),
-        loadKey("paris-trip:mig_itin_20260913e", false),
+        loadKey("paris-trip:mig_itin_20260913f", false),
       ]);
       setBudget(b);
       // Migração única (set/2026): a partir de sáb 12/09 o roteiro foi refeito
@@ -1260,7 +1260,7 @@ export default function ParisTripPlanner() {
       // trocaria o que aparece no app; então na 1ª abertura após o deploy a gente
       // força o novo itinerário na nuvem e grava o marcador pra rodar só uma vez.
       const itin = migItin ? i : defaultItinerary;
-      if (!migItin) saveKey("paris-trip:mig_itin_20260913e", true);
+      if (!migItin) saveKey("paris-trip:mig_itin_20260913f", true);
       setItinerary(itin);
       setLogistics({
         ...emptyLogistics, ...l,
