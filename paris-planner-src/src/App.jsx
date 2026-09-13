@@ -1241,7 +1241,7 @@ export default function ParisTripPlanner() {
 
   useEffect(() => {
     (async () => {
-      const [b, i, l, o, w, fd, sv, gf, fv] = await Promise.all([
+      const [b, i, l, o, w, fd, sv, gf, fv, migItin] = await Promise.all([
         loadKey("paris-trip:budget", defaultBudget),
         loadKey("paris-trip:itinerary", defaultItinerary),
         loadKey("paris-trip:logistics", emptyLogistics),
@@ -1251,9 +1251,17 @@ export default function ParisTripPlanner() {
         loadKey("paris-trip:souvenirs", defaultSouvenirs),
         loadKey("paris-trip:gifts", defaultGifts),
         loadKey("paris-trip:favorites", {}),
+        loadKey("paris-trip:mig_itin_20260913", false),
       ]);
       setBudget(b);
-      setItinerary(i);
+      // Migração única (set/2026): a partir de sáb 12/09 o roteiro foi refeito
+      // (só os dias restantes, Dom 13 → Sex 18, reordenados por região). Como a
+      // nuvem é a fonte da verdade em runtime, editar o defaultItinerary não
+      // trocaria o que aparece no app; então na 1ª abertura após o deploy a gente
+      // força o novo itinerário na nuvem e grava o marcador pra rodar só uma vez.
+      const itin = migItin ? i : defaultItinerary;
+      if (!migItin) saveKey("paris-trip:mig_itin_20260913", true);
+      setItinerary(itin);
       setLogistics({
         ...emptyLogistics, ...l,
         flights: { ...emptyLogistics.flights, ...(l.flights || {}) },
