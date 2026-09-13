@@ -237,7 +237,7 @@ const defaultBudget = [
 
 const defaultWishlist = [
   {
-    id: uid(), item: "Sac cabas M Le Pliage Original", store: "Longchamp", storeAddress: "404 Rue Saint-Honoré, 75001 Paris",
+    id: uid(), item: "Sac cabas M Le Pliage Original", store: "Longchamp", storeAddress: "77 Avenue des Champs-Élysées, 75008 Paris",
     price: "125.00", currency: "EUR", quantity: 1,
     link: "https://www.longchamp.com/fr/fr/products/sac-cabas-m-L2605089504.html",
     icon: "bag", color: "#8B5E3C",
@@ -373,7 +373,7 @@ const defaultSouvenirs = [
     id: uid(), category: "manteiga", item: "Beurre Bordier", store: "La Grande Épicerie de Paris",
     address: "38 Rue de Sèvres, 75007 Paris", metro: "Sèvres-Babylone (M10, M12), na saída",
     avgPrice: "€4-6 (peça de 125-250g)",
-    notes: "Considerada uma das melhores manteigas da França/do mundo. A Grande Épicerie faz embalagem a vácuo na hora — essencial pra sobreviver à viagem de volta ao Brasil. Sabores: tradicional, sal defumado, trufa, baunilha.",
+    notes: "Considerada uma das melhores manteigas da França/do mundo. A Grande Épicerie faz embalagem a vácuo na hora — essencial pra sobreviver à viagem de volta ao Brasil. Sabores: tradicional, sal defumado, trufa, baunilha. Atenção: manteiga conta como líquido/gel na bagagem de mão (limite 100g); peças de 125-250g só podem ir despachadas.",
     link: null, linkLabel: null,
   },
   {
@@ -740,7 +740,7 @@ const HOSPITALS = [
 ];
 
 const SECTOR_BATHROOM_TIPS = {
-  "Marais (3e/4e)": "BHV Marais (52 Rue de Rivoli) tem banheiro público gratuito; o Centre Pompidou também, no térreo.",
+  "Marais (3e/4e)": "BHV Marais (52 Rue de Rivoli) tem banheiro público gratuito; e há banheiros no Marché des Enfants Rouges. (O Centre Pompidou está fechado pra reforma.)",
   "Louvre / Tuileries (1er)": "Banheiros pagos (~€0,50) dentro do Jardim des Tuileries; ou entre em alguma loja/departamento como a Printemps Haussmann.",
   "République / Canal Saint-Martin (11e)": "Tem um McDonald's perto da Place de la République, e cafés ao longo do canal.",
   "Batignolles / Clichy (17e)": "Qualquer café perto do hotel resolve.",
@@ -753,230 +753,84 @@ const SECTOR_BATHROOM_TIPS = {
 
 const defaultItinerary = [
   {
-    id: uid(), date: "2026-09-11", time: "11:55", title: "Pouso em CDG", type: "transporte",
-    address: "Aéroport Paris-Charles de Gaulle, 95700 Roissy-en-France", lat: 49.0097, lng: 2.5479,
-    metro: "",
-    costAmount: "", costCurrency: "EUR", notes: "Voo Air France 459, chegando de Guarulhos.",
-  },
-  {
-    id: uid(), date: "2026-09-11", time: "12:35", title: "Traslado até o hotel (RER B + metrô)", type: "transporte",
-    address: "", lat: null, lng: null, metro: "RER B até Gare du Nord, baldeia pro M2 até a Rome",
-    costAmount: "28", costCurrency: "EUR", notes: "RER B (€14/pessoa) até Gare du Nord, depois metrô linha 2 até a Rome — ~60-75 min no total com a baldeação. Decidido por causa da pouca bagagem, sem precisar de táxi.",
-  },
-  {
-    id: uid(), date: "2026-09-11", time: "13:45", title: "Check-in / deixar as malas no LALA Hôtel", type: "hospedagem",
-    address: "3 Rue Darcet, 17º arr., 75017 Paris", lat: 48.8847, lng: 2.3218,
-    metro: "Rome (M2), ~6 min a pé",
-    costAmount: "", costCurrency: "EUR", notes: "Chegada oficial do check-in é dia 11/09. Aproveite pra descansar um pouco da viagem.",
-  },
-  {
-    id: uid(), date: "2026-09-11", time: "14:00", title: "Almoço — 4 opções pra escolher", type: "restaurante",
-    address: "Batignolles, 75017 Paris", lat: 48.8837, lng: 2.3226,
-    metro: "Rome (M2), ~5 min a pé",
-    costAmount: "20", costCurrency: "EUR",
-    options: [
-      { name: "Breizh Café Batignolles", desc: "galette de trigo sarraceno (queijo, presunto, ovo, cogumelos), refeição completa" },
-      { name: "Café Dose ou Café Joyeux", desc: "quiche, croque-monsieur ou sanduíche mais leve" },
-      { name: "Pret A Manger", desc: "sanduíches prontos, wraps e saladas, rápido e sem escolher muito" },
-      { name: "Bloom", desc: "99 Rue Jouffroy-d'Abbans — 100% vegetariano/vegano, sushi vegetariano do chef Christian Ventura, listado no Guia Michelin" },
-    ],
-    notes: "Todas pertinho do hotel — decidam na hora conforme a fome/vontade.",
-  },
-  {
-    id: uid(), date: "2026-09-11", time: "15:00", title: "Miniaturas de cosméticos/higiene (testar na viagem)", type: "compras",
-    address: "Pharmacie/Parapharmacie de Batignolles, 75017 Paris", lat: 48.8845, lng: 2.323,
-    metro: "Rome (M2), ~5 min a pé",
-    costAmount: "20", costCurrency: "EUR",
-    notes: "Farmácias/parapharmacies grandes costumam ter uma boa seção de miniaturas e tamanho viagem — bom momento pra testar sabores da pasta Marvis (canela, jasmim-menta, menta forte) e outras minis de skincare antes de decidir o que comprar tamanho grande mais pra frente (ver City Pharma, terça-feira). Aproveite pra já comprar a Homéoplasmine (bisnaguinha de ~18g, ~€4-6) — bálsamo cult francês pra lábios ressecados/rachaduras, meio parecido com Aquaphor, todo mundo que viaja pra Paris recomenda.",
-  },
-  {
-    id: uid(), date: "2026-09-11", time: "16:00", title: "Passeio pela Montmartre de Amélie Poulain", type: "passeio",
-    address: "Rue Lepic / Rue des Trois Frères, 75018 Paris", lat: 48.8859, lng: 2.3355,
-    metro: "Abbesses (M12), ~15 min a pé do hotel ou 2 paradas de metrô",
+    id: uid(), date: "2026-09-14", time: "08:00", title: "Pharmacie Monge", type: "compras",
+    address: "74 Rue Monge, 75005 Paris", lat: 48.8434, lng: 2.3505,
+    metro: "Censier-Daubenton (M7) ou Place Monge (M7), ~3 min a pé",
     costAmount: "0", costCurrency: "EUR",
-    notes: "Montmartre fica pertinho do hotel, então dá pra fazer essa tarde mesmo se não estiver cansada demais (senão, é só remarcar pra outro dia). Roteiro: Café des Deux Moulins (15 Rue Lepic — onde a Amélie trabalhava, peça a crème brûlée e aproveite pra sentar numa mesa de rua vendo o movimento passar, um dos inegociáveis do Di), Marché de la Butte / Maison Collignon (56 Rue des Trois Frères — a mercearia do filme), e a estação Abbesses com a entrada art nouveau. Termina com a subida até o Sacré-Cœur pra ver o pôr do sol.",
+    notes: "Farmácia de desconto do Quartier Latin, pertinho da Notre-Dame — alternativa menos concorrida que a City Pharma pra começar o dia, ainda com o mesmo tipo de marcas francesas (Bioderma, Nuxe, La Roche-Posay, Caudalie). Aberta cedo, dá pra já entrar direto e seguir pro Panthéon.",
   },
   {
-    id: uid(), date: "2026-09-11", time: "18:00", title: "Cabine de fotos instantâneas (Fotoautomat)", type: "passeio",
-    address: "53 Rue des Trois Frères, 75018 Paris", lat: 48.8853, lng: 2.3407,
-    metro: "Abbesses (M12), ~2 min a pé",
-    costAmount: "6", costCurrency: "EUR",
-    notes: "A cabine analógica de verdade que aparece no filme Amélie Poulain — fotos em preto e branco, €6 a tira de 4 poses (aceita moedas de €1/€2 e cartão contactless). Costuma ter fila nos fins de semana à tarde/noite, então talvez valha ir antes do Sacré-Cœur.",
-  },
-  {
-    id: uid(), date: "2026-09-11", time: "19:30", title: "Jantar em Montmartre", type: "restaurante",
-    address: "Rue des Trois Frères, 75018 Paris", lat: 48.885, lng: 2.3405,
-    metro: "Abbesses (M12), ~2 min a pé",
-    costAmount: "25", costCurrency: "EUR",
-    notes: "Jantar leve e sem pressa depois da cabine de fotos — sem sair da região, já que ainda é o primeiro dia e o cansaço da viagem pode pesar. Alternativa: comprar algo no Monoprix ou Pret A Manger e comer com calma no hotel, se preferirem descansar do voo.",
-  },
-  {
-    id: uid(), date: "2026-09-11", time: "21:00", title: "Monoprix (compras pra manhã)", type: "compras",
-    address: "Place de Clichy, 75017/75008 Paris", lat: 48.8830, lng: 2.3273,
-    metro: "Place de Clichy (M2, M13), na saída",
+    id: uid(), date: "2026-09-14", time: "08:45", title: "Panthéon (área externa)", type: "passeio",
+    address: "Place du Panthéon, 75005 Paris", lat: 48.8462, lng: 2.3464,
+    metro: "Luxembourg (RER B), ~10 min a pé",
     costAmount: "0", costCurrency: "EUR",
-    notes: "Passa antes de voltar pro hotel pra comprar pão, fruta e algo pra beber — amanhã sai muito cedo (6h) e nenhum café vai estar aberto ainda.",
+    notes: "Só a fachada neoclássica — sem entrar (tem ingresso pago pra visitar por dentro). Fica a uns 10 min a pé da Pharmacie Monge, no caminho pra Ladurée e o Jardim de Luxemburgo.",
   },
   {
-    id: uid(), date: "2026-09-15", time: "10:00", title: "Café da manhã perto do Canal Saint-Martin", type: "restaurante",
-    address: "Rue du Faubourg du Temple, 75011 Paris", lat: 48.868, lng: 2.3665,
-    metro: "Goncourt (M11), ~3 min a pé",
-    costAmount: "12", costCurrency: "EUR",
-    notes: "Qualquer padaria/café pela região resolve, antes de seguir pro Canal Saint-Martin — a região tem bastante opção de boulangerie.",
+    id: uid(), date: "2026-09-14", time: "11:00", title: "Macarons na Ladurée Bonaparte", type: "restaurante",
+    address: "21 Rue Bonaparte, 75006 Paris", lat: 48.8534, lng: 2.3336,
+    metro: "Saint-Germain-des-Prés (M4), ~4 min a pé",
+    costAmount: "17", costCurrency: "EUR",
+    notes: "O macaron mais clássico de Paris, desde 1862 — sabores como pistache, framboesa e caramelo com flor de sal (caixa de 6, €16-17). Essa unidade fica em Saint-Germain, a caminho do Jardim de Luxemburgo.",
   },
   {
-    id: uid(), date: "2026-09-15", time: "12:00", title: "Comprar lanche na Liberté (padaria)", type: "restaurante",
-    address: "39 Rue des Vinaigriers, 75010 Paris", lat: 48.8712, lng: 2.3618,
-    metro: "Jacques Bonsergent (M5) ou Gare de l'Est, ~5 min a pé",
+    id: uid(), date: "2026-09-14", time: "12:00", title: "Jardim de Luxemburgo (piquenique)", type: "passeio",
+    address: "Jardin du Luxembourg, 75006 Paris", lat: 48.8462, lng: 2.3372,
+    metro: "Luxembourg (RER B), ~2 min a pé — ou Odéon (M4, M10), ~8 min a pé",
     costAmount: "0", costCurrency: "EUR",
-    notes: "Padaria renomada bem perto do Canal Saint-Martin — pegue pães, sanduíches e doces aqui pra guardar pro piquenique no Jardim de Luxemburgo mais tarde. Saia até 12h15 — são uns 25-30 min de metrô até lá (linha 5 + baldeação), então não dá pra enrolar muito aqui.",
+    notes: "Parque público gratuito — piquenique de almoço com os macarons da Ladurée e o que mais tiverem levado, sentados nas cadeiras de ferro espalhadas pelo gramado principal.",
   },
   {
-    id: uid(), date: "2026-09-14", time: "13:00", title: "Almoço — 3 opções pra escolher", type: "restaurante",
-    address: "Jardin des Tuileries, 75001 Paris", lat: 48.8635, lng: 2.3275,
-    metro: "Tuileries (M1), na entrada do jardim",
-    costAmount: "15", costCurrency: "EUR",
-    options: [
-      { name: "Paul", desc: "padaria dentro do próprio jardim — sanduíche de croissant ou quiche, leve" },
-      { name: "Le Saut du Loup", desc: "107 Rue de Rivoli — terraço com vista pro jardim e a pirâmide do Louvre, menu entrada+prato por €17" },
-      { name: "Petit Plisson", desc: "quiosque dentro do próprio jardim — frango frito à moda buttermilk e pratos pra levar" },
-    ],
-    notes: "Decidam na hora conforme a fome.",
+    id: uid(), date: "2026-09-14", time: "13:00", title: "GoodJo Vintage", type: "compras",
+    address: "8 Rue Dupuytren, 75006 Paris", lat: 48.8514, lng: 2.3378,
+    metro: "Odéon (M4, M10), ~4 min a pé",
+    costAmount: "", costCurrency: "EUR",
+    notes: "Segunda mão de luxo (Hermès, Chanel, YSL, Dior, Céline) — vale checar se precisa de horário marcado (o Instagram deles menciona atendimento 'sur rdv'). Boas pedidas: lenços de seda Hermès (entrada mais acessível na marca) e bolsas pequenas/clutches vintage. Tem uma segunda unidade em 16 Rue de la Sourdière, 75001, perto do Louvre. Enquanto isso, o Di pode aproveitar as livrarias de segunda mão ao redor do Odéon, ou sentar num café na região pra ver o movimento.",
   },
   {
-    id: uid(), date: "2026-09-14", time: "14:00", title: "Longchamp", type: "compras",
-    address: "404 Rue Saint-Honoré, 75001 Paris", lat: 48.8666, lng: 2.3272,
-    metro: "Concorde (M1, M8, M12), ~3 min a pé",
-    costAmount: "125", costCurrency: "EUR",
-    notes: "Flagship no 1º arr. (404 rue Saint-Honoré) — a maior loja da marca no mundo. Outras opções: 21 Rue du Vieux Colombier, 75006 (Saint-Germain) e 77 Av. des Champs-Élysées, 75008. Modelo escolhido: Sac cabas M Le Pliage Original, toile recyclée cor Cognac, ref. L2605089504, € 125 — https://www.longchamp.com/fr/fr/products/sac-cabas-m-L2605089504.html. Tax free: sozinha já passa dos € 100,01 mínimos numa mesma loja/dia, então dá pra pedir a détaxe (≈12% de volta, ~€15) — peça o formulário na hora com o passaporte. Como o voo de volta conecta em Amsterdã, é lá que se valida (último ponto antes de sair da UE), não em Paris. Enquanto a Tati decide o modelo, o Di pode sentar numa mesa de rua num café ali perto (Rue Saint-Honoré/Rue de Rivoli) e aproveitar pra ver o movimento passar — um dos inegociáveis dele.",
+    id: uid(), date: "2026-09-14", time: "14:45", title: "La Grande Épicerie (manteiga Bordier)", type: "compras",
+    address: "38 Rue de Sèvres, 75007 Paris", lat: 48.8503, lng: 2.3247,
+    metro: "Sèvres-Babylone (M10, M12), na saída",
+    costAmount: "5", costCurrency: "EUR",
+    notes: "Empório gourmet que faz embalagem a vácuo na hora pra manteiga Bordier — essencial pra sobreviver à viagem de volta. Sabores: tradicional, sal defumado, trufa, baunilha. Fica a uns 10 min a pé do GoodJo, fechando o roteiro da manhã. Depois disso, tarde livre.",
   },
   {
-    id: uid(), date: "2026-09-14", time: "15:00", title: "Rue d'Aboukir (vestidos de festa)", type: "compras",
+    id: uid(), date: "2026-09-15", time: "12:00", title: "Rue d'Aboukir (vestidos de festa)", type: "compras",
     address: "Rue d'Aboukir, 75002 Paris", lat: 48.868, lng: 2.3478,
     metro: "Sentier (M3), na saída",
     costAmount: "60", costCurrency: "EUR",
     notes: "Rua cheia de lojinhas de vestido de festa a preço bom — vestidos lindos por uns €60 em média, bem mais em conta que grife. Algumas boutiques conhecidas: Elsa Mode (113), Tessy Paris (112), Chic & Mignonne, Moda Shelly, Ornelys Couture. Boa variedade de tamanhos e estilos, vale reservar um tempinho pra provar em mais de uma loja. Enquanto isso, o Di pode dar uma volta pela Passage du Caire (a passagem coberta mais antiga de Paris, ali do lado) ou só sentar num café na Rue Réaumur vendo o movimento.",
   },
   {
-    id: uid(), date: "2026-09-14", time: "16:00", title: "Opéra Garnier (área externa)", type: "passeio",
+    id: uid(), date: "2026-09-15", time: "11:00", title: "Opéra Garnier (área externa)", type: "passeio",
     address: "Place de l'Opéra, 75009 Paris", lat: 48.8719, lng: 2.3316,
     metro: "Opéra (M3, M7, M8), na saída",
     costAmount: "0", costCurrency: "EUR",
-    notes: "Só a fachada suntuosa do teatro — sem entrar (ingresso pago). Fica a uns 10-15 min a pé da Longchamp, pela Rue de la Paix/Place Vendôme.",
+    notes: "Só a fachada suntuosa do teatro — sem entrar (ingresso pago). Fica a uns 10-15 min a pé do Parc Monceau, pela Rue de la Paix/Place Vendôme.",
   },
   {
-    id: uid(), date: "2026-09-14", time: "16:50", title: "À la Mère de Famille (chocolates)", type: "compras",
-    address: "35 Rue du Faubourg Montmartre, 75009 Paris", lat: 48.8728, lng: 2.3427,
-    metro: "Grands Boulevards (M8, M9), ~3 min a pé",
-    costAmount: "15", costCurrency: "EUR",
-    notes: "A chocolataria mais antiga de Paris (desde 1761), tombada como monumento histórico — decoração de época impecável. Boas pedidas: palets de Montmartre, pralinés, marrons glacés e as tabletes de chocolate ao leite com avelã. Fica a uns 10 min a pé da Opéra, no caminho pro jantar.",
-  },
-  {
-    id: uid(), date: "2026-09-14", time: "18:45", title: "Jantar no Adami (Bib Gourmand)", type: "restaurante",
-    address: "9º arrondissement, 75009 Paris", lat: 48.8757, lng: 2.3372,
-    metro: "Le Peletier (M7) ou Chaussée d'Antin (M7, M9), a confirmar o endereço exato",
-    costAmount: "45", costCurrency: "EUR",
-    notes: "Bib Gourmand Michelin 2026 — massas frescas modernas do chef Zacharia Mahfoud, ambiente intimista, nada de bistrô francês clássico. Boa pedida se o Di quiser algo tipo carbonara, numa versão mais autoral. Fica no 9º, pertinho da Opéra Garnier — dá pra ir direto de lá. Confirme endereço exato e cardápio vegetariano/vegano na hora de reservar.",
-  },
-  {
-    id: uid(), date: "2026-09-14", time: "20:30", title: "Monoprix (compras pra manhã)", type: "compras",
-    address: "Place de Clichy, 75017/75008 Paris", lat: 48.883, lng: 2.3273,
-    metro: "Place de Clichy (M2, M13), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Passa antes de voltar pro hotel pra ter café/pão/fruta prontos amanhã de manhã.",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "15:50", title: "Free'p'Star", type: "compras",
-    address: "61 Rue de la Verrerie, 75004 Paris", lat: 48.858, lng: 2.355,
-    metro: "Hôtel de Ville (M1, M11), ~2 min a pé",
-    costAmount: "", costCurrency: "EUR",
-    notes: "Vintage/segunda mão do Marais. Boas pedidas: jaquetas jeans e de couro (bem precificadas), camisetas de banda originais, e peças esportivas retrô (corta-ventos, moletons). Outras opções na região: Kilo Shop (vende por peso). Vintage de grife: Thanx God I'm a V.I.P (12 Rue de Lancry, 75010). Mais em conta: Guerrisol (21 Blvd Marguerite de Rochechouart, 75009). Enquanto isso, o Di pode atravessar a Pont Louis-Philippe e ir na Île Saint-Louis (~7 min dali) — a ilhota mais charmosa de Paris, ruas do século 17, os quais do Sena, e o sorvete lendário do Berthillon. Ótimo pedaço pra andar sozinho, sem pressa. Grátis (fora o sorvete).",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "16:50", title: "Uniqlo Marais", type: "compras",
-    address: "39 Rue des Francs-Bourgeois, 75004 Paris", lat: 48.8578, lng: 2.3608,
-    metro: "Saint-Paul (M1), ~2 min a pé",
-    costAmount: "", costCurrency: "EUR",
-    notes: "Loja de 3 andares numa antiga fábrica do século 19 (Usine des Cendres) — uma das maiores Uniqlo de Paris, pertinho da Place des Vosges. Boas pedidas: linha Heattech (camisetas/leggings térmicas, ótimas pra levar de volta pro frio do Brasil), jaqueta ultra-light dobrável, e as camisetas UT com estampas exclusivas de Paris. Aberta domingo das 10h às 20h, então fecha bem o resto da tarde no Marais. Enquanto isso (e enquanto passa na Muji do lado), o Di pode ir na Place des Vosges (~2 min dali) — a praça mais antiga de Paris, jardim + arcadas do século 17. Dá pra entrar na Maison de Victor Hugo (grátis, até 18h) e espiar os pátios escondidos do Village Saint-Paul.",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "17:20", title: "Muji Marais", type: "compras",
-    address: "47 Rue des Francs-Bourgeois, 75004 Paris", lat: 48.858, lng: 2.361,
-    metro: "Saint-Paul (M1), ~2 min a pé",
-    costAmount: "", costCurrency: "EUR",
-    notes: "Bem do lado da Uniqlo, mesma rua — papelaria japonesa, roupas básicas, itens de casa e organização, bons pra presente. Boas pedidas: nécessaires e organizadores de viagem em nylon, canetas/cadernos de papelaria, e o difusor de aromas compacto. A loja do Marais também abre aos domingos.",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "18:05", title: "Monoprix Beaubourg (compras pra manhã)", type: "compras",
-    address: "71 Rue Rambuteau, 75004 Paris", lat: 48.8608, lng: 2.3517,
-    metro: "Rambuteau (M11), ~2 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Passa aqui antes de voltar pro hotel pra ter café/pão/fruta prontos amanhã de manhã (segunda começa tranquilo, mas nunca custa ter algo em mãos).",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "18:50", title: "Jantar na Breizh Café (Marais)", type: "restaurante",
-    address: "109 Rue Vieille du Temple, 75003 Paris", lat: 48.8611, lng: 2.3635,
-    metro: "Saint-Sébastien – Froissart (M8), ~3 min a pé",
-    costAmount: "25", costCurrency: "EUR",
-    notes: "A unidade original da rede, no coração do Marais — fecha o domingo com um jantar de galettes sem precisar ir mais longe. Alternativa: levar algo do Monoprix Beaubourg (já visitado hoje) pra comer no hotel, se preferirem uma noite mais tranquila.",
-  },
-  {
-    id: uid(), date: "2026-09-14", time: "09:30", title: "Comprar lanche na Café Dose", type: "restaurante",
-    address: "82 Place du Dr Félix Lobligeois, 75017 Paris", lat: 48.8869, lng: 2.3223,
+    id: uid(), date: "2026-09-15", time: "08:30", title: "Comprar lanche na Café Joyeux", type: "restaurante",
+    address: "68 Place du Dr Félix Lobligeois, 75017 Paris", lat: 48.8869, lng: 2.3223,
     metro: "Rome (M2), ~5 min a pé",
     costAmount: "12", costCurrency: "EUR",
+    notes: "Abre todos os dias, 9h-19h, bem pertinho do hotel — pega o lanche aqui antes de seguir pro Parc Monceau.",
   },
   {
-    id: uid(), date: "2026-09-14", time: "10:00", title: "Parc Monceau (piquenique)", type: "passeio",
+    id: uid(), date: "2026-09-15", time: "10:00", title: "Parc Monceau (piquenique)", type: "passeio",
     address: "35 Boulevard de Courcelles, 75008 Paris", lat: 48.8797, lng: 2.3095,
     metro: "Monceau (M2), na entrada do parque",
     costAmount: "0", costCurrency: "EUR",
-    notes: "Parque elegante com arquitetura clássica (colunata, pirâmide, pontezinha). Piquenique logo na chegada, com o lanche já comprado na Café Dose, e depois uma caminhada tranquila pelo parque.",
+    notes: "Parque elegante com arquitetura clássica (colunata, pirâmide, pontezinha). Piquenique logo na chegada, com o lanche já comprado na Café Joyeux, e depois uma caminhada tranquila pelo parque antes de seguir pra Opéra Garnier.",
   },
   {
-    id: uid(), date: "2026-09-13", time: "07:30", title: "Louvre (área externa)", type: "passeio",
-    address: "Musée du Louvre, Cour Napoléon, 75001 Paris", lat: 48.8606, lng: 2.3376,
-    metro: "Palais Royal – Musée du Louvre (M1, M7), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Só o pátio e a pirâmide de vidro — sem entrar no museu. Horário ajustado pro nascer do sol em Paris em setembro (~7h20-7h25) — chegando 7h30 já tem luz de verdade pras fotos e ainda está bem vazio, bem antes de qualquer grupo de turista aparecer.",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "08:15", title: "Notre-Dame / Île de la Cité (área externa)", type: "passeio",
-    address: "Parvis Notre-Dame – Place Jean-Paul II, 75004 Paris", lat: 48.853, lng: 2.3499,
-    metro: "Cité (M4) ou Saint-Michel Notre-Dame (RER B/C), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Direto do Louvre a pé (~15-20 min) ou de metrô — fotos da fachada e da Île de la Cité sem gente, antes da Shakespeare and Company abrir (10h).",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "08:45", title: "Café da manhã no Quartier Latin", type: "restaurante",
-    address: "Rue Saint-Jacques / Rue de la Huchette, 75005 Paris", lat: 48.8517, lng: 2.3459,
-    metro: "Saint-Michel (M4), ~3 min a pé",
+    id: uid(), date: "2026-09-13", time: "08:30", title: "Café da manhã no hotel", type: "restaurante",
+    address: "LALA Hôtel · 3 Rue Darcet, 75017 Paris", lat: 48.8847, lng: 2.3218,
+    metro: "Rome (M2), ~6 min a pé",
     costAmount: "12", costCurrency: "EUR",
-    notes: "Qualquer padaria por ali resolve, antes de seguir pra Shakespeare and Company às 10h — dá tempo de comer com calma vendo o movimento do Quartier Latin acordar.",
+    notes: "Como o Louvre já foi feito antes, o domingo começa sem pressa: café da manhã no hotel às 8h30 e daí sobe pra Montmartre (coladinho) pra cabine de fotos, antes de descer pro Marais. (O LALA Hôtel não inclui café da manhã na diária — se preferirem, tem padaria/café ali em Batignolles.)",
   },
   {
-    id: uid(), date: "2026-09-13", time: "10:00", title: "Shakespeare and Company", type: "passeio",
-    address: "37 Rue de la Bûcherie, 75005 Paris", lat: 48.8523, lng: 2.347,
-    metro: "Saint-Michel (M4) ou Cluny-La Sorbonne (M10), ~5 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Livraria icônica em frente à Notre-Dame — é onde Jesse e Céline se reencontram em 'Before Sunset' (também aparece em 'Midnight in Paris'). Dá pra folhear livros e tomar um café ao lado antes de seguir pro Marais.",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "11:00", title: "Caminhada \"Before Sunset\" até o Marais", type: "passeio",
-    address: "Rue Saint-Julien le Pauvre → Rue Galande → Rue des Jardins Saint-Paul → Rue Saint-Paul, 75004 Paris", lat: 48.8541, lng: 2.3564,
-    metro: "Saint-Paul (M1), ~2 min a pé no final do trajeto",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Refaz o passeio de Jesse e Céline no filme: saindo da livraria, pega a Rue Saint-Julien le Pauvre, depois Rue Galande, atravessa o Sena e segue por Rue des Jardins Saint-Paul e Rue Charlemagne até a Rue Saint-Paul — termina bem na entrada do Marais, a tempo pra Sabre e os brechós à tarde.",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "11:45", title: "Centre Pompidou (área externa)", type: "passeio",
-    address: "Place Georges-Pompidou, 75004 Paris", lat: 48.8607, lng: 2.3522,
-    metro: "Rambuteau (M11), ~2 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Só a fachada industrial (tubulações coloridas por fora) — sem entrar no museu. Fica pertinho da Alatone e do resto do roteiro do Marais. Saia até 12h — é só uns 5-8 min a pé até o L'As du Fallafel.",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "12:00", title: "Almoço — 4 opções pra escolher", type: "restaurante",
+    id: uid(), date: "2026-09-13", time: "13:20", title: "Almoço — 4 opções pra escolher", type: "restaurante",
     address: "Marais, 75003/75004 Paris", lat: 48.8572, lng: 2.3591,
     metro: "Saint-Paul (M1), ~4 min a pé",
     costAmount: "8", costCurrency: "EUR",
@@ -986,137 +840,28 @@ const defaultItinerary = [
       { name: "La Sabicherie", desc: "33 Rue du Faubourg Saint-Antoine — sabich (berinjela, hummus, ovo, batata)" },
       { name: "PNY Marais", desc: "1 Rue Perrée — pra quem quiser carne de verdade: burger gourmet clássico, cheeseburger ou Big Mac Tribute" },
     ],
-    notes: "Todos rápidos, sem garçom — decidam na hora.",
+    notes: "Almoço rápido depois das compras (Alatone/Sabre): estas 4 opções ficam ~8 min ao sul, na Rue des Rosiers — todos rápidos e sem garçom, é só escolher.",
   },
   {
-    id: uid(), date: "2026-09-13", time: "12:30", title: "Alatone", type: "compras",
+    id: uid(), date: "2026-09-13", time: "11:30", title: "Alatone", type: "compras",
     address: "96 Rue Rambuteau, 75001 Paris", lat: 48.862, lng: 2.3495,
     metro: "Rambuteau (M11), na porta",
     costAmount: "", costCurrency: "EUR",
-    notes: "Fica entre Les Halles e o Marais — cai bem no caminho entre a caminhada de 'Before Sunset' e a Sabre/brechós da tarde. Boas pedidas: peças curadas de grife (costuma ter seleção mais garimpada que os brechós por peso) e acessórios vintage (cintos, bolsas pequenas). Enquanto isso, o Di pode ir na Fonte Stravinsky & Saint-Merri (~2 min dali, em Beaubourg) — a fonte colorida da Niki de Saint Phalle com os autômatos que cospem água, do lado do Pompidou, a igreja gótica Saint-Merri ao lado, e uma volta até a Saint-Eustache em Les Halles. Grátis.",
+    notes: "Abre 11h30 no domingo (confirmado), por isso é a 1ª parada de compras do dia — chegando de Montmartre. Fica entre Les Halles e o Marais, no caminho até a Sabre. Boas pedidas: peças curadas de grife (costuma ter seleção mais garimpada que os brechós por peso) e acessórios vintage (cintos, bolsas pequenas). Enquanto isso, o Di pode ir na Fonte Stravinsky & Saint-Merri (~2 min dali, em Beaubourg) — a fonte colorida da Niki de Saint Phalle com os autômatos que cospem água, a igreja gótica Saint-Merri ao lado, e uma volta até a Saint-Eustache em Les Halles. Grátis.",
   },
   {
-    id: uid(), date: "2026-09-13", time: "13:30", title: "Sabre", type: "compras",
+    id: uid(), date: "2026-09-13", time: "12:15", title: "Sabre", type: "compras",
     address: "39 Rue de Poitou, 75003 Paris", lat: 48.8631, lng: 2.3641,
     metro: "Filles du Calvaire (M8), ~5 min a pé",
     costAmount: "24", costCurrency: "EUR",
-    notes: "Boutique no Marais (39 Rue de Poitou) — dá pra montar as peças na hora, escolhendo as cores. 2 colheres de chá, €12 cada, totalizando € 24 — https://br.sabre-paris.com/br/products/produit-configurable-generique. Como ficou abaixo dos €100,01 mínimos, não dá pra pedir tax free dessa vez. Bagagem: colher de chá não tem ponta nem fio de corte, passa tranquila na bagagem de mão — sem nenhuma restrição dessa vez. Enquanto isso, o Di pode ir no Marché des Enfants Rouges (~3 min dali, no Haut-Marais) — o mercado coberto mais antigo de Paris (1615), entrada grátis, bancas, gente, cheiro de comida de verdade. Pode aproveitar pra tomar um café na Rue de Bretagne.",
+    notes: "Boutique no Marais (39 Rue de Poitou) — dá pra montar as peças na hora, escolhendo as cores. 2 colheres de chá, €12 cada, totalizando € 24 — https://br.sabre-paris.com/br/products/produit-configurable-generique. Como ficou abaixo dos €100,01 mínimos, não dá pra pedir tax free dessa vez. Bagagem: colher de chá não tem ponta nem fio de corte, passa tranquila na bagagem de mão — sem nenhuma restrição dessa vez. Enquanto a Tati escolhe as cores, o Di pode dar uma volta pela Rue de Bretagne / Place des Vosges ali perto, ou sentar num café.",
   },
   {
-    id: uid(), date: "2026-09-13", time: "14:15", title: "Provar chocolates na Jacques Genin", type: "restaurante",
-    address: "133 Rue de Turenne, 75003 Paris", metro: "Filles du Calvaire (M8), ~5 min a pé",
-    lat: 48.8631, lng: 2.3617,
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Ainda não precisa decidir o que levar — só provar os caramelos e pâtes de fruits agora pra ir anotando os favoritos. A decisão final de quanto comprar fica pro fim da viagem (ver aba Compras).",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "15:00", title: "Popelini (choux à la crème)", type: "restaurante",
-    address: "29 Rue Debelleyme, 75003 Paris", metro: "Saint-Sébastien – Froissart (M8), ~5 min a pé",
-    lat: 48.8617, lng: 2.3628,
-    costAmount: "12", costCurrency: "EUR",
-    notes: "Compre os choux aqui — vários sabores (baunilha, café, caramelo com sal, pistache, framboesa-rosa), a partir de €1,85 cada. Pegue também um café pra levar, se quiser, e siga direto pra Place des Vosges.",
-  },
-  {
-    id: uid(), date: "2026-09-13", time: "15:20", title: "Café e doces na Place des Vosges", type: "passeio",
+    id: uid(), date: "2026-09-13", time: "14:10", title: "Café e doces na Place des Vosges", type: "passeio",
     address: "Place des Vosges, 75004 Paris", metro: "Saint-Paul (M1) ou Bastille (M1, M5, M8), ~5 min a pé",
     lat: 48.8559, lng: 2.3655,
     costAmount: "0", costCurrency: "EUR",
-    notes: "A praça mais antiga e charmosa de Paris, com jardim e arcadas — sente num banco à sombra pra saborear os choux do Popelini com calma antes de seguir pras compras da tarde.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "07:00", title: "Saída do hotel", type: "transporte",
-    address: "", lat: null, lng: null, metro: "",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "De táxi/Uber ou metrô (~20-30 min com baldeação) pra chegar na Rue de Camoëns até as 7h30 — nesse horário já dá pra confiar no metrô, já que o serviço começa por volta das 5h30-6h nos dias de semana.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "07:30", title: "Rue de Camoëns (fotos da torre)", type: "passeio",
-    address: "Rue de Camoëns, 75016 Paris", lat: 48.8615, lng: 2.2843,
-    metro: "Trocadéro (M6, M9), ~5 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Ponto clássico de foto da Torre Eiffel — a escadaria com grades de ferro emoldura a torre ao fundo, sem gente essa hora da manhã. Horário ajustado pro nascer do sol em Paris em setembro (~7h20-7h25) — assim já tem luz de verdade pras fotos, sem precisar ir no escuro. Alternativa bem perto: Rue de l'Université, do outro lado do rio (7º), que também dá um corredor de visão direto pra torre.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "08:15", title: "Torre Eiffel (área externa)", type: "passeio",
-    address: "Champ de Mars, 5 Avenue Anatole France, 75007 Paris", lat: 48.8584, lng: 2.2945,
-    metro: "Bir-Hakeim (M6), ~8 min a pé — ou RER C Champ de Mars–Tour Eiffel, na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Desça da Rue de Camoëns atravessando a Pont d'Iéna pra chegar aos pés da torre. Só a área externa (Champ de Mars) — sem subir. Ainda cedo o bastante pra evitar as multidões que se formam a partir de umas 9h-10h.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "09:00", title: "Pont de Bir-Hakeim", type: "passeio",
-    address: "Pont de Bir-Hakeim, 75015 Paris", lat: 48.8535, lng: 2.2887,
-    metro: "Bir-Hakeim (M6) ou Passy (M6), ~3 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Ponte de metrô elevada bem pertinho do Champ de Mars — apareceu em 'Inception' e é um dos points mais fotografados de Paris, com a torre ao fundo pela estrutura de ferro. Rapidinho, uns 15-20 min já resolve. Saia até 8h15 pra chegar na Rue Cler até 8h30 (uns 15 min a pé).",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "09:30", title: "Café da manhã na Rue Cler", type: "restaurante",
-    address: "Rue Cler, 75007 Paris", lat: 48.8577, lng: 2.3057,
-    metro: "École Militaire (M8), ~5 min a pé",
-    costAmount: "12", costCurrency: "EUR",
-    notes: "Rua de mercado tradicional do 7º, cheia de padarias e mercearias — qualquer uma resolve pro café da manhã depois das fotos da torre. Fica a uns 15 min a pé do Bir-Hakeim.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "10:30", title: "Hôtel des Invalides (área externa)", type: "passeio",
-    address: "Esplanade des Invalides, 75007 Paris", lat: 48.8566, lng: 2.3125,
-    metro: "Invalides (M8, M13), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Só a fachada e a cúpula dourada (onde está o túmulo de Napoleão) — sem entrar no museu militar. Fica a uns 10 min a pé da Rue Cler.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "11:00", title: "Almoço — 3 opções pra escolher", type: "restaurante",
-    address: "Rue de Lille / Quai Anatole France, 75007 Paris", lat: 48.8605, lng: 2.3265,
-    metro: "Musée d'Orsay (RER C) ou Solférino (M12)",
-    costAmount: "20", costCurrency: "EUR",
-    options: [
-      { name: "Cocorico", desc: "Rue de Lille, quase colado no museu — bistrô de serviço contínuo, croque-monsieur, steak-frites ou quiche lorraine" },
-      { name: "Boulangerie da Rue de Lille", desc: "sanduíche de baguete (jambon-beurre, poulet crudités) pra comer andando" },
-      { name: "Café des Marronniers", desc: "na ponta do Jardim des Tuileries — ambiente tranquilo, saladas e pratos mais leves" },
-    ],
-    notes: "Decidam na hora conforme a vontade.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "12:00", title: "Musée d'Orsay (área externa)", type: "passeio",
-    address: "1 Rue de la Légion d'Honneur, 75007 Paris", lat: 48.86, lng: 2.3266,
-    metro: "Musée d'Orsay (RER C), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Só a fachada da antiga estação de trem (Gare d'Orsay) — arquitetura icônica, sem entrar no museu. Fica de frente pro Sena, ótimas fotos com o relógio gigante.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "14:00", title: "Avenue des Champs-Élysées", type: "passeio",
-    address: "Avenue des Champs-Élysées, 75008 Paris", lat: 48.8698, lng: 2.3076,
-    metro: "Franklin D. Roosevelt (M1, M9), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Caminhada pela avenida mais famosa de Paris — vitrines, lojas de grife, e o point clássico de tirar foto olhando pro Arco do Triunfo lá no fim.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "15:30", title: "Arco do Triunfo (área externa)", type: "passeio",
-    address: "Place Charles de Gaulle, 75008 Paris", lat: 48.8738, lng: 2.295,
-    metro: "Charles de Gaulle – Étoile (M1, M2, M6), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Só a vista de fora, da Place Charles de Gaulle — subir lá em cima é pago e não está no roteiro. Dá pra ver as 12 avenidas que saem dali feito estrela.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "17:00", title: "Jardins des Champs-Élysées (parque)", type: "passeio",
-    address: "Jardins des Champs-Élysées, 75008 Paris", lat: 48.8656, lng: 2.3131,
-    metro: "Champs-Élysées – Clemenceau (M1, M13), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Parque público tranquilo entre a avenida e o Grand Palais/Petit Palais — bom pra descansar as pernas antes de seguir a pé até o Sena pro jantar. É um respiro verde no meio da agitação da avenida.",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "19:30", title: "Jantar/lanche às margens do Sena", type: "restaurante",
-    address: "Port des Champs-Élysées (perto do Pont Alexandre III), 75008 Paris", lat: 48.8635, lng: 2.3138,
-    metro: "Invalides (M8, M13) ou Champs-Élysées – Clemenceau (M1, M13), ~5 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Fecha o dia sentados na margem do rio perto do Pont Alexandre III — um dos trechos mais bonitos pra ver o pôr do sol e a Torre Eiffel iluminada à distância. Pegue queijos, presunto, baguete e um vinho numa mercearia/cave à vin no caminho (tem várias pela Av. Bosquet e Rue Saint-Dominique, perto do Eiffel).",
-  },
-  {
-    id: uid(), date: "2026-09-12", time: "21:00", title: "Monoprix Champs-Élysées (compras pra manhã)", type: "compras",
-    address: "52 Avenue des Champs-Élysées, 75008 Paris", lat: 48.8712, lng: 2.3055,
-    metro: "Franklin D. Roosevelt (M1, M9), ~2 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Fica aberto até tarde — passa aqui antes de voltar pro hotel pra ter café/pão/fruta prontos amanhã de manhã.",
+    notes: "A praça mais antiga e charmosa de Paris, com jardim e arcadas — sente num banco à sombra pra descansar com calma. Daqui em diante a tarde e a noite ficam livres.",
   },
   {
     id: uid(), date: "2026-09-16", time: "08:00", title: "Café da manhã em Batignolles", type: "restaurante",
@@ -1157,74 +902,11 @@ const defaultItinerary = [
     notes: "Direto pro centro de Paris — já incluso no bilhete de ida e volta.",
   },
   {
-    id: uid(), date: "2026-09-16", time: "18:30", title: "Jantar em Batignolles", type: "restaurante",
-    address: "Batignolles, 75017 Paris", lat: 48.8837, lng: 2.3226,
-    metro: "Rome (M2)",
-    costAmount: "25", costCurrency: "EUR",
-    notes: "De volta perto do hotel depois de Versailles — qualquer bistrô da região resolve bem. Alternativa: pegar algo pronto no Monoprix e comer no hotel, depois de um dia inteiro de passeio.",
-  },
-  {
-    id: uid(), date: "2026-09-16", time: "19:30", title: "Monoprix (compras pra manhã)", type: "compras",
-    address: "Place de Clichy, 75017/75008 Paris", lat: 48.883, lng: 2.3273,
-    metro: "Place de Clichy (M2, M13), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Passa aqui antes de voltar pro hotel pra ter café/pão/fruta prontos amanhã de manhã.",
-  },
-  {
-    id: uid(), date: "2026-09-15", time: "12:45", title: "Jardim de Luxemburgo (piquenique)", type: "passeio",
-    address: "Jardin du Luxembourg, 75006 Paris", lat: 48.8462, lng: 2.3372,
-    metro: "Luxembourg (RER B), ~2 min a pé — ou Odéon (M4, M10), ~8 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Parque público gratuito — visita e piquenique logo depois de comprar o lanche na Liberté, sentados nas cadeiras de ferro espalhadas pelo gramado principal.",
-  },
-  {
-    id: uid(), date: "2026-09-15", time: "13:30", title: "Panthéon (área externa)", type: "passeio",
-    address: "Place du Panthéon, 75005 Paris", lat: 48.8462, lng: 2.3464,
-    metro: "Luxembourg (RER B), ~10 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Só a fachada neoclássica — sem entrar (tem ingresso pago pra visitar por dentro). Fica a uns 10 min a pé do Jardim de Luxemburgo, dá pra encaixar antes de seguir pro GoodJo/Kilo Shop.",
-  },
-  {
-    id: uid(), date: "2026-09-15", time: "14:00", title: "Diptyque (velas)", type: "compras",
-    address: "34 Boulevard Saint-Germain, 75005 Paris", lat: 48.8508, lng: 2.3486,
-    metro: "Maubert-Mutualité (M10), na saída",
-    costAmount: "38", costCurrency: "EUR",
-    notes: "Duas velas pequenas (70g) sabor Baies compradas juntas — uma pra você (€38, contabilizada aqui em Compras) e outra de presente pra Larissa (€40 já contabilizados separadamente na aba Presentes, pra não contar em dobro). Fica bem perto do Panthéon, no caminho pro GoodJo/Kilo Shop.",
-  },
-  {
-    id: uid(), date: "2026-09-15", time: "14:45", title: "GoodJo Vintage", type: "compras",
-    address: "8 Rue Dupuytren, 75006 Paris", lat: 48.8514, lng: 2.3378,
-    metro: "Odéon (M4, M10), ~4 min a pé",
-    costAmount: "", costCurrency: "EUR",
-    notes: "Segunda mão de luxo (Hermès, Chanel, YSL, Dior, Céline) — vale checar se precisa de horário marcado (o Instagram deles menciona atendimento 'sur rdv'). Boas pedidas: lenços de seda Hermès (entrada mais acessível na marca) e bolsas pequenas/clutches vintage. Tem uma segunda unidade em 16 Rue de la Sourdière, 75001, perto do Louvre. Enquanto isso, o Di pode aproveitar as livrarias de segunda mão ao redor do Odéon, ou sentar num café na região pra ver o movimento.",
-  },
-  {
-    id: uid(), date: "2026-09-15", time: "15:30", title: "Kilo Shop Saint-Germain", type: "compras",
-    address: "125 Boulevard Saint-Germain, 75006 Paris", lat: 48.8517, lng: 2.3387,
-    metro: "Odéon (M4, M10), ~5 min a pé",
-    costAmount: "", costCurrency: "EUR",
-    notes: "Vende por peso — mesma rede da opção que já tinha no Marais, essa unidade fica em Saint-Germain, ali do lado do Jardim de Luxemburgo. Boas pedidas: jeans vintage (Levi's/Wrangler) e camisas de time/banda — costuma sair mais barato que comprar peça por peça, já que o preço é por quilo.",
-  },
-  {
-    id: uid(), date: "2026-09-15", time: "16:15", title: "Provar cosméticos na City Pharma", type: "compras",
-    address: "26 Rue du Four, 75006 Paris", lat: 48.8514, lng: 2.3328,
-    metro: "Mabillon (M10) ou Saint-Germain-des-Prés (M4)",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Testa os produtos de farmácia francesa (Bioderma, Nuxe, La Roche-Posay, Caudalie) direto na loja — não precisa comprar tudo hoje, dá pra ir anotando o que quer levar e decidir a quantidade final mais perto da volta. Se ainda não tiver comprado a Homéoplasmine no primeiro dia, aqui também tem. Enquanto isso, o Di pode sentar num café na Place Saint-Germain-des-Prés (bem pertinho) vendo a rua passar.",
-  },
-  {
-    id: uid(), date: "2026-09-15", time: "16:45", title: "Monoprix Rennes (compras pra manhã)", type: "compras",
-    address: "50 Rue de Rennes, 75006 Paris", lat: 48.8496, lng: 2.3299,
-    metro: "Saint-Sulpice (M4), ~3 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Passa aqui antes de voltar pro hotel pra ter café/pão/fruta prontos amanhã de manhã — dia de Versailles começa cedo.",
-  },
-  {
-    id: uid(), date: "2026-09-15", time: "18:30", title: "Jantar em Saint-Germain-des-Prés", type: "restaurante",
-    address: "Saint-Germain-des-Prés, 75006 Paris", lat: 48.8535, lng: 2.334,
-    metro: "Saint-Germain-des-Prés (M4)",
+    id: uid(), date: "2026-09-16", time: "19:00", title: "Jantar no Bloom (vegetal, perto do hotel)", type: "restaurante",
+    address: "99 Rue Jouffroy-d'Abbans, 75017 Paris", lat: 48.8845, lng: 2.3095,
+    metro: "Wagram (M3) ou Malesherbes (M3), ~5 min a pé",
     costAmount: "30", costCurrency: "EUR",
-    notes: "Qualquer bistrô das ruazinhas ao redor da igreja resolve bem — região cheia de opções de qualidade, sem precisar reservar com muita antecedência. Alternativa: pegar algo no Monoprix Rennes (já visitado hoje) e comer no hotel, se preferirem uma noite mais tranquila antes de Versailles amanhã.",
+    notes: "100% vegetal (sushi vegetariano) — a Tati come de tudo e o Di come veg junto, numa noite calma perto do hotel depois de Versailles. ⚠️ É pequeno: RESERVAR pras 19:00 pelo Google/Zenchef (é confiável, não aparece no TheFork).",
   },
   {
     id: uid(), date: "2026-09-17", time: "11:00", title: "Checkout do LALA Hôtel (malas na recepção)", type: "hospedagem",
@@ -1249,21 +931,14 @@ const defaultItinerary = [
     address: "5 Rue Bouchut, 75015 Paris", lat: 48.8467, lng: 2.3078,
     metro: "Ségur (M10) ou Sèvres-Lecourbe (M6), a conferir a mais próxima",
     costAmount: "0", costCurrency: "EUR",
-    notes: "Empório gourmet nota 5,0 — vale a pena bem no fim da viagem, já que aqui é onde vão provar e decidir de vez qual manteiga (e o que mais) levar pra casa. Fica no 15º, mais longe do hotel — reserve um tempinho de deslocamento. Confirme o horário de funcionamento mais perto da data, é um empório pequeno.",
+    notes: "Empório gourmet nota 5,0 — vale a pena bem no fim da viagem, já que aqui é onde vão provar e decidir de vez qual manteiga (e o que mais) levar pra casa. Fica no 15º, mais longe do hotel — reserve um tempinho de deslocamento. Confirme o horário de funcionamento mais perto da data, é um empório pequeno. Atenção — são 2 barreiras diferentes: 1) Segurança do embarque em Paris: manteiga conta como líquido/gel, só até 100g na bagagem de mão (peças de 125-250g só na despachada). 2) Alfândega/Vigiagro na chegada ao Brasil: NÃO é problema — laticínio industrializado e rotulado é liberado, até 5kg por pessoa. Ou seja, o obstáculo real é só o embarque em Paris, não a entrada no Brasil.",
   },
   {
-    id: uid(), date: "2026-09-17", time: "18:00", title: "Monoprix (compras pra manhã do voo)", type: "compras",
-    address: "Place de Clichy, 75017/75008 Paris", lat: 48.883, lng: 2.3273,
-    metro: "Place de Clichy (M2, M13), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Última parada antes do traslado pro hotel do aeroporto — o voo de volta sai às 8h15 de sexta, bem cedo, então vale já ter café da manhã em mãos.",
-  },
-  {
-    id: uid(), date: "2026-09-17", time: "19:00", title: "Último jantar em Batignolles", type: "restaurante",
+    id: uid(), date: "2026-09-17", time: "19:00", title: "Jantar no Bioburger (Batignolles)", type: "restaurante",
     address: "Batignolles, 75017 Paris", lat: 48.8837, lng: 2.3226,
     metro: "Rome (M2)",
-    costAmount: "25", costCurrency: "EUR",
-    notes: "Fecha a viagem com um jantar tranquilo pertinho do hotel, antes de pegar as malas e seguir pro aeroporto. Alternativa: comprar algo no Monoprix ou Pret A Manger e jantar com calma no hotel antes de ir pro aeroporto.",
+    costAmount: "20", costCurrency: "EUR",
+    notes: "Burger bio: opção 100% vegetal pra Tati + burger de carne pro Di — rápido, bom custo e walk-in, pertinho do hotel. Fecha a viagem sem stress antes de pegar as malas (20h) e o traslado (20:30). Alternativa: pizzaria do bairro (pizza margherita pra Tati).",
   },
   {
     id: uid(), date: "2026-09-17", time: "20:00", title: "Retirar as malas no LALA Hôtel", type: "hospedagem",
@@ -1310,6 +985,48 @@ const defaultItinerary = [
     costAmount: "0", costCurrency: "EUR",
     notes: "Decolagem às 8h15. Essa é a viagem de volta — sem mais programação depois do embarque.",
   },
+  {
+    id: uid(), date: "2026-09-13", time: "09:15", title: "Fotoautomat — cabine do Amélie", type: "passeio",
+    address: "53 Rue des Trois Frères, 75018 Paris", lat: 48.8853, lng: 2.3407,
+    metro: "Abbesses (M12), ~2 min a pé — ~15 min do hotel",
+    costAmount: "6", costCurrency: "EUR",
+    notes: "A cabine analógica de verdade que aparece no filme Amélie Poulain — fotos P&B, €6 a tira de 4 poses (moedas €1/€2 ou cartão contactless). Aberta 8h30 (confirmado); de manhã a fila é bem menor que à tarde/noite. Fica em Montmartre, coladinho no hotel (Batignolles), então dá pra fazer logo cedo antes de descer pro Marais.",
+  },
+  {
+    id: uid(), date: "2026-09-14", time: "13:45", title: "Chapon — bar à mousse (chocolate)", type: "restaurante",
+    address: "34 Rue Saint-Sulpice, 75006 Paris", lat: 48.8523, lng: 2.3336,
+    metro: "Mabillon (M10) ou Saint-Sulpice (M4), ~3 min a pé",
+    costAmount: "7", costCurrency: "EUR",
+    notes: "O primeiro bar à mousse de chocolate de Paris — várias mousses artesanais servidas na hora (~€7 o pequeno), além de tabletes single-origin, trufas e pralines pra levar. Fica em frente à igreja Saint-Sulpice, no coração de Saint-Germain, a ~300 m do GoodJo. ⚠️ Na segunda abre só às 13h (confirmado), por isso entra depois do GoodJo. Chapon tem várias unidades; essa (75006) é a do bar à mousse.",
+  },
+  {
+    id: uid(), date: "2026-09-15", time: "11:20", title: "Rooftop das Galeries Lafayette (La Terrasse)", type: "passeio",
+    address: "40 Boulevard Haussmann, 75009 Paris (8º andar da Coupole)", lat: 48.8738, lng: 2.3320,
+    metro: "Chaussée d'Antin – La Fayette (M7, M9) ou Opéra (M3, M7, M8), na saída",
+    costAmount: "0", costCurrency: "EUR",
+    notes: "Terraço aberto no topo da loja principal (a Coupole, 40 Bd Haussmann) — GRÁTIS, sem ingresso: é só subir. Vista 360° de Paris, com a Torre Eiffel, a Ópera e o Sacré-Cœur. Aberto ter-sáb 10h-20h30 (confirmado). Fica a ~250 m do Opéra Garnier, então cai no caminho sem desvio. ⚠️ É a unidade certa: a do rooftop é a Galeries Lafayette Haussmann (a da cúpula), não as lojas Homme/Maison.",
+  },
+  {
+    id: uid(), date: "2026-09-14", time: "16:00", title: "Torre Eiffel de novo — mirante do Trocadéro", type: "passeio",
+    address: "Place du Trocadéro / Jardins du Trocadéro, 75016 Paris", lat: 48.8619, lng: 2.2886,
+    metro: "Trocadéro (M6, M9), na saída",
+    costAmount: "0", costCurrency: "EUR",
+    notes: "Fecha a segunda com a vista frontal mais bonita da Torre Eiffel, do outro lado do rio — vale pra ver a torre de dia e, se esticarem, acender/cintilar ao anoitecer. Da La Grande Épicerie (7º) até o Trocadéro dá ~15-20 min de metrô. Grátis.",
+  },
+  {
+    id: uid(), date: "2026-09-14", time: "10:00", title: "Diptyque (velas)", type: "compras",
+    address: "34 Boulevard Saint-Germain, 75005 Paris", lat: 48.8508, lng: 2.3486,
+    metro: "Maubert-Mutualité (M10), na saída",
+    costAmount: "", costCurrency: "EUR",
+    notes: "Loja-mãe da Diptyque (desde 1961) — velas perfumadas e o eau de parfum. Fica no Bd Saint-Germain, no Quartier Latin, entre o Panthéon e Saint-Germain, então cai cedo antes de cruzar pro lado oeste.",
+  },
+  {
+    id: uid(), date: "2026-09-14", time: "14:15", title: "À la Mère de Famille (chocolates)", type: "compras",
+    address: "39 Rue du Cherche-Midi, 75006 Paris", lat: 48.8483, lng: 2.3258,
+    metro: "Sèvres – Babylone (M10, M12), ~4 min a pé",
+    costAmount: "", costCurrency: "EUR",
+    notes: "A chocolateria mais antiga de Paris — essa unidade (Cherche-Midi, 75006) mantém o interior histórico de 1895 e fica a ~200 m da La Grande Épicerie, entrando bem no fim das compras de St-Germain. Aberta seg-sáb 10h-19h30. (A rede tem várias lojas; escolhi a de St-Germain pra não desviar pro 9º.)",
+  }
 ];
 
 // Narrativa de cada dia da viagem (11 a 17/09) — vai sendo ajustada conforme novos lugares entram no roteiro.
@@ -1317,25 +1034,17 @@ const defaultItinerary = [
 // costuma ter suas lojas abertas aos domingos (à tarde), diferente do resto de Paris, por isso
 // essa atividade foi pro domingo, não durante a semana.
 const DAY_PLANS = {
-  "2026-09-11": {
-    title: "Sex. — Chegada em Paris",
-    narrative: "Pouso em CDG às 11h55, desembarque + traslado até o hotel (~1h-1h30) — chegada prevista por volta das 13h30-14h. Deixar as malas no LALA Hôtel e, se o cansaço permitir, aproveitar que Montmartre fica pertinho pra fazer o passeio da Amélie Poulain (Café des Deux Moulins, mercearia do filme e a cabine de fotos) e terminar vendo o pôr do sol no Sacré-Cœur. Se preferir descansar, dá pra remarcar essa parte pra outro dia.",
-  },
-  "2026-09-12": {
-    title: "Sáb. — Torre Eiffel",
-    narrative: "Saída do hotel às 7h pra chegar na Rue de Camoëns às 7h30, logo depois do nascer do sol em Paris (~7h20-7h25 em setembro) — ponto clássico de foto da torre emoldurada pela escadaria de ferro, já com luz de verdade e sem ninguém por perto. Depois desce pra Torre Eiffel/Champ de Mars às 8h15, e passa pela Pont de Bir-Hakeim às 9h (outro point fotogênico, aparece em 'Inception'). À tarde, uma caminhada pelos Champs-Élysées até o Arco do Triunfo, com uma parada nos Jardins des Champs-Élysées (parque) no caminho de volta. Pra fechar o dia, jantar/lanche tipo piquenique nas margens do Sena perto do Pont Alexandre III, vendo o pôr do sol e a torre iluminada à distância.",
-  },
   "2026-09-13": {
-    title: "Dom. — Marais + roteiro \"Before Sunset\"",
-    narrative: "Começa às 7h30 no Louvre (pátio e pirâmide, logo depois do nascer do sol, já com luz e sem ninguém por perto), seguindo às 8h15 pra Notre-Dame/Île de la Cité. No Marais as lojas costumam abrir aos domingos — mas boa parte só na parte da tarde. Às 10h, o passeio de 'Before Sunset': começa na livraria Shakespeare and Company (frente à Notre-Dame), segue pela Rue Saint-Julien le Pauvre e Rue Galande, atravessa o Sena e chega ao Marais pela Rue des Jardins Saint-Paul. Pro almoço rápido antes das compras, L'As du Fallafel ou o Hank Burger (vegano) resolvem sem precisar de garçom — ver aba Alimentação. À tarde, Sabre (talheres, a partir das 13h30), os brechós Free'p'Star (a partir das 15h) e a Uniqlo do Marais e a Muji (a partir das 16h30, uma do lado da outra na mesma rua). Volta ao hotel até as 20h.",
+    title: "Dom. — Montmartre + Marais",
+    narrative: "Domingo sem pressa: café da manhã no hotel às 8h30 e sobe pra Montmartre (coladinho, ~15 min) pra tirar fotos na cabine analógica do Amélie (Fotoautomat, 53 Rue des Trois Frères) — aberta 8h30 e com fila menor de manhã. Depois desce pro Marais pras compras: Alatone (abre 11h30) e Sabre (talheres), com almoço rápido na Rue des Rosiers e um fim de tarde tranquilo na Place des Vosges. Tarde e noite livres.",
   },
   "2026-09-14": {
-    title: "Seg. — Parc Monceau + Longchamp",
-    narrative: "Dia mais tranquilo, pertinho do hotel. Comece pegando o lanche na Café Dose (Batignolles) e vá direto pro Parc Monceau fazer o piquenique assim que chegar. À tarde, Longchamp (fica na região Saint-Honoré, uma das zonas com funcionamento normal de segunda a sábado). Volta ao hotel até as 20h.",
+    title: "Seg. — Rive Gauche",
+    narrative: "Manhã no Quartier Latin/Saint-Germain: Pharmacie Monge (8h), Panthéon (área externa), Diptyque (velas, no Bd Saint-Germain), macarons na Ladurée Bonaparte e piquenique de almoço no Jardim de Luxemburgo. À tarde, GoodJo Vintage, o bar à mousse da Chapon (Saint-Sulpice), os chocolates da À la Mère de Famille (Cherche-Midi) e a manteiga Bordier na La Grande Épicerie. Fecha o dia com a vista da Torre Eiffel pelo mirante do Trocadéro.",
   },
   "2026-09-15": {
-    title: "Ter. — Canal Saint-Martin + Luxemburgo",
-    narrative: "Terça-feira funciona bem aqui (nenhum dos dois é museu, então não pega o fechamento de terça do Louvre/Pompidou). Manhã na região do Canal Saint-Martin — passe na padaria Liberté pra pegar o lanche e vá direto pro Jardim de Luxemburgo fazer o piquenique. Depois, GoodJo Vintage e Kilo Shop (ambos em Saint-Germain, ali do lado) pra uma parada de brechó. Volta ao hotel até as 20h.",
+    title: "Ter. — Parc Monceau + Saint-Germain",
+    narrative: "Manhã perto do hotel: lanche na Café Joyeux, piquenique no Parc Monceau, Opéra Garnier e o rooftop grátis das Galeries Lafayette (La Terrasse, na Coupole — vista da Torre Eiffel e do Sacré-Cœur, ao lado do Opéra). Depois, Rue d'Aboukir (vestidos de festa). Tarde livre.",
   },
   "2026-09-16": {
     title: "Qua. — Versailles (bate-volta)",
@@ -2863,6 +2572,51 @@ function LogisticsTab({ logistics }) {
       </SectionCard>
 
       <SectionCard>
+        <p className="font-display text-[18px] mb-1">Checklist personalizado da mala</p>
+        <p className="text-[12px] text-[#8A8375] mb-3">Cruzando o que você já colocou na mochila com o que ainda falta, com base em tudo que já organizamos no app.</p>
+        <div className="space-y-3 text-[12px] text-[#4A453D] leading-relaxed">
+          <div>
+            <p className="font-medium text-[13px] text-[#5B6B4E]">✓ Já na mochila</p>
+            <ul className="mt-1 space-y-1">
+              <li className="flex gap-1.5"><span className="text-[#5B6B4E] shrink-0">•</span> Reservas e seguro viagem impressos</li>
+              <li className="flex gap-1.5"><span className="text-[#5B6B4E] shrink-0">•</span> Passaporte</li>
+              <li className="flex gap-1.5"><span className="text-[#5B6B4E] shrink-0">•</span> Power bank</li>
+              <li className="flex gap-1.5"><span className="text-[#5B6B4E] shrink-0">•</span> Balança de mão</li>
+              <li className="flex gap-1.5"><span className="text-[#5B6B4E] shrink-0">•</span> 2 saias, 1 blusa de frio clara, 1 vestido preto (noite), 1 vestido preto (dia)</li>
+              <li className="flex gap-1.5"><span className="text-[#5B6B4E] shrink-0">•</span> 4 calcinhas, 1 meia térmica</li>
+              <li className="flex gap-1.5"><span className="text-[#5B6B4E] shrink-0">•</span> Chinelo</li>
+              <li className="flex gap-1.5"><span className="text-[#5B6B4E] shrink-0">•</span> Bolsa preta pequena, bolsa nude média, bolsa de remédios</li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-medium text-[13px] text-[#9B2C2C]">Ainda falta — roupas e calçado</p>
+            <ul className="mt-1 space-y-1">
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Tênis (New Balance) — é peça-chave dos looks já planejados na aba Outfits, pros dias de mais caminhada</li>
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Um casaco mais quente pra manhã (as fotos são 6h30-8h15, com 11-14°C — a blusa de frio clara sozinha pode não bastar)</li>
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Mais peças íntimas — 4 calcinhas pra 8 dias é pouco, ou combine com lavar uma vez no meio da viagem</li>
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Sutiãs</li>
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Regata(s) preta(s) — usada em pelo menos 2 dos looks já montados</li>
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Pijama e meias comuns (além da térmica)</li>
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Lenço/echarpe e óculos de sol</li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-medium text-[13px] text-[#9B2C2C]">Ainda falta — itens práticos</p>
+            <ul className="mt-1 space-y-1">
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Guarda-chuva compacto</li>
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Adaptador de tomada (tipo C/E)</li>
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Garrafinha de água reutilizável (útil nos piqueniques/parques do roteiro)</li>
+              <li className="flex gap-1.5"><span className="text-[#A88856] shrink-0">•</span> Sacola dobrável extra — vão voltar com Longchamp, Sabre, presentes e mais</li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-medium text-[13px] text-[#9B2C2C]">Conferir na "bolsa de remédios"</p>
+            <p>Baseado na aba Saúde: Baricitinibe (+ receita e laudo), Sertralina (+ receita), Ondansetrona, Resfenol, Strepsils, Advil, Esomeprazol, Luftal — todos na embalagem original.</p>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard>
         <p className="font-display text-[18px] mb-3">Tomada e voltagem (Brasil → França)</p>
         <div className="space-y-3 text-[12px] text-[#4A453D] leading-relaxed">
           <div>
@@ -2934,7 +2688,7 @@ function LogisticsTab({ logistics }) {
           </div>
           <div>
             <p className="font-medium text-[13px] text-[#1C1C1E]">Alimentos (chá, chocolate, café, manteiga, queijo)</p>
-            <p>Produtos industrializados, lacrados e rotulados de fábrica (como os desta viagem) geralmente passam sem problema. O que é restrito/proibido é item <em>in natura</em>: queijo fresco, embutidos, frutas, sementes — não é o caso de nada que está no roteiro de compras de vocês.</p>
+            <p>Produtos industrializados, lacrados e rotulados de fábrica (como os desta viagem) geralmente passam sem problema. O que é restrito/proibido é item <em>in natura</em>: queijo fresco, embutidos, frutas, sementes — não é o caso de nada que está no roteiro de compras de vocês. Especificamente pra laticínios (manteiga, queijo maturado, creme de leite): há uma instrução normativa do Mapa/Vigiagro que libera esses produtos industrializados, com limite de 5kg (ou 5 litros) por pessoa — bem acima do que vocês pretendem trazer.</p>
           </div>
           <div>
             <p className="font-medium text-[13px] text-[#1C1C1E]">Se passar da cota</p>
@@ -3224,8 +2978,8 @@ function HealthTab() {
 
 const defaultGifts = [
   {
-    id: uid(), person: "Sueli", budgetEUR: 20, giftType: "Chá",
-    suggestion: "Mariage Frères (lata ~100g, €14-18) — Marais, 30 Rue du Bourg-Tibourg",
+    id: uid(), person: "Sueli", budgetEUR: 50, giftType: "Chá",
+    suggestion: "Com €50 dá pra caprichar: um conjunto de 2-3 latas da Mariage Frères (€14-18 cada), ou uma lata maior/edição especial da casa — 30 Rue du Bourg-Tibourg, Marais.",
   },
   {
     id: uid(), person: "Eduardo", budgetEUR: 10, giftType: "Café",
