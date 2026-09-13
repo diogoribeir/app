@@ -802,13 +802,6 @@ const defaultItinerary = [
     notes: "Rua cheia de lojinhas de vestido de festa a preço bom — vestidos lindos por uns €60 em média, bem mais em conta que grife. Algumas boutiques conhecidas: Elsa Mode (113), Tessy Paris (112), Chic & Mignonne, Moda Shelly, Ornelys Couture. Boa variedade de tamanhos e estilos, vale reservar um tempinho pra provar em mais de uma loja. Enquanto isso, o Di pode dar uma volta pela Passage du Caire (a passagem coberta mais antiga de Paris, ali do lado) ou só sentar num café na Rue Réaumur vendo o movimento.",
   },
   {
-    id: uid(), date: "2026-09-15", time: "11:00", title: "Opéra Garnier (área externa)", type: "passeio",
-    address: "Place de l'Opéra, 75009 Paris", lat: 48.8719, lng: 2.3316,
-    metro: "Opéra (M3, M7, M8), na saída",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Só a fachada suntuosa do teatro — sem entrar (ingresso pago). Fica a uns 10-15 min a pé do Parc Monceau, pela Rue de la Paix/Place Vendôme.",
-  },
-  {
     id: uid(), date: "2026-09-15", time: "08:30", title: "Comprar lanche na Café Joyeux", type: "restaurante",
     address: "68 Place du Dr Félix Lobligeois, 75017 Paris", lat: 48.8869, lng: 2.3223,
     metro: "Rome (M2), ~5 min a pé",
@@ -820,7 +813,7 @@ const defaultItinerary = [
     address: "35 Boulevard de Courcelles, 75008 Paris", lat: 48.8797, lng: 2.3095,
     metro: "Monceau (M2), na entrada do parque",
     costAmount: "0", costCurrency: "EUR",
-    notes: "Parque elegante com arquitetura clássica (colunata, pirâmide, pontezinha). Piquenique logo na chegada, com o lanche já comprado na Café Joyeux, e depois uma caminhada tranquila pelo parque antes de seguir pra Opéra Garnier.",
+    notes: "Parque elegante com arquitetura clássica (colunata, pirâmide, pontezinha). Piquenique logo na chegada, com o lanche já comprado na Café Joyeux, e depois uma caminhada tranquila pelo parque.",
   },
   {
     id: uid(), date: "2026-09-13", time: "08:30", title: "Café da manhã no hotel", type: "restaurante",
@@ -1000,11 +993,11 @@ const defaultItinerary = [
     notes: "O primeiro bar à mousse de chocolate de Paris — várias mousses artesanais servidas na hora (~€7 o pequeno), além de tabletes single-origin, trufas e pralines pra levar. Fica em frente à igreja Saint-Sulpice, no coração de Saint-Germain, a ~300 m do GoodJo. ⚠️ Na segunda abre só às 13h (confirmado), por isso entra depois do GoodJo. Chapon tem várias unidades; essa (75006) é a do bar à mousse.",
   },
   {
-    id: uid(), date: "2026-09-15", time: "11:20", title: "Rooftop das Galeries Lafayette (La Terrasse)", type: "passeio",
+    id: uid(), date: "2026-09-13", time: "18:50", title: "Rooftop das Galeries Lafayette (La Terrasse)", type: "passeio",
     address: "40 Boulevard Haussmann, 75009 Paris (8º andar da Coupole)", lat: 48.8738, lng: 2.3320,
     metro: "Chaussée d'Antin – La Fayette (M7, M9) ou Opéra (M3, M7, M8), na saída",
     costAmount: "0", costCurrency: "EUR",
-    notes: "Terraço aberto no topo da loja principal (a Coupole, 40 Bd Haussmann) — GRÁTIS, sem ingresso: é só subir. Vista 360° de Paris, com a Torre Eiffel, a Ópera e o Sacré-Cœur. Aberto ter-sáb 10h-20h30 (confirmado). Fica a ~250 m do Opéra Garnier, então cai no caminho sem desvio. ⚠️ É a unidade certa: a do rooftop é a Galeries Lafayette Haussmann (a da cúpula), não as lojas Homme/Maison.",
+    notes: "Terraço aberto no topo da loja principal (a Coupole, 40 Bd Haussmann) — GRÁTIS, sem ingresso: é só subir. Vista 360° de Paris, com a Torre Eiffel, a Ópera e o Sacré-Cœur. No domingo abre 11h e FECHA 20h (confirmado) — o pôr do sol hoje é ~19h50, então subir por volta de 18h50-19h30 pega a luz dourada antes de fechar. ⚠️ É a unidade certa: o rooftop é o da Galeries Lafayette Haussmann (a da cúpula), não as lojas Homme/Maison.",
   },
   {
     id: uid(), date: "2026-09-14", time: "16:00", title: "Torre Eiffel de novo — mirante do Trocadéro", type: "passeio",
@@ -1036,7 +1029,7 @@ const defaultItinerary = [
 const DAY_PLANS = {
   "2026-09-13": {
     title: "Dom. — Montmartre + Marais",
-    narrative: "Domingo sem pressa: café da manhã no hotel às 8h30 e sobe pra Montmartre (coladinho, ~15 min) pra tirar fotos na cabine analógica do Amélie (Fotoautomat, 53 Rue des Trois Frères) — aberta 8h30 e com fila menor de manhã. Depois desce pro Marais pras compras: Alatone (abre 11h30) e Sabre (talheres), com almoço rápido na Rue des Rosiers e um fim de tarde tranquilo na Place des Vosges. Tarde e noite livres.",
+    narrative: "Domingo sem pressa: café da manhã no hotel às 8h30 e sobe pra Montmartre (coladinho, ~15 min) pra tirar fotos na cabine analógica do Amélie (Fotoautomat, 53 Rue des Trois Frères) — aberta 8h30 e com fila menor de manhã. Depois desce pro Marais pras compras: Alatone (abre 11h30) e Sabre (talheres), com almoço rápido na Rue des Rosiers e uma pausa na Place des Vosges. No fim de tarde, adiantado da terça, o rooftop grátis das Galeries Lafayette (La Terrasse) — subir por volta de 18h50-19h30 pra pegar o pôr do sol (fecha 20h).",
   },
   "2026-09-14": {
     title: "Seg. — Rive Gauche",
@@ -1044,7 +1037,7 @@ const DAY_PLANS = {
   },
   "2026-09-15": {
     title: "Ter. — Parc Monceau + Saint-Germain",
-    narrative: "Manhã perto do hotel: lanche na Café Joyeux, piquenique no Parc Monceau, Opéra Garnier e o rooftop grátis das Galeries Lafayette (La Terrasse, na Coupole — vista da Torre Eiffel e do Sacré-Cœur, ao lado do Opéra). Depois, Rue d'Aboukir (vestidos de festa). Tarde livre.",
+    narrative: "Manhã perto do hotel: lanche na Café Joyeux e piquenique no Parc Monceau. Depois, Rue d'Aboukir (vestidos de festa — o Sentier fecha domingo, por isso fica pra cá). (O rooftop das Galeries Lafayette foi adiantado pro domingo.) Tarde livre.",
   },
   "2026-09-16": {
     title: "Qua. — Versailles (bate-volta)",
@@ -1251,7 +1244,7 @@ export default function ParisTripPlanner() {
         loadKey("paris-trip:souvenirs", defaultSouvenirs),
         loadKey("paris-trip:gifts", defaultGifts),
         loadKey("paris-trip:favorites", {}),
-        loadKey("paris-trip:mig_itin_20260913", false),
+        loadKey("paris-trip:mig_itin_20260913b", false),
       ]);
       setBudget(b);
       // Migração única (set/2026): a partir de sáb 12/09 o roteiro foi refeito
@@ -1260,7 +1253,7 @@ export default function ParisTripPlanner() {
       // trocaria o que aparece no app; então na 1ª abertura após o deploy a gente
       // força o novo itinerário na nuvem e grava o marcador pra rodar só uma vez.
       const itin = migItin ? i : defaultItinerary;
-      if (!migItin) saveKey("paris-trip:mig_itin_20260913", true);
+      if (!migItin) saveKey("paris-trip:mig_itin_20260913b", true);
       setItinerary(itin);
       setLogistics({
         ...emptyLogistics, ...l,
