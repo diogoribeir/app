@@ -788,32 +788,18 @@ const defaultItinerary = [
     notes: "Segunda mão de luxo (Hermès, Chanel, YSL, Dior, Céline) — vale checar se precisa de horário marcado (o Instagram deles menciona atendimento 'sur rdv'). Boas pedidas: lenços de seda Hermès (entrada mais acessível na marca) e bolsas pequenas/clutches vintage. Tem uma segunda unidade em 16 Rue de la Sourdière, 75001, perto do Louvre. Enquanto isso, o Di pode aproveitar as livrarias de segunda mão ao redor do Odéon, ou sentar num café na região pra ver o movimento.",
   },
   {
-    id: uid(), date: "2026-09-14", time: "14:45", title: "La Grande Épicerie (manteiga Bordier)", type: "compras",
+    id: uid(), date: "2026-09-14", time: "14:45", title: "La Grande Épicerie", type: "compras",
     address: "38 Rue de Sèvres, 75007 Paris", lat: 48.8503, lng: 2.3247,
     metro: "Sèvres-Babylone (M10, M12), na saída",
     costAmount: "5", costCurrency: "EUR",
     notes: "Empório gourmet que faz embalagem a vácuo na hora pra manteiga Bordier — essencial pra sobreviver à viagem de volta. Sabores: tradicional, sal defumado, trufa, baunilha. Fica a uns 10 min a pé do GoodJo, fechando o roteiro da manhã. Depois disso, tarde livre.",
   },
   {
-    id: uid(), date: "2026-09-15", time: "12:00", title: "Rue d'Aboukir (vestidos de festa)", type: "compras",
-    address: "Rue d'Aboukir, 75002 Paris", lat: 48.868, lng: 2.3478,
-    metro: "Sentier (M3), na saída",
-    costAmount: "60", costCurrency: "EUR",
-    notes: "Rua cheia de lojinhas de vestido de festa a preço bom — vestidos lindos por uns €60 em média, bem mais em conta que grife. Algumas boutiques conhecidas: Elsa Mode (113), Tessy Paris (112), Chic & Mignonne, Moda Shelly, Ornelys Couture. Boa variedade de tamanhos e estilos, vale reservar um tempinho pra provar em mais de uma loja. Enquanto isso, o Di pode dar uma volta pela Passage du Caire (a passagem coberta mais antiga de Paris, ali do lado) ou só sentar num café na Rue Réaumur vendo o movimento.",
-  },
-  {
-    id: uid(), date: "2026-09-15", time: "08:30", title: "Comprar lanche na Café Joyeux", type: "restaurante",
-    address: "68 Place du Dr Félix Lobligeois, 75017 Paris", lat: 48.8869, lng: 2.3223,
-    metro: "Rome (M2), ~5 min a pé",
-    costAmount: "12", costCurrency: "EUR",
-    notes: "Abre todos os dias, 9h-19h, bem pertinho do hotel — pega o lanche aqui antes de seguir pro Parc Monceau.",
-  },
-  {
     id: uid(), date: "2026-09-15", time: "10:00", title: "Parc Monceau (piquenique)", type: "passeio",
     address: "35 Boulevard de Courcelles, 75008 Paris", lat: 48.8797, lng: 2.3095,
     metro: "Monceau (M2), na entrada do parque",
     costAmount: "0", costCurrency: "EUR",
-    notes: "Parque elegante com arquitetura clássica (colunata, pirâmide, pontezinha). Piquenique logo na chegada, com o lanche já comprado na Café Joyeux, e depois uma caminhada tranquila pelo parque.",
+    notes: "Parque elegante com arquitetura clássica (colunata, pirâmide, pontezinha). Piquenique logo na chegada (comprar o lanche numa padaria/Monoprix a caminho) e uma caminhada tranquila pelo parque.",
   },
   {
     id: uid(), date: "2026-09-13", time: "08:30", title: "Café da manhã no hotel", type: "restaurante",
@@ -997,7 +983,7 @@ const defaultItinerary = [
     address: "40 Boulevard Haussmann, 75009 Paris (8º andar da Coupole)", lat: 48.8738, lng: 2.3320,
     metro: "Chaussée d'Antin – La Fayette (M7, M9) ou Opéra (M3, M7, M8), na saída",
     costAmount: "0", costCurrency: "EUR",
-    notes: "Terraço aberto no topo da loja principal (a Coupole, 40 Bd Haussmann) — GRÁTIS, sem ingresso: é só subir. Vista 360° de Paris, com a Torre Eiffel, a Ópera e o Sacré-Cœur. Encaixa na terça bem ao lado do Parc Monceau e da Rue d'Aboukir, sem desvio. Aberto ter 10h-20h30. ⚠️ É a unidade certa: o rooftop é o da Galeries Lafayette Haussmann (a da cúpula), não as lojas Homme/Maison.",
+    notes: "Terraço aberto no topo da loja principal (a Coupole, 40 Bd Haussmann) — GRÁTIS, sem ingresso: é só subir. Vista 360° de Paris, com a Torre Eiffel, a Ópera e o Sacré-Cœur. Encaixa na terça de manhã, logo depois do Parc Monceau (~2 min do Opéra). Aberto ter 10h-20h30. ⚠️ É a unidade certa: o rooftop é o da Galeries Lafayette Haussmann (a da cúpula), não as lojas Homme/Maison.",
   },
   {
     id: uid(), date: "2026-09-13", time: "19:00", title: "Torre Eiffel de novo — mirante do Trocadéro", type: "passeio",
@@ -1007,18 +993,11 @@ const defaultItinerary = [
     notes: "Fecha o domingo com a vista frontal mais bonita da Torre Eiffel, do outro lado do rio, no fim de tarde. Do Marais são ~35 min de metrô. Pôr do sol ~19h50 e a torre cintila 5 min a cada hora depois de escurecer (20h, 21h…) — dá pra esticar pra pegar a luz dourada e o brilho. Grátis.",
   },
   {
-    id: uid(), date: "2026-09-14", time: "10:00", title: "Diptyque (velas)", type: "compras",
-    address: "34 Boulevard Saint-Germain, 75005 Paris", lat: 48.8508, lng: 2.3486,
-    metro: "Maubert-Mutualité (M10), na saída",
-    costAmount: "", costCurrency: "EUR",
-    notes: "Loja-mãe da Diptyque (desde 1961) — velas perfumadas e o eau de parfum. Fica no Bd Saint-Germain, no Quartier Latin, entre o Panthéon e Saint-Germain, então cai cedo antes de cruzar pro lado oeste.",
-  },
-  {
     id: uid(), date: "2026-09-15", time: "13:00", title: "Voltar na Sabre", type: "compras",
     address: "39 Rue de Poitou, 75003 Paris", lat: 48.8631, lng: 2.3641,
     metro: "Filles du Calvaire (M8), ~5 min a pé",
     costAmount: "", costCurrency: "EUR",
-    notes: "Segunda passada na Sabre pra comprar/ajustar o que faltou nas colheres. Aberta todo dia 11h-19h. Da Rue d'Aboukir (Sentier) são ~15-20 min até aqui (Haut-Marais), emendando com a manhã da terça.",
+    notes: "Segunda passada na Sabre pra comprar/ajustar o que faltou nas colheres. Aberta todo dia 11h-19h. Do rooftop das Galeries (Opéra) são ~20 min de metrô até aqui (Haut-Marais), emendando com o Château de Vincennes logo depois.",
   },
   {
     id: uid(), date: "2026-09-15", time: "14:00", title: "Château de Vincennes", type: "passeio",
@@ -1040,11 +1019,11 @@ const DAY_PLANS = {
   },
   "2026-09-14": {
     title: "Seg. — Rive Gauche",
-    narrative: "Manhã no Quartier Latin/Saint-Germain: Pharmacie Monge (8h), Panthéon (área externa), Diptyque (velas, no Bd Saint-Germain), macarons na Ladurée Bonaparte e piquenique de almoço no Jardim de Luxemburgo. À tarde, GoodJo Vintage, o bar à mousse da Chapon (Saint-Sulpice) e a manteiga Bordier na La Grande Épicerie.",
+    narrative: "Manhã no Quartier Latin/Saint-Germain: Pharmacie Monge (8h), Panthéon (área externa), macarons na Ladurée Bonaparte e piquenique de almoço no Jardim de Luxemburgo. À tarde, GoodJo Vintage, o bar à mousse da Chapon (Saint-Sulpice) e a manteiga Bordier na La Grande Épicerie.",
   },
   "2026-09-15": {
     title: "Ter. — Parc Monceau + Saint-Germain",
-    narrative: "Manhã perto do hotel: lanche na Café Joyeux, piquenique no Parc Monceau e o rooftop grátis das Galeries Lafayette (La Terrasse — vista da Torre Eiffel e do Sacré-Cœur, logo ao lado). Depois, Rue d'Aboukir (vestidos de festa — o Sentier fecha domingo, por isso fica pra cá). À tarde, uma volta na Sabre (Haut-Marais) e o Château de Vincennes — castelo medieval com o maior torreão da Europa e a Sainte-Chapelle real, a ~20 min de metrô (M1 direto do Marais).",
+    narrative: "Manhã tranquila: piquenique no Parc Monceau e o rooftop grátis das Galeries Lafayette (La Terrasse — vista da Torre Eiffel e do Sacré-Cœur). À tarde, uma volta na Sabre (Haut-Marais) e o Château de Vincennes — castelo medieval com o maior torreão da Europa e a Sainte-Chapelle real, a ~20 min de metrô (M1 direto do Marais).",
   },
   "2026-09-16": {
     title: "Qua. — Versailles (bate-volta)",
@@ -1251,7 +1230,7 @@ export default function ParisTripPlanner() {
         loadKey("paris-trip:souvenirs", defaultSouvenirs),
         loadKey("paris-trip:gifts", defaultGifts),
         loadKey("paris-trip:favorites", {}),
-        loadKey("paris-trip:mig_itin_20260913g", false),
+        loadKey("paris-trip:mig_itin_20260913h", false),
       ]);
       setBudget(b);
       // Migração única (set/2026): a partir de sáb 12/09 o roteiro foi refeito
@@ -1260,7 +1239,7 @@ export default function ParisTripPlanner() {
       // trocaria o que aparece no app; então na 1ª abertura após o deploy a gente
       // força o novo itinerário na nuvem e grava o marcador pra rodar só uma vez.
       const itin = migItin ? i : defaultItinerary;
-      if (!migItin) saveKey("paris-trip:mig_itin_20260913g", true);
+      if (!migItin) saveKey("paris-trip:mig_itin_20260913h", true);
       setItinerary(itin);
       setLogistics({
         ...emptyLogistics, ...l,
