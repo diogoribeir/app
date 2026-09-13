@@ -1024,8 +1024,8 @@ const defaultItinerary = [
     id: uid(), date: "2026-09-15", time: "14:00", title: "Château de Vincennes", type: "passeio",
     address: "1 Avenue de Paris, 94300 Vincennes", lat: 48.8428, lng: 2.4358,
     metro: "Château de Vincennes (M1), na porta",
-    costAmount: "22", costCurrency: "EUR",
-    notes: "Castelo medieval de verdade dentro de Paris — o maior torreão (donjon) medieval da Europa + a Sainte-Chapelle real. Aberto todo dia 10h-18h (torreão/capela até ~17h30, ~€11/pessoa). Do Marais é M1 DIRETO (Saint-Paul → Château de Vincennes, ~20 min), emendando logo após a volta na Sabre.",
+    costAmount: "26", costCurrency: "EUR",
+    notes: "Castelo medieval de verdade dentro de Paris — o maior torreão (donjon) medieval da Europa + a Sainte-Chapelle real. A ENTRADA custa ~€13/pessoa (adulto) e inclui torreão, capela, muralhas, jardins e a experiência Revelacio (1h30); o pátio/esplanada é grátis. (Os €26 aqui são a entrada dos 2 — o metrô é à parte, ~€2,50/trecho ou passe.) Aberto todo dia 10h-18h (última entrada ~17h). M1 DIRETO do Marais (Saint-Paul → Château de Vincennes, ~20 min), logo após a Sabre.",
   }
 ];
 
@@ -1251,7 +1251,7 @@ export default function ParisTripPlanner() {
         loadKey("paris-trip:souvenirs", defaultSouvenirs),
         loadKey("paris-trip:gifts", defaultGifts),
         loadKey("paris-trip:favorites", {}),
-        loadKey("paris-trip:mig_itin_20260913f", false),
+        loadKey("paris-trip:mig_itin_20260913g", false),
       ]);
       setBudget(b);
       // Migração única (set/2026): a partir de sáb 12/09 o roteiro foi refeito
@@ -1260,7 +1260,7 @@ export default function ParisTripPlanner() {
       // trocaria o que aparece no app; então na 1ª abertura após o deploy a gente
       // força o novo itinerário na nuvem e grava o marcador pra rodar só uma vez.
       const itin = migItin ? i : defaultItinerary;
-      if (!migItin) saveKey("paris-trip:mig_itin_20260913f", true);
+      if (!migItin) saveKey("paris-trip:mig_itin_20260913g", true);
       setItinerary(itin);
       setLogistics({
         ...emptyLogistics, ...l,
