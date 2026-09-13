@@ -1014,11 +1014,18 @@ const defaultItinerary = [
     notes: "Loja-mãe da Diptyque (desde 1961) — velas perfumadas e o eau de parfum. Fica no Bd Saint-Germain, no Quartier Latin, entre o Panthéon e Saint-Germain, então cai cedo antes de cruzar pro lado oeste.",
   },
   {
-    id: uid(), date: "2026-09-14", time: "14:15", title: "À la Mère de Famille (chocolates)", type: "compras",
-    address: "39 Rue du Cherche-Midi, 75006 Paris", lat: 48.8483, lng: 2.3258,
-    metro: "Sèvres – Babylone (M10, M12), ~4 min a pé",
+    id: uid(), date: "2026-09-15", time: "13:00", title: "Voltar na Sabre", type: "compras",
+    address: "39 Rue de Poitou, 75003 Paris", lat: 48.8631, lng: 2.3641,
+    metro: "Filles du Calvaire (M8), ~5 min a pé",
     costAmount: "", costCurrency: "EUR",
-    notes: "A chocolateria mais antiga de Paris — essa unidade (Cherche-Midi, 75006) mantém o interior histórico de 1895 e fica a ~200 m da La Grande Épicerie, entrando bem no fim das compras de St-Germain. Aberta seg-sáb 10h-19h30. (A rede tem várias lojas; escolhi a de St-Germain pra não desviar pro 9º.)",
+    notes: "Segunda passada na Sabre pra comprar/ajustar o que faltou nas colheres. Aberta todo dia 11h-19h. Da Rue d'Aboukir (Sentier) são ~15-20 min até aqui (Haut-Marais), emendando com a manhã da terça.",
+  },
+  {
+    id: uid(), date: "2026-09-17", time: "13:00", title: "Musée d'Orsay (visita)", type: "passeio",
+    address: "Esplanade Valéry Giscard d'Estaing, 75007 Paris", lat: 48.8600, lng: 2.3266,
+    metro: "Solférino (M12) ou Musée d'Orsay (RER C), na saída",
+    costAmount: "35", costCurrency: "EUR",
+    notes: "Dessa vez entrando de verdade — a casa dos impressionistas (Monet, Renoir, Van Gogh, Degas) num antigo terminal de trem lindíssimo. Ficou na quinta porque não tinha vaga na terça (só 16 e 17, e dia 16 é Versailles). Depois do checkout (11h, malas na recepção): reservem o horário das ~13h (~R$210 os 2). Reservem ~2h. Daqui dá pra seguir pro Le Butter Shop (75015, ~15 min) no fim da tarde.",
   }
 ];
 
@@ -1033,11 +1040,11 @@ const DAY_PLANS = {
   },
   "2026-09-14": {
     title: "Seg. — Rive Gauche",
-    narrative: "Manhã no Quartier Latin/Saint-Germain: Pharmacie Monge (8h), Panthéon (área externa), Diptyque (velas, no Bd Saint-Germain), macarons na Ladurée Bonaparte e piquenique de almoço no Jardim de Luxemburgo. À tarde, GoodJo Vintage, o bar à mousse da Chapon (Saint-Sulpice), os chocolates da À la Mère de Famille (Cherche-Midi) e a manteiga Bordier na La Grande Épicerie.",
+    narrative: "Manhã no Quartier Latin/Saint-Germain: Pharmacie Monge (8h), Panthéon (área externa), Diptyque (velas, no Bd Saint-Germain), macarons na Ladurée Bonaparte e piquenique de almoço no Jardim de Luxemburgo. À tarde, GoodJo Vintage, o bar à mousse da Chapon (Saint-Sulpice) e a manteiga Bordier na La Grande Épicerie.",
   },
   "2026-09-15": {
     title: "Ter. — Parc Monceau + Saint-Germain",
-    narrative: "Manhã perto do hotel: lanche na Café Joyeux, piquenique no Parc Monceau e o rooftop grátis das Galeries Lafayette (La Terrasse — vista da Torre Eiffel e do Sacré-Cœur, logo ao lado). Depois, Rue d'Aboukir (vestidos de festa — o Sentier fecha domingo, por isso fica pra cá). Tarde livre.",
+    narrative: "Manhã perto do hotel: lanche na Café Joyeux, piquenique no Parc Monceau e o rooftop grátis das Galeries Lafayette (La Terrasse — vista da Torre Eiffel e do Sacré-Cœur, logo ao lado). Depois, Rue d'Aboukir (vestidos de festa — o Sentier fecha domingo, por isso fica pra cá). À tarde, uma volta na Sabre (Haut-Marais, ~15 min dali). Depois, tarde livre.",
   },
   "2026-09-16": {
     title: "Qua. — Versailles (bate-volta)",
@@ -1045,7 +1052,7 @@ const DAY_PLANS = {
   },
   "2026-09-17": {
     title: "Qui. — Checkout + traslado",
-    narrative: "Checkout do LALA Hôtel às 11h, deixando as malas guardadas na recepção pra continuar aproveitando a cidade sem carregar nada. Le Butter Shop no fim da tarde, jantar tranquilo, e só à noite retira as malas e segue pro hotel do aeroporto pra dormir.",
+    narrative: "Checkout do LALA Hôtel às 11h, deixando as malas guardadas na recepção pra continuar aproveitando a cidade sem carregar nada. À tarde, a visita ao Musée d'Orsay (impressionistas, ~13h — reservado; o Orsay fecha 2ª e não tinha vaga na terça), o Le Butter Shop no fim da tarde, jantar tranquilo, e só à noite retira as malas e segue pro hotel do aeroporto pra dormir.",
   },
   "2026-09-18": {
     title: "Sex. — Volta ao Brasil",
@@ -1244,7 +1251,7 @@ export default function ParisTripPlanner() {
         loadKey("paris-trip:souvenirs", defaultSouvenirs),
         loadKey("paris-trip:gifts", defaultGifts),
         loadKey("paris-trip:favorites", {}),
-        loadKey("paris-trip:mig_itin_20260913c", false),
+        loadKey("paris-trip:mig_itin_20260913e", false),
       ]);
       setBudget(b);
       // Migração única (set/2026): a partir de sáb 12/09 o roteiro foi refeito
@@ -1253,7 +1260,7 @@ export default function ParisTripPlanner() {
       // trocaria o que aparece no app; então na 1ª abertura após o deploy a gente
       // força o novo itinerário na nuvem e grava o marcador pra rodar só uma vez.
       const itin = migItin ? i : defaultItinerary;
-      if (!migItin) saveKey("paris-trip:mig_itin_20260913c", true);
+      if (!migItin) saveKey("paris-trip:mig_itin_20260913e", true);
       setItinerary(itin);
       setLogistics({
         ...emptyLogistics, ...l,
