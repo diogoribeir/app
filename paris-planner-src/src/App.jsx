@@ -843,49 +843,11 @@ const defaultItinerary = [
     notes: "A praça mais antiga e charmosa de Paris, com jardim e arcadas — sente num banco à sombra pra descansar com calma. Daqui em diante a tarde e a noite ficam livres.",
   },
   {
-    id: uid(), date: "2026-09-16", time: "08:00", title: "Café da manhã em Batignolles", type: "restaurante",
-    address: "Batignolles, 75017 Paris", lat: 48.8837, lng: 2.3226,
-    metro: "Rome (M2)",
-    costAmount: "12", costCurrency: "EUR",
-    notes: "Qualquer padaria da região resolve antes de seguir pro RER C — reserve um tempinho pra chegar até a estação.",
-  },
-  {
-    id: uid(), date: "2026-09-16", time: "08:45", title: "Saída pro Château de Versailles", type: "transporte",
-    address: "", lat: null, lng: null, metro: "RER C (linha C5 ou C7) até Versailles Château – Rive Gauche, ~35-40 min",
-    costAmount: "8", costCurrency: "EUR",
-    notes: "RER C direto de Paris (bilhete avulso ~€4/pessoa) — pegue o trem numa estação como Invalides ou Champ de Mars. Confirme antes se é a linha C5 ou C7 que vai direto até Versailles Château – Rive Gauche.",
-  },
-  {
-    id: uid(), date: "2026-09-16", time: "09:30", title: "Château de Versailles (fachada + jardins)", type: "passeio",
-    address: "Place d'Armes, 78000 Versailles, França", lat: 48.8049, lng: 2.1204,
-    metro: "Versailles Château – Rive Gauche (RER C), ~10 min a pé",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Assim como no Louvre e nos outros monumentos do roteiro, aqui é só fachada + jardins, sem entrar no palácio — os jardins são gratuitos na maior parte do ano (quarta-feira normalmente não tem 'Grandes Eaux Musicales', que é o dia que cobra entrada). Reserve umas 3h pra aproveitar bem os jardins e a fachada com calma, já que agora é o dia inteiro dedicado a isso. Se decidirem entrar no palácio, o ingresso Passaporte custa ~€21/pessoa.",
-  },
-  {
-    id: uid(), date: "2026-09-16", time: "12:30", title: "Almoço — 3 opções pra escolher", type: "restaurante",
-    address: "Versailles, 78000 França", lat: 48.8014, lng: 2.1301,
-    metro: "",
-    costAmount: "20", costCurrency: "EUR",
-    options: [
-      { name: "Restaurante à la carte da cidade de Versailles", desc: "refeição completa, sentados, perto do castelo" },
-      { name: "Café/boulangerie da região", desc: "sanduíche ou quiche, mais rápido" },
-      { name: "Piquenique nos jardins do castelo", desc: "leve algo comprado antes e aproveite os jardins" },
-    ],
-    notes: "Decidam conforme o tempo disponível antes de voltar pra Paris.",
-  },
-  {
-    id: uid(), date: "2026-09-16", time: "16:00", title: "Retorno a Paris", type: "transporte",
-    address: "", lat: null, lng: null, metro: "RER C de volta, ~35-40 min",
-    costAmount: "0", costCurrency: "EUR",
-    notes: "Direto pro centro de Paris — já incluso no bilhete de ida e volta.",
-  },
-  {
-    id: uid(), date: "2026-09-16", time: "19:00", title: "Jantar no Bloom (vegetal, perto do hotel)", type: "restaurante",
+    id: uid(), date: "2026-09-16", time: "19:30", title: "Jantar no Bloom (vegetal, perto do hotel)", type: "restaurante",
     address: "99 Rue Jouffroy-d'Abbans, 75017 Paris", lat: 48.8845, lng: 2.3095,
     metro: "Wagram (M3) ou Malesherbes (M3), ~5 min a pé",
     costAmount: "30", costCurrency: "EUR",
-    notes: "100% vegetal (sushi vegetariano) — a Tati come de tudo e o Di come veg junto, numa noite calma perto do hotel depois de Versailles. ⚠️ É pequeno: RESERVAR pras 19:00 pelo Google/Zenchef (é confiável, não aparece no TheFork).",
+    notes: "100% vegetal (sushi vegetariano) — a Tati come de tudo e o Di come veg junto, numa noite calma perto do hotel depois de Chambord. ⚠️ É pequeno: RESERVAR pras 19:00 pelo Google/Zenchef (é confiável, não aparece no TheFork).",
   },
   {
     id: uid(), date: "2026-09-17", time: "11:00", title: "Checkout do LALA Hôtel (malas na recepção)", type: "hospedagem",
@@ -1005,6 +967,48 @@ const defaultItinerary = [
     metro: "Château de Vincennes (M1), na porta",
     costAmount: "26", costCurrency: "EUR",
     notes: "Castelo medieval de verdade dentro de Paris — o maior torreão (donjon) medieval da Europa + a Sainte-Chapelle real. A ENTRADA custa ~€13/pessoa (adulto) e inclui torreão, capela, muralhas, jardins e a experiência Revelacio (1h30); o pátio/esplanada é grátis. (Os €26 aqui são a entrada dos 2 — o metrô é à parte, ~€2,50/trecho ou passe.) Aberto todo dia 10h-18h (última entrada ~17h). M1 DIRETO do Marais (Saint-Paul → Château de Vincennes, ~20 min), logo após a Sabre.",
+  },
+  {
+    id: uid(), date: "2026-09-16", time: "07:15", title: "Saída do hotel → Gare d'Austerlitz", type: "transporte",
+    address: "Gare d'Austerlitz, 75013 Paris", lat: 48.8422, lng: 2.3660,
+    metro: "Gare d'Austerlitz (M5, M10, RER C)",
+    costAmount: "0", costCurrency: "EUR",
+    notes: "Bate-volta pro Loire — sair cedo pra aproveitar Chambord. Do hotel (Batignolles) até Austerlitz ~30-35 min de metrô; pegar um café/pão a caminho.",
+  },
+  {
+    id: uid(), date: "2026-09-16", time: "08:00", title: "Trem Austerlitz → Blois-Chambord", type: "transporte",
+    address: "Paris Austerlitz → Blois-Chambord", lat: 47.5877, lng: 1.3230,
+    metro: "Trem direto (~1h25-1h45), ~6/dia",
+    costAmount: "60", costCurrency: "EUR",
+    notes: "Trem direto Austerlitz → Blois-Chambord (~1h30). Comprar antes no SNCF Connect (a partir de ~€12-25/pessoa conforme a antecedência). ⚠️ Guardem o bilhete: dá desconto na entrada do castelo.",
+  },
+  {
+    id: uid(), date: "2026-09-16", time: "09:45", title: "Navette Blois → Chambord", type: "transporte",
+    address: "Estação Blois-Chambord → Château de Chambord", lat: 47.6161, lng: 1.5170,
+    metro: "Navette Rémi linha 2 (~40 min)",
+    costAmount: "0", costCurrency: "EUR",
+    notes: "Shuttle Rémi (linha 2) da estação até o castelo, ~40 min. ⚠️ RESERVAR até as 17h do dia anterior: +33 806 70 33 33.",
+  },
+  {
+    id: uid(), date: "2026-09-16", time: "10:30", title: "Château de Chambord (o castelo do dia)", type: "passeio",
+    address: "Château de Chambord, 41250 Chambord, França", lat: 47.6161, lng: 1.5170,
+    metro: "Navette Rémi linha 2, na porta",
+    costAmount: "62", costCurrency: "EUR",
+    notes: "O château renascentista mais espetacular da França e FOCO do dia — a escadaria de dupla hélice (atribuída a da Vinci), o telhado-cidade de torres, os salões, os jardins à francesa e o maior parque murado da Europa. Aberto 9h-18h (última entrada 17h30). Entrada: brasileiros pagam a tarifa 'hors EEE' de €31/pessoa (a de €21 é só pra residentes do Espaço Econômico Europeu; menor de 18 grátis). Reservem ~3-4h aqui.",
+  },
+  {
+    id: uid(), date: "2026-09-16", time: "13:30", title: "Almoço no Domaine de Chambord", type: "restaurante",
+    address: "Place Saint-Louis, 41250 Chambord", lat: 47.6161, lng: 1.5170,
+    metro: "No próprio domínio, em frente ao castelo",
+    costAmount: "40", costCurrency: "EUR",
+    notes: "Pausa no meio da visita — restaurantes e cafés na aldeia do domínio (Place Saint-Louis), de frente pro castelo. Comida regional do Loire.",
+  },
+  {
+    id: uid(), date: "2026-09-16", time: "15:30", title: "Volta a Paris (navette + trem)", type: "transporte",
+    address: "Chambord → Blois-Chambord → Paris Austerlitz", lat: 48.8422, lng: 2.3660,
+    metro: "Navette Rémi + trem (~2h no total)",
+    costAmount: "0", costCurrency: "EUR",
+    notes: "Navette de volta pra Blois + trem pra Austerlitz. Conferir o último trem no SNCF Connect e reservar a navette na véspera. Chegada em Paris no fim da tarde/começo da noite.",
   }
 ];
 
@@ -1026,8 +1030,8 @@ const DAY_PLANS = {
     narrative: "Manhã tranquila: piquenique no Parc Monceau e o rooftop grátis das Galeries Lafayette (La Terrasse — vista da Torre Eiffel e do Sacré-Cœur). À tarde, uma volta na Sabre (Haut-Marais) e o Château de Vincennes — castelo medieval com o maior torreão da Europa e a Sainte-Chapelle real, a ~20 min de metrô (M1 direto do Marais).",
   },
   "2026-09-16": {
-    title: "Qua. — Versailles (bate-volta)",
-    narrative: "Dia inteiro reservado pro Château de Versailles — só fachada + jardins, igual o resto do roteiro (sem entrar no palácio). RER C direto de Paris, ida e volta. Volta prevista no fim da tarde, com tempo de sobra pra jantar tranquilo perto do hotel.",
+    title: "Qua. — Chambord (bate-volta)",
+    narrative: "Bate-volta pro Château de Chambord, no Vale do Loire — o castelo mais espetacular da França (escadaria de dupla hélice, telhado de torres, jardins à francesa e um parque imenso), foco do dia. Trem de Austerlitz até Blois-Chambord (~1h30) + navette até o castelo (reservar na véspera). Dia cheio; volta no fim da tarde, com o jantar no Bloom perto do hotel (remarcar se voltarem cansados).",
   },
   "2026-09-17": {
     title: "Qui. — Checkout + traslado",
@@ -1230,7 +1234,7 @@ export default function ParisTripPlanner() {
         loadKey("paris-trip:souvenirs", defaultSouvenirs),
         loadKey("paris-trip:gifts", defaultGifts),
         loadKey("paris-trip:favorites", {}),
-        loadKey("paris-trip:mig_itin_20260913h", false),
+        loadKey("paris-trip:mig_itin_20260913i", false),
       ]);
       setBudget(b);
       // Migração única (set/2026): a partir de sáb 12/09 o roteiro foi refeito
@@ -1239,7 +1243,7 @@ export default function ParisTripPlanner() {
       // trocaria o que aparece no app; então na 1ª abertura após o deploy a gente
       // força o novo itinerário na nuvem e grava o marcador pra rodar só uma vez.
       const itin = migItin ? i : defaultItinerary;
-      if (!migItin) saveKey("paris-trip:mig_itin_20260913h", true);
+      if (!migItin) saveKey("paris-trip:mig_itin_20260913i", true);
       setItinerary(itin);
       setLogistics({
         ...emptyLogistics, ...l,
