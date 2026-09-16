@@ -77,8 +77,16 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   a partir dos eventos (`vacilo`/`resgate`/`ataque`), então gravações simultâneas dos dois **não brigam
   pelo mesmo número** — cada evento é uma chave própria (`PUT` idempotente). Recompensas, tipos de vacilo
   e config (nomes/combo) são chaves à parte.
-- **Sincronização:** Realtime Database via REST (Receita 1), nó **`planos/casal-pontos-dt2026`** — sem
-  login. localStorage é a cópia offline + **outbox** (reenvia o que falhou offline). Recarrega ao voltar
+- **Acesso por CÓDIGO SECRETO (não é o esquema de nó fixo dos outros apps):** ao abrir pela 1ª vez o app
+  mostra um **portão** (`#gate`) pedindo um código que o casal combina. O nó do banco é **derivado do
+  código** (`planos/casal-<hash cyrb53>`, `nodeFromCode()`/`setupSync()` no `app.js`) — sem o código não
+  dá pra achar nem ler os dados. O código fica em `localStorage` (`casalpontos:code`) e o state/outbox são
+  namespaced por nó. Trocar o código: menu ⋯ → "🔑 Trocar código secreto". Código normalizado (trim +
+  minúsculas). ⚠️ **Depende da regra do Firebase que bloqueia ler `/planos` inteiro** (só nós filhos
+  conhecidos são legíveis) — ver `FIREBASE-RULES.md`; sem ela, alguém que leia `/planos.json` ainda
+  enxerga tudo (buraco que afeta todos os apps). Segurança real dependeria de login (não usado aqui).
+- **Sincronização:** Realtime Database via REST (Receita 1), nó derivado do código (acima) — sem login.
+  localStorage é a cópia offline + **outbox** (reenvia o que falhou offline). Recarrega ao voltar
   e faz **polling a cada 7s** (via `_at`) para refletir o que o outro registrou (acesso simultâneo).
 - **Estatísticas:** cards (saldo de cada um, total de vacilos, maior combo) + gráficos SVG/CSS sem libs:
   vacilos por pessoa, vacilos por motivo, onde os pontos foram gastos e evolução dos pontos (linha).

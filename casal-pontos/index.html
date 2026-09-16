@@ -178,6 +178,7 @@
         <button id="shareBtn" class="menu-item"><span>📤 Compartilhar placar</span><small>Envia um resumo de como está</small></button>
         <button id="exportBtn" class="menu-item"><span>⬇️ Salvar backup</span><small>Baixa um arquivo com todos os dados</small></button>
         <button id="importBtn" class="menu-item"><span>⬆️ Restaurar backup</span><small>Carrega os dados de um arquivo salvo</small></button>
+        <button id="codeBtn" class="menu-item"><span>🔑 Trocar código secreto</span><small>Sai e pede o código de novo (o mesmo nos dois)</small></button>
         <button id="resetBtn" class="menu-item danger-text"><span>🗑️ Zerar placar</span><small>Apaga todo o histórico e pontos</small></button>
       </div>
       <input id="importFile" type="file" accept="application/json,.json" hidden />
@@ -231,6 +232,19 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
+
+  <!-- Portão do código secreto -->
+  <div id="gate" class="gate hidden">
+    <div class="gate-box">
+      <div class="gate-emoji">🏆🔒</div>
+      <h1>Placar do Casal</h1>
+      <p class="gate-sub">App privado do casal. Combinem um <b>código secreto</b> e digitem o <b>mesmo</b> nos dois celulares — é ele que abre (e protege) os dados de vocês.</p>
+      <input id="gateCode" type="password" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="código secreto do casal" />
+      <button id="gateEnter" class="btn primary gate-btn">Entrar</button>
+      <p id="gateErr" class="gate-err"></p>
+      <p class="gate-note">Dica: use algo que só vocês saibam (evite <i>1234</i> ou o nome de vocês). O código fica salvo neste aparelho — só precisa digitar uma vez.</p>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

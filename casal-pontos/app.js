@@ -7,14 +7,45 @@
    pontos são SEMPRE calculados a partir dos eventos, então gravações
    simultâneas dos dois nunca "brigam" pelo mesmo número.
 
-   Sincronização: Firebase Realtime Database via REST (Receita 1),
-   nó planos/casal-pontos-dt2026. Cada evento vira uma chave própria
-   (PUT idempotente), com localStorage como cópia offline + outbox.
+   Sincronização: Firebase Realtime Database via REST (Receita 1).
+   Cada evento vira uma chave própria (PUT idempotente), com
+   localStorage como cópia offline + outbox.
+
+   Acesso por CÓDIGO SECRETO: o nó do banco é DERIVADO do código que
+   o casal combina (planos/casal-<hash do código>). Sem o código não
+   dá pra achar nem ler os dados — o código funciona como senha e
+   como namespace. Requer a regra do Firebase que bloqueia a leitura
+   do /planos inteiro (só nós filhos conhecidos são legíveis).
    ============================================================ */
 
-const SYNC_URL = "https://apps-4b887-default-rtdb.firebaseio.com/planos/casal-pontos-dt2026";
-const LS_STATE = "casalpontos:state";
-const LS_OUTBOX = "casalpontos:outbox";
+const SYNC_ROOT = "https://apps-4b887-default-rtdb.firebaseio.com/planos";
+const LS_CODE = "casalpontos:code";
+let SYNC_URL = null;                    // definido após o código ser conhecido
+let LS_STATE = "casalpontos:state";     // vira namespaced por nó em setupSync()
+let LS_OUTBOX = "casalpontos:outbox";
+
+/* hash do código -> nome de nó não-óbvio (cyrb53, 2 sementes) */
+function cyrb53(str, seed) {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0, ch; i < str.length; i++) {
+    ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507); h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507); h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+}
+function nodeFromCode(code) {
+  const norm = String(code).trim().toLowerCase();
+  return "casal-" + cyrb53(norm, 1).toString(36) + cyrb53(norm, 99).toString(36);
+}
+function setupSync(code) {
+  const node = nodeFromCode(code);
+  SYNC_URL = SYNC_ROOT + "/" + node;
+  LS_STATE = "casalpontos:state:" + node;
+  LS_OUTBOX = "casalpontos:outbox:" + node;
+}
 
 /* ---------- defaults (seed inicial) ---------- */
 const DEFAULT_REWARDS = [
@@ -814,7 +845,12 @@ function wireUI() {
   $("#exportBtn").addEventListener("click", exportBackup);
   $("#importBtn").addEventListener("click", () => $("#importFile").click());
   $("#importFile").addEventListener("change", (e) => { if (e.target.files[0]) importBackup(e.target.files[0]); e.target.value = ""; });
+  $("#codeBtn").addEventListener("click", () => { closeModal("menuModal"); changeCode(); });
   $("#resetBtn").addEventListener("click", resetAll);
+
+  // portão do código secreto
+  $("#gateEnter").addEventListener("click", submitCode);
+  $("#gateCode").addEventListener("keydown", (e) => { if (e.key === "Enter") submitCode(); });
 
   // undo
   $("#undoBtn").addEventListener("click", () => { if (undoFn) undoFn(); hideUndo(); });
@@ -825,17 +861,46 @@ function wireUI() {
 }
 
 /* ============================================================
+   Portão do código secreto
+   ============================================================ */
+function showGate() { $("#gate").classList.remove("hidden"); setTimeout(() => $("#gateCode").focus(), 60); }
+function hideGate() { $("#gate").classList.add("hidden"); }
+function submitCode() {
+  const code = $("#gateCode").value.trim();
+  if (code.length < 4) { $("#gateErr").textContent = "Use um código com pelo menos 4 caracteres."; return; }
+  $("#gateErr").textContent = "";
+  try { localStorage.setItem(LS_CODE, code); } catch (e) {}
+  setupSync(code);
+  hideGate();
+  startApp();
+}
+function changeCode() {
+  if (!confirm("Trocar o código secreto?\n\nVocê vai precisar digitar o novo código (o MESMO nos dois celulares). Os dados de cada código ficam guardados separadamente.")) return;
+  try { localStorage.removeItem(LS_CODE); } catch (e) {}
+  location.reload();
+}
+
+/* ============================================================
    Boot
    ============================================================ */
-async function boot() {
+let appStarted = false;
+async function startApp() {
+  if (appStarted) return;
+  appStarted = true;
   loadLocal(); normalize(); renderAll(); // pinta na hora com o que tiver local
-  wireUI();
-  await pull();                          // busca a nuvem
+  await pull();                          // busca a nuvem (do nó do código)
   await flush();                         // escoa pendências, se houver
 
   document.addEventListener("visibilitychange", () => { if (!document.hidden) syncCheck(); });
   window.addEventListener("online", () => { offlineNoticed = false; flush().then(syncCheck); });
   setInterval(() => { if (document.visibilityState === "visible") syncCheck(); }, 7000);
+}
+function boot() {
+  wireUI();
+  let saved = null;
+  try { saved = localStorage.getItem(LS_CODE); } catch (e) {}
+  if (saved) { setupSync(saved); hideGate(); startApp(); }
+  else { showGate(); }
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});

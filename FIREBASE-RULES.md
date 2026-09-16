@@ -16,6 +16,41 @@ Acesse: https://console.firebase.google.com/project/apps-4b887/database/apps-4b8
 }
 ```
 
+## Regras recomendadas para PRIVACIDADE (Placar do Casal — aplicar agora)
+
+O **Placar do Casal** (`casal-pontos`) usa um **código secreto** que deriva o nó no banco
+(`planos/casal-<hash>`). Para o código realmente proteger, o `/planos` inteiro **não pode ser
+legível** — senão qualquer um lê `/planos.json` e vê todos os nós/dados (buraco que hoje afeta
+**todos** os apps). Estas regras bloqueiam a leitura do `/planos` inteiro, mas mantêm cada nó
+filho (nome conhecido) totalmente legível/gravável — então **os outros apps continuam funcionando
+igual** e a deleção de eventos do Placar continua permitida.
+
+```json
+{
+  "rules": {
+    "planos": {
+      ".read": false,
+      ".write": false,
+      "$plan": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}
+```
+
+- ✅ Todos os apps continuam funcionando (leem/gravam nós conhecidos).
+- 🚫 Ninguém consegue mais **listar** `/planos.json` (não descobre os nós dos outros).
+- 🔒 Sem o código do Placar, não dá pra achar/ler o nó do casal.
+- ⚠️ Limitação: quem **adivinhar** o nome de um nó ainda o lê — por isso o código do Placar deve ter
+  entropia (não usar `1234`/nomes). Proteção total só com login (não usado aqui).
+
+Aplicar: https://console.firebase.google.com/project/apps-4b887/database/apps-4b887-default-rtdb/rules
+→ colar → **Publicar**.
+
 ## Regras recomendadas (aplicar agora)
 
 Estas regras mantêm o funcionamento dos apps mas bloqueiam os piores abusos:

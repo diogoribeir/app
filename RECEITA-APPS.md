@@ -17,7 +17,7 @@
 | 🩺 Dias sem Doença | https://diogoribeir.github.io/app/dias-sem-doenca/ | `dias-sem-doenca/` | RTDB `planos/dias-sem-doenca-dt2026` (sem login) |
 | ✈️ Paris Trip Planner (Tati) | https://diogoribeir.github.io/app/paris-planner/ | `paris-planner/` (build) + `paris-planner-src/` (fonte) | RTDB `planos/paris-planner-dt2026` |
 | 🎮 Perfil | https://diogoribeir.github.io/app/perfil-gamer/ | `perfil-gamer/` (app) + `perfil-gamer-src/` (dados) | RTDB `planos/perfil-gamer-dt2026` (nuvem = fonte da verdade; `dados.js` = seed) |
-| 🏆 Placar do Casal | https://diogoribeir.github.io/app/casal-pontos/ | `casal-pontos/` | RTDB `planos/casal-pontos-dt2026` (log de eventos = fonte da verdade; saldos calculados) |
+| 🏆 Placar do Casal | https://diogoribeir.github.io/app/casal-pontos/ | `casal-pontos/` | RTDB `planos/casal-<hash do código secreto>` (código do casal = senha + namespace; log de eventos = fonte da verdade) |
 | 🇫🇷 Lingo (francês) | https://diogoribeir.github.io/app/lingo/ | `lingo-src/` (fonte Next.js, exportada estática) | RTDB `planos/lingo-dt2026` (pacote único de todas as chaves `lingo:*`; `lib/nuvem.ts`) · **GitHub Pages** (estático; migrado do Vercel em ago/2026). Tutor roda no navegador, modo demonstração |
 
 ### Infraestrutura fixa
