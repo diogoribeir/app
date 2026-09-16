@@ -63,6 +63,31 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   arquivo único com `python3 dias-sem-doenca/build-standalone.py` e subir a versão de cache no `sw.js`
   (`CACHE = "dias-sem-doenca-vN"`).
 
+## App 7 — 🏆 Placar do Casal (Di & Tati) — *gamificação*
+- **URL:** https://diogoribeir.github.io/app/casal-pontos/
+- **Pasta:** `casal-pontos/` — HTML/CSS/JS puro, PWA (manifest + `sw.js`). 3 abas via nav inferior:
+  🏆 **Placar** · 🎁 **Loja** · 📊 **Stats**.
+- **O que faz:** jogo de pontos do casal. Quando um **vacila**, o **parceiro ganha pontos**; os pontos
+  são gastos na **loja** (resgatar recompensas: dia saudável, refeição saudável, cinema, Zara… editáveis)
+  ou num **ataque** (⚔️ gastar seus pontos para descontar a mesma quantia do parceiro — os dois podem).
+- **Combo / Double Damage:** vacilar seguidas vezes multiplica os pontos que o parceiro ganha —
+  a partir de **3 seguidas** (padrão x2) e **5 seguidas** (padrão x3), configurável no menu ⋯ →
+  “Regras de combo”. Banner de combo no topo do Placar e badge 🔥 no feed.
+- **Fonte da verdade = LOG DE EVENTOS (append-only).** Os saldos de pontos são **sempre calculados**
+  a partir dos eventos (`vacilo`/`resgate`/`ataque`), então gravações simultâneas dos dois **não brigam
+  pelo mesmo número** — cada evento é uma chave própria (`PUT` idempotente). Recompensas, tipos de vacilo
+  e config (nomes/combo) são chaves à parte.
+- **Sincronização:** Realtime Database via REST (Receita 1), nó **`planos/casal-pontos-dt2026`** — sem
+  login. localStorage é a cópia offline + **outbox** (reenvia o que falhou offline). Recarrega ao voltar
+  e faz **polling a cada 7s** (via `_at`) para refletir o que o outro registrou (acesso simultâneo).
+- **Estatísticas:** cards (saldo de cada um, total de vacilos, maior combo) + gráficos SVG/CSS sem libs:
+  vacilos por pessoa, vacilos por motivo, onde os pontos foram gastos e evolução dos pontos (linha).
+- **Backup/opções:** menu ⋯ = editar nomes, regras de combo, compartilhar placar, exportar/importar `.json`,
+  zerar placar (apaga só o histórico/pontos; mantém recompensas e tipos). Barra **↩︎ Desfazer** nas ações.
+- **Edição:** direto nos arquivos da pasta. Ao mexer no `app.js`/`styles.css`/`index.html`, **subir a
+  versão do cache** no `sw.js` (`CACHE = "casal-pontos-vN"`), senão o celular segura a versão antiga.
+  Ícones em `casal-pontos/icons/` (troféu dourado + coração azul/rosa), gerados via Chromium headless.
+
 ## App 2 — 📊 Roteiro Paris (o do Diogo) — ❌ REMOVIDO (ago/2026)
 - Estava em `roteiro-paris/` (arquivo único). O Diogo pediu para deletar. Código no histórico do git
   (`git log -- roteiro-paris/`). **Não confundir com o App 3 (o da Tati), que continua ativo.**

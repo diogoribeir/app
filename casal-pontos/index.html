@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#6D4AFF" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://apps-4b887-default-rtdb.firebaseio.com; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <title>Placar do Casal — Di &amp; Tati</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Placar" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="mark">🏆</span> Placar do Casal</div>
+    <button id="menuBtn" class="icon-btn" aria-label="Opções">⋯</button>
+  </header>
+
+  <!-- ===================== ABA: PLACAR ===================== -->
+  <main id="tab-placar" class="wrap tab" data-tab="placar">
+    <div id="comboBanner" class="combo-banner" hidden></div>
+
+    <section class="scoreboard" id="scoreboard"></section>
+
+    <section class="quick" id="quick"></section>
+
+    <section class="feed-sec">
+      <div class="sec-head"><h2>Atividade recente</h2><button id="clearFeedHint" class="link-btn" hidden></button></div>
+      <ul id="feed" class="feed"></ul>
+      <p id="feedEmpty" class="empty">Nenhum registro ainda. Bora começar o placar! 😏</p>
+    </section>
+  </main>
+
+  <!-- ===================== ABA: LOJA ===================== -->
+  <main id="tab-loja" class="wrap tab" data-tab="loja" hidden>
+    <section>
+      <div class="sec-head"><h2>🎁 Recompensas</h2><button id="addReward" class="mini-btn">+ Nova</button></div>
+      <p class="hint">Gaste seus pontos para resgatar prêmios. Toque para editar.</p>
+      <div id="rewardsList" class="grid"></div>
+    </section>
+
+    <section>
+      <div class="sec-head"><h2>😬 Tipos de vacilo</h2><button id="addVacilo" class="mini-btn">+ Novo</button></div>
+      <p class="hint">Motivos de vacilo e quantos pontos o parceiro ganha. Toque para editar.</p>
+      <div id="vacilosList" class="grid"></div>
+    </section>
+  </main>
+
+  <!-- ===================== ABA: ESTATÍSTICAS ===================== -->
+  <main id="tab-stats" class="wrap tab" data-tab="stats" hidden>
+    <section id="statCards" class="stat-cards"></section>
+    <section id="charts" class="charts"></section>
+  </main>
+
+  <!-- ===================== NAV INFERIOR ===================== -->
+  <nav class="tabbar">
+    <button class="tabbtn active" data-go="placar"><span class="ic">🏆</span><span>Placar</span></button>
+    <button class="tabbtn" data-go="loja"><span class="ic">🎁</span><span>Loja</span></button>
+    <button class="tabbtn" data-go="stats"><span class="ic">📊</span><span>Stats</span></button>
+  </nav>
+
+  <!-- Barra de desfazer -->
+  <div id="undoBar" class="undobar hidden" role="status" aria-live="polite">
+    <span id="undoText" class="undo-text"></span>
+    <button id="undoBtn" class="undo-btn" type="button">↩︎ Desfazer</button>
+  </div>
+
+  <!-- ===================== MODAIS ===================== -->
+
+  <!-- Registrar vacilo -->
+  <div id="vaciloModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="vaciloTitle">Registrar vacilo</h2>
+      <p class="muted" id="vaciloSub"></p>
+      <label>Motivo</label>
+      <div id="vaciloChips" class="chips"></div>
+      <label for="vaciloNote">Observação (opcional)</label>
+      <input id="vaciloNote" type="text" placeholder="Ex.: chegou 40 min atrasado" autocomplete="off" />
+      <div id="vaciloPreview" class="preview"></div>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="vaciloConfirm" class="btn primary">Registrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resgatar recompensa -->
+  <div id="resgateModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="resgateTitle">Resgatar recompensa</h2>
+      <p class="muted" id="resgateSub"></p>
+      <div id="resgateList" class="resgate-list"></div>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ataque / tirar pontos -->
+  <div id="ataqueModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="ataqueTitle">Tirar pontos do parceiro</h2>
+      <p class="muted" id="ataqueSub"></p>
+      <label for="ataqueAmount">Quantos pontos descontar?</label>
+      <input id="ataqueAmount" type="number" min="1" step="1" inputmode="numeric" value="10" />
+      <input id="ataqueRange" type="range" min="1" max="10" step="1" value="10" />
+      <div id="ataquePreview" class="preview"></div>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="ataqueConfirm" class="btn danger">Descontar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editar recompensa -->
+  <div id="rewardEditModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="rewardEditTitle">Nova recompensa</h2>
+      <div class="row2">
+        <div>
+          <label for="reEmoji">Emoji</label>
+          <input id="reEmoji" type="text" maxlength="4" placeholder="🎁" autocomplete="off" />
+        </div>
+        <div class="grow">
+          <label for="reName">Nome</label>
+          <input id="reName" type="text" placeholder="Ex.: Cinema" autocomplete="off" />
+        </div>
+      </div>
+      <label for="reCost">Custo (pontos)</label>
+      <input id="reCost" type="number" min="1" step="1" inputmode="numeric" placeholder="50" />
+      <div class="modal-actions space">
+        <button id="reDelete" class="btn danger ghost" type="button">Excluir</button>
+        <div class="right">
+          <button class="btn ghost" data-close>Cancelar</button>
+          <button id="reSave" class="btn primary">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editar tipo de vacilo -->
+  <div id="vaciloEditModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="vaciloEditTitle">Novo tipo de vacilo</h2>
+      <div class="row2">
+        <div>
+          <label for="veEmoji">Emoji</label>
+          <input id="veEmoji" type="text" maxlength="4" placeholder="😬" autocomplete="off" />
+        </div>
+        <div class="grow">
+          <label for="veName">Nome</label>
+          <input id="veName" type="text" placeholder="Ex.: Atraso" autocomplete="off" />
+        </div>
+      </div>
+      <label for="vePoints">Pontos para o parceiro</label>
+      <input id="vePoints" type="number" min="1" step="1" inputmode="numeric" placeholder="10" />
+      <div class="modal-actions space">
+        <button id="veDelete" class="btn danger ghost" type="button">Excluir</button>
+        <div class="right">
+          <button class="btn ghost" data-close>Cancelar</button>
+          <button id="veSave" class="btn primary">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu / opções -->
+  <div id="menuModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Opções</h2>
+      <div class="menu-list">
+        <button id="editNamesBtn" class="menu-item"><span>✏️ Nomes do casal</span><small>Trocar como Di e Tati aparecem</small></button>
+        <button id="comboBtn" class="menu-item"><span>🔥 Regras de combo</span><small>Multiplicadores de double damage</small></button>
+        <button id="shareBtn" class="menu-item"><span>📤 Compartilhar placar</span><small>Envia um resumo de como está</small></button>
+        <button id="exportBtn" class="menu-item"><span>⬇️ Salvar backup</span><small>Baixa um arquivo com todos os dados</small></button>
+        <button id="importBtn" class="menu-item"><span>⬆️ Restaurar backup</span><small>Carrega os dados de um arquivo salvo</small></button>
+        <button id="resetBtn" class="menu-item danger-text"><span>🗑️ Zerar placar</span><small>Apaga todo o histórico e pontos</small></button>
+      </div>
+      <input id="importFile" type="file" accept="application/json,.json" hidden />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editar nomes -->
+  <div id="namesModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Nomes do casal</h2>
+      <label for="nameDi">Pessoa 1</label>
+      <input id="nameDi" type="text" autocomplete="off" maxlength="18" />
+      <label for="nameTati">Pessoa 2</label>
+      <input id="nameTati" type="text" autocomplete="off" maxlength="18" />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="namesSave" class="btn primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Regras de combo -->
+  <div id="comboModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>🔥 Regras de combo</h2>
+      <p class="muted">Vacilar seguidas vezes multiplica os pontos que o parceiro ganha.</p>
+      <label for="combo3">A partir de 3 vacilos seguidos, multiplicar por</label>
+      <input id="combo3" type="number" min="1" step="1" inputmode="numeric" value="2" />
+      <label for="combo5">A partir de 5 vacilos seguidos, multiplicar por</label>
+      <input id="combo5" type="number" min="1" step="1" inputmode="numeric" value="3" />
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="comboSave" class="btn primary">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compartilhar -->
+  <div id="shareModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Compartilhar placar</h2>
+      <textarea id="shareText" class="share-text" readonly rows="7"></textarea>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+        <button id="shareCopy" class="btn primary">Copiar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
