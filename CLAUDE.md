@@ -173,17 +173,24 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   motivo, jogatinas W2+, análise interna, Excluir) — salva ao sair de cada campo, sem abrir janela.
   A aba 🗓 **Plano** é editável: cada jogo planejado tem **nome + estimativa de horas + data
   (calendário) + ano**; a fila fica **ordenada por data**.
-  - 📅 **Filtro por ano (set/2026):** o Plano tinha jogos de 2026 e 2027 misturados na mesma fila e num
-    único "disponível" até dez/2027. Agora tem **chips de ano** no topo (`.anochip`, estado `planoAno`,
-    handler `data-pano`) e a aba inteira mostra **só o ano em foco**: horas **disponíveis** daquele ano
-    (`horasDisponiveisAno(ano)` = semanas cuja segunda cai no ano), **falta na fila** e a **fila** só dos
-    itens daquele ano, e o painel ⚙️ só com os meses do ano. `anoFoco()` = `planoAno` ou o ano atual.
-    O **ano de cada item** = `anoDoItem(p)` (pela `data`; se não tem data, pelo campo `p.ano`; senão o
-    ano atual `ANO_HOJE`). Os chips saem de `anosDoPlano()` (de hoje até `PLANO_FIM` + anos dos itens).
-    ⚠️ **Jogo sem data de lançamento** ainda precisa de um **ano** (não necessariamente 2026): o modal
-    tem o campo **Ano** (`#pAno`) — preenchido pela data, ou escolhido à mão — e o `#pSave` grava `p.ano`.
-    Migração única **`migPlanoAno`** carimba `p.ano` nos itens que já existiam (pela data; os 3 sem data
-    do lote de 2027 — Lord of the Fallen 2/Kena 2/Tides of Annihilation — viram 2027; o resto, ano atual). As **horas disponíveis** vão de hoje até
+  - 📅 **Filtro por ano + Geral + rollover (set/2026):** o Plano tinha jogos de 2026 e 2027 misturados na
+    mesma fila e num único "disponível" até dez/2027. Agora tem **chips no topo** (`.anochip`, estado
+    `planoAno`, handler `data-pano`): **Geral** (`planoAno="geral"` → tudo junto, como era antes) + um chip
+    por ano. Num ano, a aba mostra **só aquele ano**: horas **disponíveis** dele (`horasDisponiveisAno(ano)`
+    = semanas cuja segunda cai no ano), **falta na fila** e **fila** só dos itens do ano, e o painel ⚙️ só
+    com os meses do ano; no **Geral** volta tudo (`horasDisponiveis()`, todas as semanas/itens). `anoFoco()`
+    = `planoAno` (`"geral"` ou nº) ou o ano atual `ANO_HOJE`.
+    - **Ano de cada item:** `anoDoItem(p)` = pela `data`; sem data, pelo campo `p.ano`; senão `ANO_HOJE`.
+      ⚠️ **Jogo sem data de lançamento** ainda precisa de um **ano** (não necessariamente 2026): o modal tem
+      o campo **Ano** (`#pAno`, preenchido pela data ou à mão) e o `#pSave` grava `p.ano`.
+    - **🔄 Rollover automático (`anoFila(p)`):** um item cujo ano já passou **e que ainda não terminou**
+      (`pitemPendente` = não começou, ou está jogando; zerado/dropado = concluído) **rola pro ano atual** —
+      ex.: o que sobrou de 2026 aparece em 2027 sozinho quando o ano vira, marcado **"↪ de 2026"** no card
+      (`.prolou`). O filtro por ano e os chips usam `anoFila` (não `anoDoItem`), então as horas a completar
+      passam a contar contra o ano novo. Backlog também rola (segue fora da conta até voltar pra fila).
+      Helpers de módulo: `plinked`/`pjogadasAtual`/`pfaltaH`/`pitemPendente` (o `viewPlano` reusa).
+    - Migração única **`migPlanoAno`** carimba `p.ano` nos itens que já existiam (pela data; os 3 sem data
+      do lote de 2027 — Lord of the Fallen 2/Kena 2/Tides of Annihilation — viram 2027; o resto, ano atual). As **horas disponíveis** vão de hoje até
   **31/dez/2027** (`PLANO_FIM`): cada semana vale um **padrão editável** de horas — `padraoSemana`, que começa em
   `HORAS_SEMANA` (**7** desde set/2026, o padrão de fábrica p/ o ↺) — com exceções por dia (`PERIODOS`: 21–24/set 10h/dia;
   sem jogatina 10–19/set) e horizonte `PLANO_FIM`. O painel recolhível **⚙️ Ajustar horas por semana**
