@@ -190,7 +190,22 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       passam a contar contra o ano novo. Backlog também rola (segue fora da conta até voltar pra fila).
       Helpers de módulo: `plinked`/`pjogadasAtual`/`pfaltaH`/`pitemPendente` (o `viewPlano` reusa).
     - Migração única **`migPlanoAno`** carimba `p.ano` nos itens que já existiam (pela data; os 3 sem data
-      do lote de 2027 — Lord of the Fallen 2/Kena 2/Tides of Annihilation — viram 2027; o resto, ano atual). As **horas disponíveis** vão de hoje até
+      do lote de 2027 — Lord of the Fallen 2/Kena 2/Tides of Annihilation — viram 2027; o resto, ano atual).
+    - **🎮 Horas jogadas descontam da semana (set/2026):** as horas registradas nas **jogatinas em andamento**
+      (status `"#"`) descontam da **capacidade da semana atual**. Mecânica de **marco por semana** (`SB` =
+      `{wk:"<segunda ISO>", base}`, salvo no `plano2026.semBase`): no começo de cada semana o `ensureSemBase()`
+      (chamado no fim do `boot()`) fotografa o total em andamento (`jogadoEmAndamento()` = soma de `pjogadasAtual`
+      dos jogos `"#"`); `jogadoSemana()` = quanto subiu desde o marco. O `viewPlano` desconta esse valor do
+      **disponível** (só quando a semana atual está no escopo — ano atual ou Geral), limitado à capacidade da
+      própria semana (`descontoSem = min(jogado, defAtual)`). A **semana em curso** no painel ⚙️ mostra
+      "🎮 joguei Xh · restam Yh" (`.wkjog`, linha `.wkatual`) e o card mostra a nota. ⚠️ O que **não for usado**
+      na semana é **perdido** quando ela passa (o marco reancora e o "jogado" zera); registrar um jogo antigo já
+      finalizado **não** conta (só jogatina em andamento).
+    - **⚖️ Peso por dia (`PESO_DIA`, set/2026):** as horas da semana **não** se espalham iguais — `horasDoDia`
+      distribui pelo peso do dia (`[Dom,Seg,Ter,Qua,Qui,Sex,Sáb] = [1,1,1.6,1.6,1.6,1,1]`, ter–qui mais pesado),
+      normalizado por `SOMA_PESO` (semana cheia continua somando `padraoSemana`; só muda a divisão por dia e a
+      semana parcial). `PERIODOS` são absolutos por dia e ignoram o peso. Editável no código (constante).
+      As **horas disponíveis** vão de hoje até
   **31/dez/2027** (`PLANO_FIM`): cada semana vale um **padrão editável** de horas — `padraoSemana`, que começa em
   `HORAS_SEMANA` (**7** desde set/2026, o padrão de fábrica p/ o ↺) — com exceções por dia (`PERIODOS`: 21–24/set 10h/dia;
   sem jogatina 10–19/set) e horizonte `PLANO_FIM`. O painel recolhível **⚙️ Ajustar horas por semana**
