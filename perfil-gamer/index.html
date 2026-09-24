@@ -292,6 +292,7 @@ details.sec>summary:active{background:var(--surface2)}
   border-radius:11px;padding:9px 4px;font-size:.9rem;font-weight:800;letter-spacing:.02em;cursor:pointer}
 .anochip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .pwhen small{display:block;font-size:.5rem;font-weight:700;opacity:.75;margin-top:1px}
+.prolou{font-size:.6rem;font-weight:800;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 5px;margin-left:4px;white-space:nowrap}
 .pitem{display:flex;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
 .pitem:last-child{border-bottom:0}
 .pwhen{flex:0 0 50px;text-align:center;background:var(--accent-soft);color:var(--accent);border-radius:9px;
@@ -633,17 +634,37 @@ function horasDisponiveisAno(ano){
 // ano de um item do plano: pela data, ou pelo campo `ano` (jogo sem data de lançamento), ou o ano atual
 const ANO_HOJE = new Date().getFullYear();
 function anoDoItem(p){ return p.data ? Number(p.data.slice(0,4)) : (Number.isFinite(p.ano) ? p.ano : ANO_HOJE); }
-// anos que aparecem no Plano: de hoje até o horizonte + os anos dos itens (ordenados)
+// jogo real ligado a um item do plano (o com mais horas entre nome igual/parecido + o do jid)
+function plinked(p){
+  if (!p.iniciado) return null;
+  const key = (p.jogo||"").trim().toLowerCase();
+  const cands = J.filter(x=>{ const n=(x.nome||"").trim().toLowerCase(); return n===key || (key.length>=4 && (n.includes(key)||key.includes(n))); });
+  if (p.jid!=null){ const byId=J.find(x=>x.id===p.jid); if (byId && !cands.includes(byId)) cands.push(byId); }
+  return cands.length ? cands.sort((a,b)=>totalHoras(b)-totalHoras(a))[0] : null;
+}
+// horas já jogadas na jogatina atual (a última / a em andamento)
+function pjogadasAtual(g){ const st=runStatus(g), h=runHoras(g); const i=st.indexOf("#"); return (i>=0 ? h[i] : h[h.length-1])||0; }
+// horas que ainda faltam pra um item: estimativa − o que já foi jogado (0 se zerou/dropou)
+function pfaltaH(p){ const est=estH(p.est); const g=plinked(p);
+  if (g) return temStatus(g,"#") ? Math.max(est-pjogadasAtual(g),0) : 0;
+  return est; }
+// item ainda tem trabalho a fazer (não começou, ou está jogando; zerado/dropado = concluído)
+function pitemPendente(p){ const g=plinked(p); if (!g) return true;
+  if (temStatus(g,"#")) return true; const s=statusJogo(g); return s!=="S" && s!=="N"; }
+// ano em que o item aparece na fila: se ficou pra trás e ainda não terminou, ROLA pro ano atual (ex.: sobrou de 2026 → 2027)
+function anoFila(p){ const a=anoDoItem(p); return (a<ANO_HOJE && pitemPendente(p)) ? ANO_HOJE : a; }
+// anos que aparecem no Plano: de hoje até o horizonte + os anos (já rolados) dos itens (ordenados)
 function anosDoPlano(){
   const s = new Set();
   for (let a = ANO_HOJE; a <= Number(PLANO_FIM.slice(0,4)); a++) s.add(a);
-  P.forEach(p=>s.add(anoDoItem(p)));
+  P.forEach(p=>s.add(anoFila(p)));
   return [...s].sort((a,b)=>a-b);
 }
-// ano em foco no Plano (default: ano atual se existir na lista, senão o primeiro)
+// ano em foco no Plano ("geral" = todos os anos juntos; default: ano atual se existir, senão o primeiro)
 function anoFoco(){
+  if (planoAno==="geral") return "geral";
   const anos = anosDoPlano();
-  if (planoAno!=null && anos.includes(planoAno)) return planoAno;
+  if (typeof planoAno==="number" && anos.includes(planoAno)) return planoAno;
   return anos.includes(ANO_HOJE) ? ANO_HOJE : anos[0];
 }
 const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
@@ -1164,24 +1185,12 @@ function viewStats(){
 /* ---------- aba Plano ---------- */
 function viewPlano(){
   const ano = anoFoco();
-  const disp = horasDisponiveisAno(ano);
-  // jogo do plano ligado à biblioteca: entre os de nome igual/parecido (+ o do jid), pega o com MAIS horas (o real, não uma duplicata)
-  const linked = p => {
-    if (!p.iniciado) return null;
-    const key = (p.jogo||"").trim().toLowerCase();
-    const cands = J.filter(x=>{ const n=(x.nome||"").trim().toLowerCase(); return n===key || (key.length>=4 && (n.includes(key)||key.includes(n))); });
-    if (p.jid!=null){ const byId=J.find(x=>x.id===p.jid); if (byId && !cands.includes(byId)) cands.push(byId); }
-    return cands.length ? cands.sort((a,b)=>totalHoras(b)-totalHoras(a))[0] : null;
-  };
-  // horas já jogadas na jogatina atual = a última jogatina (a em andamento)
-  const jogadasAtual = g => { const st=runStatus(g), h=runHoras(g);
-    const i=st.indexOf("#"); return (i>=0 ? h[i] : h[h.length-1])||0; };
-  // horas que ainda faltam pra cada jogo: estimativa menos o que já foi jogado (0 se zerou/dropou)
-  const faltaH = p => { const est=estH(p.est); const g=linked(p);
-    if (g) return temStatus(g,"#") ? Math.max(est-jogadasAtual(g),0) : 0;
-    return est; };
-  // só os itens do ano em foco entram na fila e na conta deste ano
-  const doAno = p => anoDoItem(p)===ano;
+  const geral = ano==="geral";
+  const disp = geral ? horasDisponiveis() : horasDisponiveisAno(ano);
+  // helpers de módulo (plinked/pfaltaH/pjogadasAtual) — o rollover usa anoFila
+  const linked = plinked, jogadasAtual = pjogadasAtual, faltaH = pfaltaH;
+  // no "geral" entra tudo; num ano, só os itens cujo ano (já rolado) bate
+  const doAno = p => geral || anoFila(p)===ano;
   // itens no backlog ficam de fora da conta (mas seguem guardados, é só um toque pra voltar)
   const somaEst = P.reduce((s,p)=>s+((p.backlog||!doAno(p))?0:faltaH(p)),0);
   const rest = disp - somaEst;
@@ -1195,6 +1204,7 @@ function viewPlano(){
   });
   const pItem = ({p,i})=>{
     const est=estH(p.est), g=linked(p), falta=faltaH(p);
+    const rolou = !geral && anoFila(p)>anoDoItem(p);   // veio de um ano anterior
     const rejogar = p.rejogar && !p.iniciado;
     let sub = est?est+"h":"—";
     if (p.backlog) sub = `📥 backlog${est?` · ${est}h`:""} — não conta no planejamento`;
@@ -1204,7 +1214,7 @@ function viewPlano(){
     else if (g && statusJogo(g)==="N") sub = `❌ dropado (${totalHoras(g)}h)`;
     return `<div class="pitem${p.backlog?" bk":""}">
       <span class="pwhen ${p.data?'':'nodate'}">${p.data?esc(fmtData(p.data)):`${anoDoItem(p)}<small>s/ data</small>`}</span>
-      <div class="pbody"><div class="t">${p.iniciado?'🎮 ':(rejogar?'🔁 ':'')}${esc(p.jogo)}</div>
+      <div class="pbody"><div class="t">${p.iniciado?'🎮 ':(rejogar?'🔁 ':'')}${esc(p.jogo)}${rolou?` <span class="prolou">↪ de ${anoDoItem(p)}</span>`:''}</div>
         <div class="s num">${sub}</div></div>
       <div class="pacts">
         ${p.backlog
@@ -1224,7 +1234,7 @@ function viewPlano(){
     <div class="bkbody">${naBacklog.map(pItem).join("")}</div>
   </details>` : "";
   // ajuste de horas por semana (padrão global editável; e por semana na respectiva linha) — só o ano em foco
-  const semanas = semanasPlano().filter(w=>w.key.slice(0,4)===String(ano));
+  const semanas = geral ? semanasPlano() : semanasPlano().filter(w=>w.key.slice(0,4)===String(ano));
   const nAjust = semanas.filter(w=>HS[w.key]!=null).length;
   const padOn = padraoSemana!==HORAS_SEMANA;
   const padRow = `<div class="wkrow wkpad">
@@ -1271,12 +1281,15 @@ function viewPlano(){
     <summary><span>⚙️ Ajustar horas por semana</span><span class="wksub">${wkSub}</span><span class="schev">▸</span></summary>
     <div class="wkbody"><p class="wknote">Três níveis, do mais amplo pro mais específico: o <b>padrão</b> vale pra tudo · abra um <b>mês</b> e mude "todas as semanas" pra dar o tom daquele mês de uma vez · e ainda dá pra ajustar uma <b>semana</b> solta, que vence os outros dois. A semana em curso conta só os <b>dias que ainda faltam</b>, e o total <b>disponível</b> recalcula sozinho.</p>${padRow}${wkRows}</div>
   </details>`;
-  const anoChips = anosDoPlano().map(a=>
-    `<button type="button" class="anochip${a===ano?" on":""}" data-pano="${a}">${a}</button>`).join("");
-  const fimAno = ano < Number(PLANO_FIM.slice(0,4)) ? `31/dez` : `${fmtData(PLANO_FIM)}`;
+  const anoChips = [`<button type="button" class="anochip${geral?" on":""}" data-pano="geral">Geral</button>`]
+    .concat(anosDoPlano().map(a=>
+      `<button type="button" class="anochip${a===ano?" on":""}" data-pano="${a}">${a}</button>`)).join("");
+  const rot = geral ? "geral (todos os anos)" : `de ${ano}`;
+  const fimTxt = geral ? `${fmtData(PLANO_FIM)}/${PLANO_FIM.slice(0,4)}`
+    : (ano < Number(PLANO_FIM.slice(0,4)) ? `31/dez/${ano}` : `${fmtData(PLANO_FIM)}/${ano}`);
   return `<div class="anobar">${anoChips}</div>
-    <p class="lead">Recursos e horas planejadas de <b>${ano}</b> (só deste ano; troque no seletor acima). ${padraoSemana}h por semana (ajuste no ⚙️ abaixo). O "falta" já desconta o que você jogou do jogo atual.</p>
-    <h2>⏳ Horas disponíveis em ${ano}</h2>
+    <p class="lead">Recursos e horas planejadas <b>${rot}</b> (troque no seletor acima). ${padraoSemana}h por semana (ajuste no ⚙️ abaixo). O que sobrar de um ano <b>rola pro ano seguinte</b> automaticamente. O "falta" já desconta o que você jogou do jogo atual.</p>
+    <h2>⏳ Horas disponíveis${geral?" (geral)":` em ${ano}`}</h2>
     <div class="card">
       <div class="strip" style="margin:0">
         <div class="cell"><div class="v num">${Math.round(somaEst)}h</div><div class="k">falta na fila</div></div>
@@ -1284,11 +1297,11 @@ function viewPlano(){
         <div class="cell"><div class="v num" style="color:${cor}">${cabe?"":"−"}${Math.abs(Math.round(rest))}h</div><div class="k">${cabe?"sobra":"falta"}</div></div>
       </div>
       <div class="bar" style="margin-top:12px"><div class="track"><div class="fill" style="width:${Math.max(pct,3)}%;background:${cor}">${Math.round(pct)}%</div></div></div>
-      <div class="lead" style="margin:8px 2px 0;color:${cor}">${cabe?`✓ Cabe no tempo — sobram ${Math.round(rest)}h até ${fimAno}/${ano}.`:`⚠ Passou ${Math.abs(Math.round(rest))}h do disponível em ${ano}. Tire um jogo ou reduza estimativas.`}</div>
+      <div class="lead" style="margin:8px 2px 0;color:${cor}">${cabe?`✓ Cabe no tempo — sobram ${Math.round(rest)}h até ${fimTxt}.`:`⚠ Passou ${Math.abs(Math.round(rest))}h do disponível${geral?"":` em ${ano}`}. Tire um jogo ou reduza estimativas.`}</div>
     </div>
     ${wkSec}
     <button type="button" class="addbtn" id="btnAddPlano">➕ Adicionar jogo planejado</button>
-    <h2>🗓 Fila de ${ano} (por data)</h2><div class="card">${rows}</div>${bkSec}`;
+    <h2>🗓 Fila ${geral?"geral":`de ${ano}`} (por data)</h2><div class="card">${rows}</div>${bkSec}`;
 }
 
 /* ---------- render ---------- */
@@ -1436,7 +1449,8 @@ function openPlano(idx){
   $("#pJogo").value = p?.jogo || "";
   $("#pData").value = p?.data || "";
   $("#pEst").value = p ? (estH(p.est)||"") : "";
-  $("#pAno").value = p ? anoDoItem(p) : anoFoco();   // sem data → cai no ano do item; novo → ano em foco
+  const anoDef = anoFoco()==="geral" ? ANO_HOJE : anoFoco();   // no "Geral" cai no ano atual
+  $("#pAno").value = p ? anoDoItem(p) : anoDef;                 // sem data → ano do item; novo → ano em foco
   pHideSugestoes();
   pRefreshHint();
   $("#pmodal").classList.remove("hidden");
@@ -1552,7 +1566,7 @@ document.addEventListener("click", e=>{
   const wr = e.target.closest("[data-wkreset]");
   if (wr){ delete HS[wr.dataset.wkreset]; savePlano(); render(); return; }
   const pa = e.target.closest("[data-pano]");
-  if (pa){ planoAno = Number(pa.dataset.pano); render(); return; }
+  if (pa){ const v=pa.dataset.pano; planoAno = (v==="geral") ? "geral" : Number(v); render(); return; }
   if (e.target.closest("#btnAddPlano")){ openPlano(null); return; }
   const pe = e.target.closest("[data-peditar]");
   if (pe){ openPlano(Number(pe.dataset.peditar)); return; }
