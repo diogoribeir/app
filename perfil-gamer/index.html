@@ -851,7 +851,8 @@ let wkOpen = false;        // painel "ajustar horas por semana" (Plano) recolhid
 let bkOpen = true;         // painel "backlog" (Plano) ABERTO por padrão — senão parece que o jogo sumiu
 let planoAno = null;       // ano selecionado no Plano (chips 2026/2027) — null = ano atual no 1º render
 const mesOpen = new Set(); // meses abertos no painel de horas (o mês atual entra no 1º render)
-let statVer = "";        // filtro de veredicto no Top da aba Estatísticas
+let statVer = "";        // filtro de veredicto na seção "Horas por jogo" das Estatísticas
+let statStatus = "";     // filtro de status na mesma seção: "" geral · "S" zerados · "N" dropados
 let statDim = "ver";     // dimensão do gráfico "Distribuição": ver | lanc | jogou
 let openGame = null;     // id do card expandido (edição inline, sem modal)
 const secOpen = new Set(["ver"]);  // seções abertas nas Estatísticas
@@ -1165,16 +1166,32 @@ function viewStats(){
                  : statDim==="lanc" ? `<p class="dnote">${tetoNote}</p>` : "";
   const bars = dimChips + distBars + distNote;
   const distSub = statDim==="ver" ? `${rated.length} avaliados` : `${dd.length} ${dd.length===1?"ano":"anos"}`;
+  // "Horas por jogo": TODOS os jogos do veredicto (não só top 10) + média por jogo, com filtro de status
   let topLst = J.slice().filter(g=>!horasOcultas(g));
   if (statVer) topLst = topLst.filter(g=>g.v===statVer);
-  const topRows = topLst.sort((a,b)=>totalHoras(b)-totalHoras(a)).slice(0,10).map((g,i)=>
+  if (statStatus) topLst = topLst.filter(g=>statusJogo(g)===statStatus);
+  const topSorted = topLst.sort((a,b)=>totalHoras(b)-totalHoras(a));
+  // média só sobre quem tem horas > 0 (jogo não jogado não abaixa a média)
+  const comH = topSorted.filter(g=>totalHoras(g)>0);
+  const somaTop = comH.reduce((s,g)=>s+totalHoras(g),0);
+  const mediaTop = comH.length ? Math.round(somaTop/comH.length) : 0;
+  const topHead = `<div class="strip" style="margin:0 0 12px">
+    <div class="cell"><div class="v num">${comH.length}</div><div class="k">jogos</div></div>
+    <div class="cell"><div class="v num">${mediaTop}h</div><div class="k">média/jogo</div></div>
+    <div class="cell"><div class="v num">${Math.round(somaTop).toLocaleString("pt-BR")}h</div><div class="k">total</div></div>
+  </div>`;
+  const topRows = topSorted.map((g,i)=>
     `<div class="rowline"><span class="pos num">${i+1}</span>
       <span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
       <span class="nm">${esc(g.nome)}</span>${temStatus(g,"N")?'<span class="droptag" title="dropado">❌</span>':""}<span class="hv num">${totalHoras(g)}h</span></div>`).join("")
-    || '<p class="lead" style="margin:6px 2px">Nenhum jogo com esse veredicto.</p>';
-  const topChips = `<div class="frow" style="margin-bottom:12px">
+    || '<p class="lead" style="margin:6px 2px">Nenhum jogo com esse filtro.</p>';
+  const topChips = `<div class="frow" style="margin-bottom:8px">
     <button type="button" class="fchip ${statVer===""?"on":""}" data-statver="">Todos</button>
     ${ORD.slice().reverse().map(v=>`<button type="button" class="fchip ${statVer===v?"on":""}" style="--vc:${VC[v][0]}" data-statver="${esc(v)}"><span class="cdot" style="background:${VC[v][0]}"></span>${esc(v)}</button>`).join("")}
+  </div>`;
+  const statusChips = `<div class="frow" style="margin-bottom:12px">
+    ${[["","Geral"],["S","Zerados"],["N","Dropados"]].map(([k,l])=>
+      `<button type="button" class="fchip ${statStatus===k?"on":""}" data-statstatus="${k}">${l}</button>`).join("")}
   </div>`;
   const gen = {};
   J.forEach(g=>{ const k=(g.genres||"?").split(",")[0].trim(); (gen[k]=gen[k]||[]).push(g); });
@@ -1206,7 +1223,7 @@ function viewStats(){
       <div class="secbody">${inner}</div></details>`;
   return `${overview}
     ${sec("ver","📊","Distribuição", distSub, bars)}
-    ${sec("top","⏱","Top horas", statVer||"", topChips+topRows)}
+    ${sec("top","⏱","Horas por jogo", `${statVer?statVer+" · ":""}${comH.length} jogos · média ${mediaTop}h`, topChips+statusChips+topHead+topRows)}
     ${sec("gen","🎯","Por gênero", "", `<div class="ggrid">${genRows}</div>`)}
     ${sec("drop","❌","Drops", `${dropsLst.length}`, drops)}`;
 }
@@ -1600,6 +1617,8 @@ document.addEventListener("click", e=>{
   if (e.target.closest("#btnAdd")){ openModal(null); return; }
   const sv = e.target.closest("[data-statver]");
   if (sv){ statVer = sv.dataset.statver; render(); return; }
+  const ss = e.target.closest("[data-statstatus]");
+  if (ss){ statStatus = ss.dataset.statstatus; render(); return; }
   const sd = e.target.closest("[data-statdim]");
   if (sd){ statDim = sd.dataset.statdim; render(); return; }
   if (e.target.closest("[data-padreset]")){ padraoSemana = HORAS_SEMANA; savePlano(); render(); return; }
