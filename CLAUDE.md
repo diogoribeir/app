@@ -223,8 +223,11 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   item tem **▶️ "estou jogando"**, que marca o jogo como *jogando agora*: ele vira o card do topo da aba
   Jogos e entra na biblioteca; o "falta na fila" desconta as horas já jogadas desse jogo (estimativa −
   horas). Na aba 📊
-  **Estatísticas**, o "Top 10 — mais horas" tem chips para filtrar por veredicto (Masterpiece, Muito Bom…)
-  e uma marca discreta **❌** ao lado do nome dos jogos que foram dropados (`enc==="N"`).
+  **Estatísticas**, a seção **"⏱ Horas por jogo"** (id `top`) lista **todos** os jogos do filtro (não só top 10),
+  ordenados por horas, com **❌** nos dropados. Dois filtros: **veredicto** (chips `data-statver`, estado `statVer`)
+  e **status** (chips `data-statstatus`, estado `statStatus`: `""` geral · `"S"` zerados · `"N"` dropados, via
+  `statusJogo(g)`). No topo um strip mostra **jogos · média/jogo · total** — a **média** conta só jogos com
+  `totalHoras>0` (jogo não jogado não abaixa a média), e o filtro de status evita que zerado/dropado sujem a média.
 - **Nome (set/2026):** o app se chama **"Perfil"** (era "Perfil Gamer") — `<title>`, `<h1>`, `manifest.json`
   (`name`/`short_name`), `apple-mobile-web-app-title` e o card da `home/index.html`. ⚠️ **A pasta, a URL
   (`/app/perfil-gamer/`) e o nó do Firebase (`planos/perfil-gamer-dt2026`) continuam com o nome antigo** —
