@@ -228,6 +228,11 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   e **status** (chips `data-statstatus`, estado `statStatus`: `""` geral · `"S"` zerados · `"N"` dropados, via
   `statusJogo(g)`). No topo um strip mostra **jogos · média/jogo · total** — a **média** conta só jogos com
   `totalHoras>0` (jogo não jogado não abaixa a média), e o filtro de status evita que zerado/dropado sujem a média.
+  A seção **"📈 Conclusão por veredicto"** (id `gen`) **substituiu o "Por gênero"** (set/2026 — os `genres` do
+  xlsx estão inconsistentes e distorciam; o veredicto é a dimensão confiável). Por faixa de veredicto (ORD, do
+  melhor pro pior) mostra **N jogos · média de horas** + uma **barra empilhada zera/dropa** (`.vbar`/`.vseg.z`
+  verde/`.vseg.d` vermelho) e "✅ zera X% · ❌ dropa Y% · 🔄 Z em aberto" — % sobre os **decididos** (zerou+dropou).
+  O subtítulo traz a **taxa de conclusão geral**. Revela a relação veredicto × término × horas investidas.
 - **Nome (set/2026):** o app se chama **"Perfil"** (era "Perfil Gamer") — `<title>`, `<h1>`, `manifest.json`
   (`name`/`short_name`), `apple-mobile-web-app-title` e o card da `home/index.html`. ⚠️ **A pasta, a URL
   (`/app/perfil-gamer/`) e o nó do Firebase (`planos/perfil-gamer-dt2026`) continuam com o nome antigo** —

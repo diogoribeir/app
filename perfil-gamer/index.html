@@ -266,6 +266,19 @@ h2{font-size:.78rem;margin:20px 4px 9px;font-weight:800;letter-spacing:.1em;text
 .gcell{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 12px;box-shadow:var(--shadow)}
 .gcell .t{font-size:.76rem;font-weight:800;line-height:1.2}
 .gcell .n{font-size:.62rem;color:var(--muted);margin-top:3px;font-weight:600;line-height:1.45}
+/* conclusão por veredicto */
+.vrow{padding:9px 0;border-bottom:1px solid var(--line)}
+.vrow:last-child{border-bottom:0}
+.vhead{display:flex;align-items:center;gap:8px}
+.vhead .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.vnm{font-size:.8rem;font-weight:800}
+.vmeta{margin-left:auto;font-size:.64rem;color:var(--muted);font-weight:700}
+.vbar{display:flex;height:8px;border-radius:6px;overflow:hidden;background:var(--surface2);margin:6px 0 4px}
+.vseg{height:100%}
+.vseg.z{background:var(--mb)}
+.vseg.d{background:var(--mr)}
+.vempty{font-size:.58rem;color:var(--muted);padding:0 6px;line-height:8px}
+.vsub{font-size:.62rem;color:var(--muted);font-weight:700}
 .lead{color:var(--muted);font-size:.78rem;margin:0 2px 10px;line-height:1.5}
 
 /* ---------- seções recolhíveis (estatísticas) ---------- */
@@ -1193,14 +1206,32 @@ function viewStats(){
     ${[["","Geral"],["S","Zerados"],["N","Dropados"]].map(([k,l])=>
       `<button type="button" class="fchip ${statStatus===k?"on":""}" data-statstatus="${k}">${l}</button>`).join("")}
   </div>`;
-  const gen = {};
-  J.forEach(g=>{ const k=(g.genres||"?").split(",")[0].trim(); (gen[k]=gen[k]||[]).push(g); });
-  const genRows = Object.entries(gen).sort((a,b)=>b[1].length-a[1].length).slice(0,10).map(([k,v])=>{
-    const c=v.filter(x=>statusJogo(x)==="S").length, d=v.filter(x=>statusJogo(x)==="N").length, fin=Math.max(c+d,1);
-    const hrs=v.reduce((s,x)=>s+(horasOcultas(x)?0:totalHoras(x)),0);
-    return `<div class="gcell"><div class="t">${esc(k)}</div>
-      <div class="n num">${v.length} jogos · ${Math.round(hrs).toLocaleString("pt-BR")}h<br>zera ${Math.round(c/fin*100)}% · dropa ${Math.round(d/fin*100)}%</div></div>`;
-  }).join("");
+  // Conclusão por veredicto: dos jogos já decididos (zerou/dropou), quanto você termina — e quanto investe.
+  // Substitui o "Por gênero" (os gêneros do xlsx estão inconsistentes; o veredicto é a dimensão confiável).
+  const verdData = ORD.slice().reverse().map(v=>{
+    const lst = J.filter(g=>g.v===v);
+    if (!lst.length) return null;
+    const z = lst.filter(g=>statusJogo(g)==="S").length;
+    const d = lst.filter(g=>statusJogo(g)==="N").length;
+    const cH = lst.filter(g=>!horasOcultas(g) && totalHoras(g)>0);
+    const med = cH.length ? Math.round(cH.reduce((s,g)=>s+totalHoras(g),0)/cH.length) : 0;
+    return { v, n:lst.length, z, d, dec:z+d, med };
+  }).filter(Boolean);
+  const totDec = verdData.reduce((s,x)=>s+x.dec,0), totZ = verdData.reduce((s,x)=>s+x.z,0);
+  const taxaGeral = totDec ? Math.round(totZ/totDec*100) : 0;
+  const verdRows = verdData.map(x=>{
+    const zp = x.dec ? Math.round(x.z/x.dec*100) : 0, dp = x.dec ? 100-zp : 0;
+    const cor = VC[x.v]?VC[x.v][0]:"var(--line)";
+    return `<div class="vrow">
+      <div class="vhead"><span class="dot" style="background:${cor}"></span>
+        <span class="vnm">${esc(x.v)}</span>
+        <span class="vmeta num">${x.n} jogo${x.n>1?"s":""} · média ${x.med}h</span></div>
+      <div class="vbar">${x.dec
+        ? `<span class="vseg z" style="width:${zp}%"></span><span class="vseg d" style="width:${dp}%"></span>`
+        : `<span class="vempty">nenhum decidido ainda</span>`}</div>
+      ${x.dec?`<div class="vsub num">✅ zera ${zp}% · ❌ dropa ${dp}%${x.n>x.dec?` · 🔄 ${x.n-x.dec} em aberto`:""}</div>`:""}
+    </div>`;
+  }).join("") || '<p class="lead" style="margin:6px 2px">Sem dados.</p>';
   const dropsLst = J.filter(g=>temStatus(g,"N")).sort((a,b)=>totalHoras(b)-totalHoras(a));
   const drops = dropsLst.map(g=>`<div class="droprow">
     <div class="dhead"><span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
@@ -1224,7 +1255,7 @@ function viewStats(){
   return `${overview}
     ${sec("ver","📊","Distribuição", distSub, bars)}
     ${sec("top","⏱","Horas por jogo", `${statVer?statVer+" · ":""}${comH.length} jogos · média ${mediaTop}h`, topChips+statusChips+topHead+topRows)}
-    ${sec("gen","🎯","Por gênero", "", `<div class="ggrid">${genRows}</div>`)}
+    ${sec("gen","📈","Conclusão por veredicto", totDec?`zera ${taxaGeral}% no geral`:"", verdRows)}
     ${sec("drop","❌","Drops", `${dropsLst.length}`, drops)}`;
 }
 
