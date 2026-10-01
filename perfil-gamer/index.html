@@ -553,6 +553,9 @@ document.addEventListener("change", e=>{
   if (ms){ const k=ms.dataset.mes;
     const v = ms.value==="" ? null : Math.max(0, Math.round(Number(ms.value)||0));
     if (v==null) delete HM[k]; else HM[k]=v;
+    // "todas as semanas" sobrescreve os ajustes soltos das semanas desse mês (agrupadas pela segunda-feira);
+    // a semana que vira o mês volta a ser calculada dia a dia (cada dia na taxa do seu próprio mês)
+    if (v!=null) Object.keys(HS).forEach(wk=>{ if (wk.slice(0,7)===k) delete HS[wk]; });
     savePlano(); render(); return; }
   const wk = e.target.closest("[data-wk]");
   if (wk){ const k=wk.dataset.wk;
@@ -1324,7 +1327,7 @@ function viewPlano(){
   const wkSub = `padrão ${padraoSemana}h${nMes?` · ${nMes} mês${nMes>1?"es":""}`:""}${nAjust?` · ${nAjust} semana${nAjust>1?"s":""}`:""}`;
   const wkSec = `<details class="wkbox" ${wkOpen?"open":""}>
     <summary><span>⚙️ Ajustar horas por semana</span><span class="wksub">${wkSub}</span><span class="schev">▸</span></summary>
-    <div class="wkbody"><p class="wknote">Três níveis, do mais amplo pro mais específico: o <b>padrão</b> vale pra tudo · abra um <b>mês</b> e mude "todas as semanas" pra dar o tom daquele mês de uma vez · e ainda dá pra ajustar uma <b>semana</b> solta, que vence os outros dois. A semana em curso conta só os <b>dias que ainda faltam</b>, e o total <b>disponível</b> recalcula sozinho.</p>${padRow}${wkRows}</div>
+    <div class="wkbody"><p class="wknote">Três níveis, do mais amplo pro mais específico: o <b>padrão</b> vale pra tudo · abra um <b>mês</b> e mude "todas as semanas" pra dar o tom daquele mês de uma vez (isso <b>sobrescreve</b> os ajustes de semana daquele mês; a semana que vira o mês conta cada dia no seu próprio mês) · e ainda dá pra ajustar uma <b>semana</b> solta depois, que vence os outros dois. A semana em curso conta só os <b>dias que ainda faltam</b>, e o total <b>disponível</b> recalcula sozinho.</p>${padRow}${wkRows}</div>
   </details>`;
   const anoChips = [`<button type="button" class="anochip${geral?" on":""}" data-pano="geral">Geral</button>`]
     .concat(anosDoPlano().map(a=>
