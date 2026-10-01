@@ -211,7 +211,9 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   sem jogatina 10–19/set) e horizonte `PLANO_FIM`. O painel recolhível **⚙️ Ajustar horas por semana**
   (`details.wkbox`, estado `wkOpen`) tem **3 níveis**, do mais amplo pro mais específico:
   **(1) padrão global** `padraoSemana` (`#padSemana`) → vale pra tudo · **(2) mês** `HM`
-  (`{ "AAAA-MM": nº }`, input `data-mes`) → "todas as semanas deste mês valem X" · **(3) semana solta**
+  (`{ "AAAA-MM": nº }`, input `data-mes`) → "todas as semanas deste mês valem X" — ao gravar, **apaga os `HS` das
+  semanas daquele mês** (chave = segunda no mês), senão os ajustes soltos antigos venciam o mês; a semana que vira o
+  mês volta pro cálculo dia a dia (cada dia na taxa do seu mês) · **(3) semana solta**
   `HS` (`{ "<segunda ISO>": nº }`, input `data-wk`) → vence os outros dois. Cada nível tem ↺
   (`data-padreset`/`data-mesreset`/`data-wkreset`). ⚠️ Os níveis 1 e 2 entram pela **taxa diária** no
   `horasDoDia(iso)` (`PERIODOS` > `HM[mês]/7` > `padraoSemana/7`), então semana parcial, virada de mês e
