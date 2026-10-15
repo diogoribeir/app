@@ -433,7 +433,7 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
     <div class="mrow">
       <div><label for="fHoras" id="fHorasLbl">Horas</label><input id="fHoras" type="number" min="0" step="0.5" /></div>
       <div><label for="fEnc" id="fEncLbl">Status</label>
-        <select id="fEnc"><option value="#">🔄 Jogando</option><option value="S">✅ Zerado</option><option value="N">❌ Dropado</option></select></div>
+        <select id="fEnc"><option value="#">🔄 Jogando</option><option value="S">✅ Zerado</option><option value="N">❌ Dropado</option><option value="P">⏸️ Pausado</option></select></div>
     </div>
     <label for="fAnoJog">🎮 Joguei em (ano)</label>
     <input id="fAnoJog" type="number" min="1990" max="2100" step="1" inputmode="numeric" placeholder="ex.: 2026" />
@@ -649,20 +649,33 @@ function plinked(p){
   if (p.jid!=null){ const byId=J.find(x=>x.id===p.jid); if (byId && !cands.includes(byId)) cands.push(byId); }
   return cands.length ? cands.sort((a,b)=>totalHoras(b)-totalHoras(a))[0] : null;
 }
+// jogo da biblioteca ligado ao item mesmo sem ▶️ (pelo jid ou nome igual/parecido) — usado p/ pausar ao ir pro backlog
+function pjogoDoItem(p){
+  const g=plinked(p); if (g) return g;
+  if (p.jid!=null){ const byId=J.find(x=>x.id===p.jid); if (byId) return byId; }
+  const key=(p.jogo||"").trim().toLowerCase(); if (!key) return null;
+  return J.find(x=>(x.nome||"").trim().toLowerCase()===key)
+      || (key.length>=4 ? J.find(x=>{ const n=(x.nome||"").trim().toLowerCase(); return n && (n.includes(key)||key.includes(n)); }) : null);
+}
+// pausa as jogatinas "jogando" do jogo; devolve true se mudou algo
+function pausarJogo(g){
+  if (!g || !temStatus(g,"#")) return false;
+  if (g.enc==="#") g.enc="P"; (g.runs||[]).forEach(r=>{ if (r && r.enc==="#") r.enc="P"; }); return true;
+}
 // horas já jogadas na jogatina atual (a última / a em andamento)
-function pjogadasAtual(g){ const st=runStatus(g), h=runHoras(g); const i=st.indexOf("#"); return (i>=0 ? h[i] : h[h.length-1])||0; }
+function pjogadasAtual(g){ const st=runStatus(g), h=runHoras(g); let i=st.indexOf("#"); if (i<0) i=st.indexOf("P"); return (i>=0 ? h[i] : h[h.length-1])||0; }
 // horas que ainda faltam pra um item: estimativa − o que já foi jogado (0 se zerou/dropou)
 function pfaltaH(p){ const est=estH(p.est); const g=plinked(p);
-  if (g) return temStatus(g,"#") ? Math.max(est-pjogadasAtual(g),0) : 0;
+  if (g) return emAberto(g) ? Math.max(est-pjogadasAtual(g),0) : 0;
   return est; }
 // item ainda tem trabalho a fazer (não começou, ou está jogando; zerado/dropado = concluído)
 function pitemPendente(p){ const g=plinked(p); if (!g) return true;
-  if (temStatus(g,"#")) return true; const s=statusJogo(g); return s!=="S" && s!=="N"; }
+  if (emAberto(g)) return true; const s=statusJogo(g); return s!=="S" && s!=="N"; }
 // --- horas jogadas na SEMANA ATUAL descontam da capacidade da semana ---
 // soma as horas das jogatinas EM ANDAMENTO (status "#") de toda a biblioteca; o marco (SB) guarda
 // esse total no começo da semana, então "jogado na semana" = quanto subiu desde então (registrar um
 // jogo antigo já finalizado não conta, só jogatina em andamento).
-function jogadoEmAndamento(){ return J.reduce((s,g)=> s + (temStatus(g,"#") ? pjogadasAtual(g) : 0), 0); }
+function jogadoEmAndamento(){ return J.reduce((s,g)=> s + (emAberto(g) ? pjogadasAtual(g) : 0), 0); }
 let SB = null;   // marco da semana { wk:"<segunda ISO>", base: horas em andamento no início da semana }
 function jogadoSemana(){
   const wk = ymd(segunda(new Date()));
@@ -777,6 +790,20 @@ async function boot(){
       }
     } catch(e){}
   }
+  // migração ÚNICA: itens que já estavam no backlog com jogatina "jogando" → PAUSADA (out/2026,
+  // ex.: FF Resonance voltou pro backlog mas seguia no "Jogando agora"). Daqui pra frente o 📥 já pausa.
+  if (cloudOK){
+    try {
+      const mr = await fetch(`${SYNC_URL}/migBacklogPausa.json`, { cache:"no-store" });
+      const done = mr.ok ? await mr.json() : null;
+      if (!done){
+        let mudou = false;
+        P.filter(p=>p.backlog).forEach(p=>{ if (pausarJogo(pjogoDoItem(p))) mudou = true; });
+        if (mudou) saveJogosQuiet();
+        fetch(`${SYNC_URL}/migBacklogPausa.json`, { method:"PUT", body:"true" }).catch(()=>{});
+      }
+    } catch(e){}
+  }
   // migração ÚNICA: 6 jogos que o Diogo pediu pra somar ao plano (set/2026).
   // Vai por aqui porque a nuvem é a fonte da verdade — mexer no seed do dados.js não mudaria nada.
   if (cloudOK){
@@ -848,14 +875,14 @@ let filtersOpen = false;   // painel de filtros recolhido por padrão (mais espa
 let sortOpen = false;      // mini-painel de ordenação (separado dos filtros), recolhido por padrão
 let wkOpen = false;        // painel "ajustar horas por semana" (Plano) recolhido por padrão
 let bkOpen = true;         // painel "backlog" (Plano) ABERTO por padrão — senão parece que o jogo sumiu
-let planoAno = null;       // ano selecionado no Plano (chips 2026/2027) — null = ano atual no 1º render
+let planoAno = "geral";    // ano selecionado no Plano (chips 2026/2027) — abre no "Geral"
 const mesOpen = new Set(); // meses abertos no painel de horas (o mês atual entra no 1º render)
 let statVer = "";        // filtro de veredicto na seção "Horas por jogo" das Estatísticas
 let statStatus = "";     // filtro de status na mesma seção: "" geral · "S" zerados · "N" dropados
 let statDim = "ver";     // dimensão do gráfico "Distribuição": ver | lanc | jogou
 let openGame = null;     // id do card expandido (edição inline, sem modal)
 const secOpen = new Set(["ver"]);  // seções abertas nas Estatísticas
-const STATUS_LABEL = {"S":"✅ Zerados","N":"❌ Dropados","#":"🔄 Jogando"};
+const STATUS_LABEL = {"S":"✅ Zerados","N":"❌ Dropados","#":"🔄 Jogando","P":"⏸️ Pausados"};
 const LEGADO_ANO = 2020;   // anos < 2020 agrupam num único chip "Legado (<2020)" (token "lt")
 // um ano casa a seleção se estiver escolhido, ou se for legado (<2020) e o chip "lt" estiver ativo
 function anoCasa(sel, y){ return y!=null && (sel.has(String(y)) || (sel.has("lt") && y<LEGADO_ANO)); }
@@ -893,7 +920,7 @@ function anosJogadosDisp(){
   return [...s].sort((a,b)=>b-a);
 }
 
-function statusTxt(e){ return e==="S"?"✅ zerado":(e==="N"?"❌ dropado":"🔄 jogando"); }
+function statusTxt(e){ return e==="S"?"✅ zerado":e==="N"?"❌ dropado":e==="P"?"⏸️ pausado":"🔄 jogando"; }
 function vpill(v){
   const c = VC[v];
   return c ? `<span class="vpill" style="--vc:${c[0]};--vs:${c[1]}">${c[2]} ${esc(v)}</span>`
@@ -907,9 +934,11 @@ function totalHoras(g){ return runHoras(g).reduce((s,h)=>s+h,0); }
 function runStatus(g){ return [g.enc, ...((g.runs||[]).map(r=>(r&&r.enc)||"S"))]; }
 // o jogo tem alguma jogatina nesse status? (ex.: dropou o W1 mas está jogando o W2)
 function temStatus(g,e){ return runStatus(g).includes(e); }
-// status principal do jogo: jogando > zerado > dropado
-function statusJogo(g){ return temStatus(g,"#") ? "#" : (temStatus(g,"S") ? "S" : "N"); }
-const STATUS_ICON = {"S":"✅","N":"❌","#":"🔄"};
+// status principal do jogo: jogando > pausado > zerado > dropado
+function statusJogo(g){ return temStatus(g,"#") ? "#" : temStatus(g,"P") ? "P" : (temStatus(g,"S") ? "S" : "N"); }
+// jogatina em aberto (jogando ou pausada) — ainda tem horas a cumprir no Plano
+function emAberto(g){ return temStatus(g,"#") || temStatus(g,"P"); }
+const STATUS_ICON = {"S":"✅","N":"❌","#":"🔄","P":"⏸️"};
 function runsResumo(g){ const st=runStatus(g);
   return runHoras(g).map((h,i)=>`W${i+1} ${STATUS_ICON[st[i]]||""}${h}h`).join(" · "); }
 // horas do jogo p/ o resumo do filtro: se o filtro "🎮 Joguei no ano" estiver ativo,
@@ -934,7 +963,8 @@ const VOPTS = ["N/A","Masterpiece","Muito Bom","Bom","Mediano","Ruim","Muito Rui
 function statusOpts(sel){
   return `<option value="#" ${sel==="#"?"selected":""}>🔄 Jogando</option>
       <option value="S" ${sel==="S"?"selected":""}>✅ Zerado</option>
-      <option value="N" ${sel==="N"?"selected":""}>❌ Dropado</option>`;
+      <option value="N" ${sel==="N"?"selected":""}>❌ Dropado</option>
+      <option value="P" ${sel==="P"?"selected":""}>⏸️ Pausado</option>`;
 }
 function gedRuns(g){
   return (g.runs||[]).map((r,i)=>`<div class="grunrow">
@@ -1253,6 +1283,7 @@ function viewPlano(){
     let sub = est?est+"h":"—";
     if (p.backlog) sub = `📥 backlog${est?` · ${est}h`:""} — não conta no planejamento`;
     else if (g && temStatus(g,"#")) sub = `${jogadasAtual(g)}h de ${est}h · faltam ${Math.round(falta)}h`;
+    else if (g && temStatus(g,"P")) sub = `⏸️ pausado · ${jogadasAtual(g)}h de ${est}h · faltam ${Math.round(falta)}h`;
     else if (rejogar) sub = `🔁 rejogar${est?` · ${est}h estimadas`:""}`;
     else if (g && statusJogo(g)==="S") sub = `✅ zerado (${totalHoras(g)}h)`;
     else if (g && statusJogo(g)==="N") sub = `❌ dropado (${totalHoras(g)}h)`;
@@ -1263,7 +1294,8 @@ function viewPlano(){
       <div class="pacts">
         ${p.backlog
           ? `<button type="button" class="pbtn" data-pbacklog="${i}" title="Voltar pra fila">↩️</button>`
-          : `${p.iniciado?'':`<button type="button" class="pbtn" data-pjogar="${i}" title="Marcar como jogando agora">▶️</button>`}
+          : `${!p.iniciado?`<button type="button" class="pbtn" data-pjogar="${i}" title="Marcar como jogando agora">▶️</button>`
+              :(g && temStatus(g,"P") && !temStatus(g,"#"))?`<button type="button" class="pbtn" data-pjogar="${i}" title="Retomar (estava pausado)">▶️</button>`:''}
              <button type="button" class="pbtn" data-pbacklog="${i}" title="Mandar pro backlog (para de contar no planejamento)">📥</button>`}
         <button type="button" class="pbtn" data-peditar="${i}" title="Editar">✏️</button>
         <button type="button" class="pbtn del" data-pexcluir="${i}" title="Excluir">🗑</button>
@@ -1471,6 +1503,7 @@ function pRefreshHint(){
   if(!g){ el.textContent=""; return; }
   if(temStatus(g,"#")){ el.textContent="🎮 Já está marcado como jogando agora"; return; }
   el.classList.add("rejogar");
+  if(temStatus(g,"P")){ el.textContent="⏸️ Já na biblioteca, pausado — ▶️ retoma a jogatina"; return; }
   el.textContent=`🔁 Já na biblioteca (${statusJogo(g)==="S"?"zerado":"dropado"}${horasOcultas(g)?"":` · ${totalHoras(g)}h`}) — entra como nova jogatina (rejogar)`;
 }
 // dropdown customizado — confiável em mobile
@@ -1532,7 +1565,7 @@ $("#pSave").addEventListener("click", ()=>{
   const h = $("#pEst").value;
   const prev = (pEditIdx!=null && P[pEditIdx]) ? P[pEditIdx] : {};
   const g = libPorNome(jogo);                       // liga ao jogo real, se existir
-  const rejogar = !!(g && !temStatus(g,"#"));  // replay de um jogo sem jogatina em andamento
+  const rejogar = !!(g && !emAberto(g));  // replay de um jogo sem jogatina em andamento
   const data = $("#pData").value || "";
   // ano: pela data (se houver) ou pelo campo Ano — assim jogo sem data ainda cai num ano
   const anoIn = parseInt($("#pAno").value, 10);
@@ -1623,7 +1656,13 @@ document.addEventListener("click", e=>{
   if (pe){ openPlano(Number(pe.dataset.peditar)); return; }
   const pb = e.target.closest("[data-pbacklog]");
   if (pb){ const i=Number(pb.dataset.pbacklog); const p=P[i];
-    if (p){ if (p.backlog) delete p.backlog; else p.backlog = true; savePlano(); render(); } return; }
+    if (p){
+      if (p.backlog) delete p.backlog;
+      else { p.backlog = true;
+        // foi pro backlog → a jogatina em andamento vira PAUSADA (sai do "Jogando agora" da aba Jogos)
+        if (pausarJogo(pjogoDoItem(p))) saveJogosQuiet();
+      }
+      savePlano(); render(); } return; }
   const px = e.target.closest("[data-pexcluir]");
   if (px){ const i=Number(px.dataset.pexcluir); if (P[i]){ P.splice(i,1); savePlano(); render(); } return; }
   const pj = e.target.closest("[data-pjogar]");
@@ -1635,7 +1674,8 @@ document.addEventListener("click", e=>{
          || (key.length>=4 ? J.find(x=>{ const n=(x.nome||"").trim().toLowerCase(); return n && (n.includes(key)||key.includes(n)); }) : null);
     if (g){
       // já zerou/dropou antes → abre uma NOVA jogatina como "jogando", preservando o status das anteriores
-      if (!temStatus(g,"#")) (g.runs=g.runs||[]).push({horas:0, enc:"#"});
+      if (temStatus(g,"P")){ const st=runStatus(g), i=st.lastIndexOf("P"); if (i===0) g.enc="#"; else g.runs[i-1].enc="#"; }
+      else if (!temStatus(g,"#")) (g.runs=g.runs||[]).push({horas:0, enc:"#"});
     } else { g = { id: J.reduce((m,x)=>Math.max(m,x.id||0),0)+1, nome:p.jogo, horas:0, enc:"#",
                  w:1, v:"N/A", genres:"", motivo:"" }; J.push(g); }
     p.iniciado = true; p.jid = g.id;

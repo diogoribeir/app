@@ -159,6 +159,12 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   drop, lista de motivos, "faltam Xh" do Plano · **`statusJogo`** → o texto do card e os contadores de
   zerados/dropados. O ▶️ "estou jogando" do Plano **abre uma jogatina nova** (`{horas:0, enc:"#"}`) em vez
   de sobrescrever `g.enc`. (Não há campo Observação.)
+  - ⏸️ **Pausado (`"P"`, out/2026):** 4º status de jogatina. `statusJogo` = jogando > **pausado** > zerado >
+    dropado; `emAberto(g)` = jogando **ou** pausado (ainda tem horas no Plano: `pfaltaH`, `pitemPendente`,
+    `pjogadasAtual`, `jogadoEmAndamento`). Pausado **não** aparece em "Jogando agora". Mandar um item do
+    Plano pro **📥 backlog pausa** a jogatina "jogando" do jogo (`pausarJogo(pjogoDoItem(p))` — liga por jid
+    ou nome, mesmo sem ▶️); o **▶️ retoma** a jogatina pausada em vez de abrir outra. Migração única
+    `migBacklogPausa` pausou o que já estava no backlog (ex.: FF Resonance).
 - **Ano jogado (`g.anoJog` / `run.anoJog`):** ano em que cada jogatina foi jogada — **diferente do ano de
   lançamento** (`g.ano`), pois dá pra rejogar o mesmo jogo em anos distintos (ex.: Death Stranding 2 —
   W1 num ano, W2 em 2026). Editável no card (campo "🎮 Joguei em (ano)" p/ o W1 + input de ano em cada
@@ -179,7 +185,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
     por ano. Num ano, a aba mostra **só aquele ano**: horas **disponíveis** dele (`horasDisponiveisAno(ano)`
     = semanas cuja segunda cai no ano), **falta na fila** e **fila** só dos itens do ano, e o painel ⚙️ só
     com os meses do ano; no **Geral** volta tudo (`horasDisponiveis()`, todas as semanas/itens). `anoFoco()`
-    = `planoAno` (`"geral"` ou nº) ou o ano atual `ANO_HOJE`.
+    = `planoAno` (`"geral"` ou nº) ou o ano atual `ANO_HOJE`. A aba **abre sempre no Geral** (`planoAno = "geral"` inicial, out/2026).
     - **Ano de cada item:** `anoDoItem(p)` = pela `data`; sem data, pelo campo `p.ano`; senão `ANO_HOJE`.
       ⚠️ **Jogo sem data de lançamento** ainda precisa de um **ano** (não necessariamente 2026): o modal tem
       o campo **Ano** (`#pAno`, preenchido pela data ou à mão) e o `#pSave` grava `p.ano`.
