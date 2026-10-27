@@ -1,6 +1,6 @@
 # Guia dos Apps — Di & Tati (leia isto primeiro)
 
-Este repositório hospeda **5 apps** do casal Di (Diogo) & Tati, publicados juntos no GitHub Pages.
+Este repositório hospeda **6 apps** do casal Di (Diogo) & Tati, publicados juntos no GitHub Pages.
 (O App 2 — 📊 Roteiro Paris, o do Diogo, `roteiro-paris/` — foi **removido em ago/2026**; segue no
 histórico do git. Não confundir com o App 3 — ✈️ Paris Trip Planner, o da Tati, `paris-planner/`.)
 Este arquivo é o contexto completo para qualquer sessão nova do Claude: estrutura, Firebase,
@@ -28,7 +28,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - O workflow `.github/workflows/deploy-pages.yml` roda **a cada push no `master`** (ou manualmente:
   aba **Actions → "Publicar apps no GitHub Pages" → Run workflow**).
 - Ele monta o site assim: raiz → `home/` (página inicial com a lista de apps) · `/dias-sem-doenca/` →
-  `dias-sem-doenca/` · `/paris-planner/` → `paris-planner/` · `/perfil-gamer/` → `perfil-gamer/` ·
+  `dias-sem-doenca/` · `/paris-planner/` → `paris-planner/` · `/perfil-gamer/` → `perfil-gamer/` · `/poe2-builds/` → `poe2-builds/` ·
   `/lingo/` → build estático de `lingo-src/` (Next.js exportado; o workflow roda `npm ci && npm run build`
   com `NEXT_PUBLIC_BASE_PATH=/app/lingo` e copia `lingo-src/out/`).
 - Fluxo de trabalho do Claude: **branch → commit → push → PR → merge no `master`** (o Diogo autoriza o
@@ -323,6 +323,56 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   recompila e republica em `/app/lingo/`. O card na `home/index.html` aponta para `./lingo/`.
 
 ---
+
+## App 8 — ⚒️ Forja PoE2 (o do Diogo) — *criador/analisador de builds de Path of Exile 2*
+- **URL:** https://diogoribeir.github.io/app/poe2-builds/
+- **Pastas:** `poe2-builds/` (app publicado, HTML/CSS/JS puro, PWA) e `poe2-builds-src/` (gerador da
+  biblioteca: `gerar_kb.py` + `lualit.py` + `README.md`).
+- **Por quê:** o Diogo joga PoE2 no **PS5** — PoB2/poe.ninja/Maxroll são ferramentas de PC. Este app faz no
+  celular: montar build, **criticar/classificar/corrigir** com sugestões embasadas, assistente "O que você quer
+  jogar?" (aleatória · meta · único · skill · ascendência), biblioteca e calculadoras. Pensado para controle.
+- **Abas:** 🛠️ Builds (lista + nota) · 🧭 Criar (assistente) · 🔬 Análise · 📚 Saber (biblioteca) · 🧮 Calc.
+  Editor = página sobreposta (`#editor`) com seções recolhíveis; seletor com busca = `#picker` (genérico,
+  `abrirPicker({titulo, filtros, itens(q,f), onPick})`).
+- **Arquivos:** `app.js` (interface/estado/sync) · `motor.js` (**regras sem interface**: compatibilidade de
+  suportes portada do PoB2 — `compativel()` avalia `requireSkillTypes`/`excludeSkillTypes` em RPN igual ao
+  `calcLib.doesTypeExpressionMatch` —, `analisar(b)` → `{achados, notas, rotulos, vetores, arquetipo, geral}`,
+  `recomendarSuportes`, `rankAscPorSkill`, `rankSkillsPorAsc`, `rankSkillsPorUnico`, `aleatoria`, `calcDano`,
+  `ondeInvestir`, `calcDefesa`) · `pob.js` (importa **código do Path of Building 2**: base64url → zlib via
+  `DecompressionStream` → XML `<PathOfBuilding2>` → build; pobb.in é tentado mas costuma bloquear CORS).
+- **Biblioteca (`poe2-builds/kb/`)** — duas naturezas, ⚠️ não confundir:
+  - **GERADA** (não editar à mão): `jogo.js` (`KB_JOGO`: constantes do jogo, classes, 397 skills, 567 suportes
+    com efeito em texto `fx` e rótulos de vetor `v`/elemento `el`), `arvore.js` (`KB_ARVORE`: keystones, ~980
+    notáveis com **região** STR/DEX/INT calculada pela posição, nós de ascendência), `unicos.js` (`KB_UNICOS`).
+    Fonte: repositório do **Path of Building 2** (lido como dados pelo `lualit.py` — **nada do PoB2 é executado**).
+  - **CURADA** (editar à mão, PT-BR): `conceitos.js` (`KB_CONCEITOS`: vetores do slide "Hit Damage Scaling
+    Vectors", camadas de defesa, tópicos de mecânica com números via `{c.chave}` → `KB_JOGO.consts`,
+    resumo/afinidades de cada ascendência, ferramentas) e `meta.js` (`KB_META`: retrato do meta com tier/fontes).
+- **🔄 Atualizar a cada patch (~4 meses; próximo: 1.0 em 11/12/2026 com o Duelist):**
+  `git clone --depth 1 https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2.git <scratch>/pob2` →
+  `python3 -I poe2-builds-src/gerar_kb.py <scratch>/pob2` → revisar `conceitos.js` (mecânicas que mudaram,
+  `revisado`/`patch`) e `meta.js` (tier lists + poe.ninja) → **subir `CACHE` no `sw.js`**. Detalhes em
+  `poe2-builds-src/README.md`. Agente de apoio: `.claude/agents/poe2-builds.md`.
+  ⚠️ Rodar o Lua do PoB2 é bloqueado no ambiente do Claude (código externo) — por isso o parser próprio.
+  ⚠️ poe2wiki/poe2db/poe.ninja **não abrem** do ambiente do Claude (proxy/DNS) — pesquisar via WebSearch.
+- **Análise (regras do `motor.js`):** arma exigida pela skill, ascendência × classe, gems fora da região de
+  atributo, suporte incompatível, 2 suportes da mesma família na skill (só um vale), linhagem repetida (1 por
+  personagem), >5 suportes, conflitos ("não pode critar" em build de crítico, "zera elemental" em skill
+  elemental, "less X damage" no elemento da skill), vetores de dano vazios (sugere suportes compatíveis +
+  notáveis perto da região da classe), resistências < cap (penalidade −60% endgame), caos negativo, vida+ES
+  por nível, camadas de defesa, armadura/evasão com as fórmulas do PoB2, recuperação, stun (melee), espírito
+  (custo × quests/cetro), nº de botões no controle, keystones problemáticas (CI sem ES, Vaal Pact sem leech,
+  Avatar of Fire sem fogo…), sinergia ascendência × skill, meta. Notas 0–10: dano, defesa (marcada "estimada"
+  sem números), recuperação, coerência, controle PS5, acessível (únicos/linhagem). Rótulos: Meta/Fora do
+  meta/Criativa/Build de único · estilo · Mapper/Bosser · Canhão de vidro/Tanque/Equilibrada · HC · starter.
+  Card **👉 Próximo passo** = a correção mais importante (recomendação única — o Diogo trava com listas longas).
+- **Sincronização:** Realtime Database via REST (Receita 1), nó **`planos/poe2-builds-dt2026`**: **uma chave por
+  build** (`builds/<id>`, objeto) + lápides `apagadas/<id>` (timestamp) + `_at`. Ao abrir: puxa e mescla por
+  `atualizado` (mais novo vence); offline vai pro outbox (`forja:outbox`) e reenvia. localStorage =
+  `forja:builds` (cópia offline), `forja:atual` (build selecionada), `forja:calc`.
+- **Edição:** direto nos arquivos. Ao mexer em QUALQUER arquivo do app **ou da `kb/`**, subir `CACHE` no
+  `sw.js` (`"poe2-builds-vN"`). CSP do `index.html` libera só o Firebase e `https://pobb.in`.
+  Ícones em `poe2-builds/icons/` (bigorna + martelo + "2", gerados via canvas no Chromium headless).
 
 ## Firebase — projeto `apps-4b887` (tudo num projeto só)
 - **Console:** https://console.firebase.google.com/project/apps-4b887

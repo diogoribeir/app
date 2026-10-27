@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1A1410" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://apps-4b887-default-rtdb.firebaseio.com https://pobb.in; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <title>Forja PoE2 — builds de Path of Exile 2</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Forja PoE2" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="mark">⚒️</span> Forja PoE2 <span id="patchBadge" class="badge"></span></div>
+    <button id="menuBtn" class="icon-btn" aria-label="Opções">⋯</button>
+  </header>
+
+  <!-- ===================== ABA: BUILDS ===================== -->
+  <main class="wrap tab" data-tab="builds">
+    <section>
+      <div class="sec-head">
+        <h2>🛠️ Minhas builds</h2>
+        <div class="row-btns">
+          <button id="btnPob" class="mini-btn ghost">📋 Código PoB</button>
+          <button id="btnNova" class="mini-btn">+ Nova</button>
+        </div>
+      </div>
+      <p class="hint">Monte, importe ou gere uma build — o app critica, classifica e sugere correções com base nas mecânicas do jogo.</p>
+      <div id="buildList" class="stack"></div>
+      <div id="buildEmpty" class="empty-card" hidden>
+        <div class="big">🧭</div>
+        <p><b>Nenhuma build ainda.</b></p>
+        <p class="muted">Comece pelo assistente (“O que você quer jogar?”), cole um código do Path of Building ou crie do zero.</p>
+        <div class="row-btns center">
+          <button class="btn primary" data-go="criar">🧭 Assistente</button>
+          <button class="btn ghost" id="btnPob2">📋 Importar PoB</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== ABA: CRIAR (assistente) ===================== -->
+  <main class="wrap tab" data-tab="criar" hidden>
+    <div id="criarBody"></div>
+  </main>
+
+  <!-- ===================== ABA: ANÁLISE ===================== -->
+  <main class="wrap tab" data-tab="analise" hidden>
+    <div class="selrow">
+      <label for="anaSel" class="sr">Build</label>
+      <select id="anaSel" class="selbox"></select>
+      <button id="anaEdit" class="mini-btn ghost">✏️ Editar</button>
+    </div>
+    <div id="anaBody"></div>
+  </main>
+
+  <!-- ===================== ABA: SABER (biblioteca) ===================== -->
+  <main class="wrap tab" data-tab="saber" hidden>
+    <input id="saberBusca" class="search" type="search" placeholder="Buscar skill, suporte, único, mecânica…" autocomplete="off" />
+    <div id="saberSeg" class="seg"></div>
+    <div id="saberBody"></div>
+  </main>
+
+  <!-- ===================== ABA: CALCULADORA ===================== -->
+  <main class="wrap tab" data-tab="calc" hidden>
+    <div id="calcBody"></div>
+  </main>
+
+  <!-- ===================== EDITOR (página sobreposta) ===================== -->
+  <div id="editor" class="page hidden" role="dialog" aria-modal="true">
+    <header class="page-head">
+      <button id="edBack" class="icon-btn dark" aria-label="Voltar">←</button>
+      <div class="page-title" id="edTitle">Editar build</div>
+      <button id="edAnalisar" class="mini-btn">🔬 Analisar</button>
+    </header>
+    <div class="page-body wrap" id="edBody"></div>
+  </div>
+
+  <!-- ===================== SELETOR (lista com busca) ===================== -->
+  <div id="picker" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box tall">
+      <div class="pk-head">
+        <h2 id="pkTitle">Escolher</h2>
+        <button class="icon-btn dark" data-close aria-label="Fechar">✕</button>
+      </div>
+      <input id="pkBusca" class="search" type="search" placeholder="Buscar…" autocomplete="off" />
+      <div id="pkFiltros" class="chips scroll-x"></div>
+      <div id="pkLista" class="pk-list"></div>
+    </div>
+  </div>
+
+  <!-- ===================== IMPORTAR PoB ===================== -->
+  <div id="pobModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>📋 Importar do Path of Building 2</h2>
+      <p class="muted">Cole o <b>código PoB</b> (aquele texto longo que começa com <code>eN</code>) ou um link do <b>pobb.in</b>. Dá para pegar de guias (Maxroll, Mobalytics), do poe.ninja (botão “Path of Building”) ou de quem usa o PoB2 no PC.</p>
+      <textarea id="pobTexto" rows="6" placeholder="eNrtfQt..." spellcheck="false" autocapitalize="off"></textarea>
+      <p id="pobErro" class="err"></p>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancelar</button>
+        <button id="pobOk" class="btn primary">Importar e analisar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MENU ⋯ ===================== -->
+  <div id="menuModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2>Opções</h2>
+      <div class="menu-list">
+        <button class="menu-item" id="mExport">📤 Exportar backup (.json)</button>
+        <button class="menu-item" id="mImport">📥 Importar backup</button>
+        <button class="menu-item" id="mSobre">ℹ️ Sobre os dados e atualizações</button>
+      </div>
+      <input id="fileImport" type="file" accept="application/json,.json" hidden />
+      <div class="modal-actions"><button class="btn ghost" data-close>Fechar</button></div>
+    </div>
+  </div>
+
+  <!-- ===================== TEXTO (compartilhar análise) ===================== -->
+  <div id="textoModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h2 id="textoTitulo">Texto</h2>
+      <textarea id="textoArea" rows="10" readonly></textarea>
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Fechar</button>
+        <button id="textoCopiar" class="btn primary">Copiar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="undoBar" class="undo hidden"><span id="undoText"></span><button id="undoBtn">↩︎ Desfazer</button></div>
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- ===================== NAV INFERIOR ===================== -->
+  <nav class="tabbar">
+    <button class="tabbtn active" data-go="builds"><span>🛠️</span>Builds</button>
+    <button class="tabbtn" data-go="criar"><span>🧭</span>Criar</button>
+    <button class="tabbtn" data-go="analise"><span>🔬</span>Análise</button>
+    <button class="tabbtn" data-go="saber"><span>📚</span>Saber</button>
+    <button class="tabbtn" data-go="calc"><span>🧮</span>Calc</button>
+  </nav>
+
+  <script src="kb/jogo.js"></script>
+  <script src="kb/arvore.js"></script>
+  <script src="kb/unicos.js"></script>
+  <script src="kb/conceitos.js"></script>
+  <script src="kb/meta.js"></script>
+  <script src="motor.js"></script>
+  <script src="pob.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
