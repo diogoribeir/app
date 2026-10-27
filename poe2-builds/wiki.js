@@ -1,5 +1,5 @@
 /* ============================================================
-   Forja PoE2 — leitor da PoE2 Wiki dentro do app
+   Exile Forge — leitor da PoE2 Wiki dentro do app
    ------------------------------------------------------------
    Usa a API do MediaWiki da poe2wiki.net direto do navegador do
    celular (action=parse / action=opensearch com origin=* → CORS

@@ -1,5 +1,5 @@
 /* ============================================================
-   Forja PoE2 — interface
+   Exile Forge — interface
    ------------------------------------------------------------
    Referência visual e de organização: o próprio Path of Exile 2 e
    o Path of Building 2 (abas Cálculos/Skills/Itens/Árvore/Config/
@@ -70,6 +70,7 @@ let lastAt = 0, offlineAvisado = false;
 function normalizar(b) {
   const out = Object.assign(M.novaBuild({}), b || {});
   ["grupos", "unicos", "keystones", "ascNos", "notaveis"].forEach((k) => { if (!Array.isArray(out[k])) out[k] = out[k] ? Object.values(out[k]) : []; });
+  if (out.nosIds && !Array.isArray(out.nosIds)) out.nosIds = Object.values(out.nosIds);
   out.grupos = out.grupos.filter(Boolean).map((g) => ({ skill: g.skill || "", papel: g.papel || "secundaria", sup: Array.isArray(g.sup) ? g.sup.filter(Boolean) : g.sup ? Object.values(g.sup) : [] }));
   ["stats", "recup", "vetMan"].forEach((k) => { if (!out[k] || typeof out[k] !== "object") out[k] = {}; });
   return out;
@@ -234,6 +235,7 @@ function renderBuild(id, sub) {
       <div class="chips" style="margin-top:10px">${ROT(r.rotulos, 10)}</div>
       ${statsPob(b)}
       ${(b.stats && Object.keys(b.stats).length) ? "" : `<p class="hint" style="margin:8px 0 0">Sem números do personagem — preencha em Config (copie da tela do PS5) ou importe do PoB.</p>`}
+      <button class="btn prim bloco" style="margin-top:12px" data-a="bp">Levar para o jogo · Build Planner</button>
     </div>
     <nav class="subabas">${SUBABAS.map(([s, t]) => `<button class="subaba${s === sub ? " on" : ""}" data-sub="${s}">${t}</button>`).join("")}</nav>
     <div style="margin-top:12px">${corpo}</div>`;
@@ -421,12 +423,13 @@ function onBuildClick(e) {
   else if (a === "copiar") mostrarTexto("Análise", textoAnalise(b));
   else if (a === "dup") { const c = normalizar(Object.assign(clone(b), { id: M.novaBuild().id, nome: (b.nome || "Build") + " (cópia)", criado: Date.now() })); salvar(c); toast("Duplicada"); ir(`#/build/${c.id}/calcs`); }
   else if (a === "b-del") apagarBuild(b.id);
+  else if (a === "bp") abrirBuildPlanner(b);
   else return false;
   return true;
 }
 function textoAnalise(b) {
   const r = M.analisar(b), n = r.notas, P0 = M.principal(b);
-  let t = `FORJA PoE2 — ${b.nome}\n${r.arquetipo}\nNota ${fmt(r.geral)} · ${r.rotulos.map((x) => semEmoji(x.t)).join(" · ")}\n\n`;
+  let t = `EXILE FORGE — ${b.nome}\n${r.arquetipo}\nNota ${fmt(r.geral)} · ${r.rotulos.map((x) => semEmoji(x.t)).join(" · ")}\n\n`;
   t += `Dano ${fmt(n.dano)} · Defesa ${fmt(n.defesa)}${n.defesaEstimada ? "*" : ""} · Recuperação ${fmt(n.recuperacao)} · Coerência ${fmt(n.coerencia)} · Controle ${fmt(n.controle)} · Acessível ${fmt(n.acesso)}\n\n`;
   if (P0) t += `Skill principal: ${P0.s.n} + ${P0.g.sup.join(", ") || "sem suportes"}\n\n`;
   r.achados.filter((a) => a.sev !== "info").forEach((a) => { t += `[${SEV_PT[a.sev]}] ${a.titulo}${a.acao ? "\n   → " + a.acao : ""}${a.sups && a.sups.length ? " " + a.sups.join(", ") : ""}\n`; });
@@ -779,12 +782,38 @@ function preencherCalc(b) {
 }
 
 /* ============================================================
+   BUILD PLANNER (levar a build para dentro do PoE2)
+   ============================================================ */
+let BP = null;
+async function abrirBuildPlanner(b) {
+  abrir("#bpModal");
+  $("#bpCorpo").innerHTML = '<p class="muted">Montando o arquivo…</p>';
+  try {
+    const r = await window.BuildPlanner.texto(b);
+    BP = { nome: window.BuildPlanner.nomeArquivo(b), json: r.json };
+    const o = r.obj;
+    $("#bpCorpo").innerHTML = `
+      <div class="tt no"><div class="tt-h"><div class="tt-n">${esc(o.name)}</div><div class="tt-b">${esc(o.ascendancy || "sem ascendência")} · ${esc(BP.nome)}</div></div><div class="tt-c">
+        <div class="mod">${o.passives.length} passivas · ${o.skills.length} gemas · ${o.skills.reduce((a, s) => a + (s.support_skills || []).length, 0)} suportes · ${o.inventory_slots.length} slots de item</div></div></div>
+      ${r.avisos.length ? `<div class="ach alerta" style="margin-top:10px"><div class="sev">Atenção</div>${r.avisos.map((x) => `<div class="ap">${esc(x)}</div>`).join("")}</div>` : ""}
+      <h3 style="margin-top:14px">Como levar para o jogo</h3>
+      <ol class="muted" style="padding-left:18px;margin:6px 0 0">
+        <li>Toque em <b>Baixar .build</b> — o arquivo fica nos downloads do celular.</li>
+        <li>Abra <a href="https://pathofexile2.com/" target="_blank" rel="noopener">pathofexile2.com</a>, entre na sua conta e procure o <b>Build Planner</b>. Envie o arquivo e <b>assine</b> a build.</li>
+        <li>No jogo, a build assinada aparece no Build Planner: passivas destacadas na árvore, gemas indicadas no corte de gemas e dicas nos slots de item.</li>
+        <li>No PC também dá para colocar o arquivo direto na pasta <code>Documents/My Games/Path of Exile 2/BuildPlanner</code>.</li>
+      </ol>
+      <p class="hint" style="margin-top:8px">Formato oficial da GGG (Build Planner v1, experimental). Pela documentação, as builds assinadas no site são carregadas pelo jogo — confirme no PS5 na primeira vez.</p>`;
+  } catch (e) { $("#bpCorpo").innerHTML = `<p class="err">${esc(e.message || e)}</p>`; BP = null; }
+}
+
+/* ============================================================
    BACKUP / PoB
    ============================================================ */
 function exportar() {
-  const blob = new Blob([JSON.stringify({ app: "forja-poe2", versao: 1, exportado: new Date().toISOString(), builds: listaBuilds() }, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify({ app: "exile-forge", versao: 1, exportado: new Date().toISOString(), builds: listaBuilds() }, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = "forja-poe2-builds-" + new Date().toISOString().slice(0, 10) + ".json";
+  a.href = URL.createObjectURL(blob); a.download = "exile-forge-builds-" + new Date().toISOString().slice(0, 10) + ".json";
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 function importarArquivo(file) {
@@ -853,6 +882,8 @@ function wire() {
     fechar("#picker"); PK = null; cb(it);
   });
   $("#pobOk").addEventListener("click", importarPob);
+  $("#bpBaixar").addEventListener("click", () => { if (BP) { window.BuildPlanner.baixar(BP.nome, BP.json); toast("Arquivo " + BP.nome + " baixado"); } });
+  $("#bpCopiar").addEventListener("click", () => { if (BP) { fechar("#bpModal"); mostrarTexto("Arquivo .build (JSON)", BP.json); } });
   $("#menuBtn").addEventListener("click", () => abrir("#menuModal"));
   $("#mExport").addEventListener("click", () => { fechar("#menuModal"); exportar(); });
   $("#mImport").addEventListener("click", () => $("#arquivo").click());

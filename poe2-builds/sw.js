@@ -1,8 +1,8 @@
-/* Service worker: faz a Forja PoE2 funcionar offline.
+/* Service worker: faz o Exile Forge funcionar offline.
    Guarda os arquivos do app (inclusive a biblioteca kb/) no cache e serve de lá.
    As requisições ao Firebase/pobb.in (outra origem) NUNCA passam pelo cache.
    Ao mudar QUALQUER arquivo (app ou kb/), subir a versão do CACHE. */
-var CACHE = "poe2-builds-v2";
+var CACHE = "poe2-builds-v3";
 var ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,8 @@ var ASSETS = [
   "./app.js",
   "./motor.js",
   "./pob.js",
+  "./buildplanner.js",
+  "./kb/nos.js",
   "./kb/jogo.js",
   "./kb/arvore.js",
   "./kb/unicos.js",

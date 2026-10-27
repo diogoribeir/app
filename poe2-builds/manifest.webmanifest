@@ -1,6 +1,6 @@
 {
-  "name": "Forja — planejador de builds de Path of Exile 2",
-  "short_name": "Forja PoE2",
+  "name": "Exile Forge — PoE2 build planner",
+  "short_name": "Exile Forge",
   "description": "Cria, critica, classifica e corrige builds de Path of Exile 2 no celular — com base nos dados do Path of Building 2.",
   "lang": "pt-BR",
   "start_url": "./index.html",

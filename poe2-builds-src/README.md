@@ -1,4 +1,4 @@
-# Forja PoE2 — gerador da biblioteca
+# Exile Forge — gerador da biblioteca
 
 O app `poe2-builds/` usa uma biblioteca de dados em `poe2-builds/kb/`. Ela tem duas partes:
 

@@ -1,5 +1,5 @@
 /* ============================================================
-   Forja PoE2 — importação de código do Path of Building 2
+   Exile Forge — importação de código do Path of Building 2
    ------------------------------------------------------------
    Código PoB = base64 (url-safe) de um XML comprimido com zlib.
    Decodifica no próprio navegador (DecompressionStream) e
@@ -109,6 +109,7 @@
     const ativoSpec = specs[(parseInt(tree && tree.getAttribute("activeSpec"), 10) || 1) - 1] || specs[0];
     if (ativoSpec) {
       const ids = (ativoSpec.getAttribute("nodes") || "").split(",").map((x) => parseInt(x, 10)).filter((x) => !isNaN(x));
+      b.nosIds = ids.filter((id) => id < 65536);
       ids.forEach((id) => {
         const n = M.NODE.get(id); if (!n) return;
         if (n.tipo === "keystone") b.keystones.push(n.n);

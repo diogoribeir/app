@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gera a biblioteca de dados do app Forja PoE2 a partir do Path of Building 2.
+"""Gera a biblioteca de dados do app Exile Forge a partir do Path of Building 2.
 
 Uso (a cada patch do jogo, ~4 meses):
     git clone --depth 1 https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2.git /tmp/pob2
@@ -378,6 +378,7 @@ def gems_e_skills(pob):
             fx = desc.texto(vals)
             sup = {
                 'n': nome,
+                'gid': g.get('gameId', ''),
                 'fam': g.get('gemFamily') or re.sub(r'\s+(I{1,3}|IV|V)$', '', nome),
                 'nv': {'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5}.get(m.group(1)) if m else 0,
                 'lin': bool(tags.get('lineage')),
@@ -400,6 +401,7 @@ def gems_e_skills(pob):
             lv1 = lv1 if isinstance(lv1, dict) else {}
             sk = {
                 'n': g['name'],
+                'gid': g.get('gameId', ''),
                 't': g.get('gemType', ''),
                 'tg': tg,
                 'req': attr(g),
@@ -447,6 +449,7 @@ def arvore(pob, ver):
             'n': c['name'],
             'attr': [c.get('base_str', 0), c.get('base_dex', 0), c.get('base_int', 0)],
             'asc': [a['name'] for a in c.get('ascendancies', [])],
+            'ascId': {a['name']: a.get('internalId', '') for a in c.get('ascendancies', [])},
         })
     keystones, notaveis, asc = [], [], {}
     for nid, n in N.items():
@@ -454,23 +457,26 @@ def arvore(pob, ver):
         if n.get('ascendancyName'):
             if not (n.get('isNotable') or n.get('isAscendancyStart')) or not stats:
                 continue
-            asc.setdefault(n['ascendancyName'], []).append({'id': int(nid), 'n': n['name'], 's': stats})
+            asc.setdefault(n['ascendancyName'], []).append({'id': int(nid), 'sid': n.get('stringId', ''), 'n': n['name'], 's': stats})
             for outra, o in (n.get('options') or {}).items():
                 if isinstance(o, dict) and outra != n['ascendancyName']:
-                    asc.setdefault(outra, []).append({'id': int(nid), 'n': o.get('name', n['name']), 's': o.get('stats', stats)})
+                    asc.setdefault(outra, []).append({'id': int(nid), 'sid': n.get('stringId', ''), 'n': o.get('name', n['name']), 's': o.get('stats', stats)})
             continue
         if n.get('isKeystone'):
             x, y = pos(n)
-            keystones.append({'id': int(nid), 'n': n['name'], 's': stats, 'reg': regiao(x, y)})
+            keystones.append({'id': int(nid), 'sid': n.get('stringId', ''), 'n': n['name'], 's': stats, 'reg': regiao(x, y)})
         elif n.get('isNotable') and stats:
             x, y = pos(n)
-            notaveis.append({'id': int(nid), 'n': n['name'], 's': stats, 'reg': regiao(x, y)})
+            notaveis.append({'id': int(nid), 'sid': n.get('stringId', ''), 'n': n['name'], 's': stats, 'reg': regiao(x, y)})
     keystones.sort(key=lambda k: k['n'])
     notaveis.sort(key=lambda k: k['n'])
     for a in asc.values():
         a.sort(key=lambda k: k['n'])
     # nós de atributo/pequenos não entram (só notáveis, keystones e ascendência)
-    return {'classes': classes, 'keystones': keystones, 'notaveis': notaveis, 'ascendencias': asc}
+    # mapa id -> stringId de TODOS os nós alocáveis (exportar a árvore inteira de uma build do PoB
+    # para o Build Planner do jogo); só nós com id < 65536 existem na tabela PassiveSkills
+    todos = {int(nid): n['stringId'] for nid, n in N.items() if n.get('stringId') and int(nid) < 65536 and not n.get('isOnlyImage')}
+    return {'classes': classes, 'keystones': keystones, 'notaveis': notaveis, 'ascendencias': asc, 'todos': todos}
 
 
 # ------------------------------------------------------------------ únicos
@@ -557,6 +563,7 @@ def main():
     }
     escrever('jogo.js', 'KB_JOGO', {'meta': meta, 'consts': consts, 'classes': arv['classes'], 'tipos': tipos,
                                     'skills': ativos, 'suportes': suportes})
+    escrever('nos.js', 'KB_NOS', arv['todos'])
     escrever('arvore.js', 'KB_ARVORE', {'keystones': arv['keystones'], 'notaveis': arv['notaveis'],
                                          'ascendencias': arv['ascendencias']})
     escrever('unicos.js', 'KB_UNICOS', uni)

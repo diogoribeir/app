@@ -1,5 +1,5 @@
 /* ============================================================
-   Forja PoE2 — MOTOR (sem interface)
+   Exile Forge — MOTOR (sem interface)
    ------------------------------------------------------------
    Índices da biblioteca + regras de análise, classificação e
    sugestões. Funções puras sobre o objeto `build`; o app.js só
