@@ -1,5 +1,5 @@
 /* ============================================================
-   Exile Forge — MOTOR (sem interface)
+   Exile Compass — MOTOR (sem interface)
    ------------------------------------------------------------
    Índices da biblioteca + regras de análise, classificação e
    sugestões. Funções puras sobre o objeto `build`; o app.js só
@@ -417,7 +417,7 @@
     const bt = botoes(b);
     if (bt.n >= 9) out.push(achado("alerta", `${bt.n} skills de botão — pesado no controle`, "No controle os botões diretos são poucos; o resto exige modificador.", "Troque utilitárias por buffs persistentes ou triggers (meta gems)."));
     else if (bt.n >= 6) out.push(achado("dica", `${bt.n} skills de botão`, "No PS5 a partir de 6 você começa a depender do modificador (segurar gatilho).", "Considere transformar uma em trigger (Cast on Critical/Shock) ou persistente."));
-    else if (bt.n) out.push(achado("ok", `Confortável no controle (${bt.n} botões)`, "", ""));
+    else if (bt.n) out.push(achado("ok", `Confortável no controle (${bt.n} ${bt.n === 1 ? "botão" : "botões"})`, "", ""));
     if ((b.keystones || []).includes("Unwavering Stance")) out.push(achado("alerta", "Unwavering Stance: sem dodge roll", "“Cannot Dodge Roll or Sprint” — no controle o dodge roll é sua principal ferramenta de sobrevivência.", "Só vale se a build for muito tanque."));
 
     /* keystones específicas */
@@ -602,6 +602,8 @@
   }
   function rankSup(su, skill, b) {
     let r = 0;
+    const rec = window.KB_GEMAS && window.KB_GEMAS[skill.n] && window.KB_GEMAS[skill.n][1];
+    if (rec && rec.includes(su.n)) r += 1.5;
     const v = new Set(su.v);
     if (v.has("more")) r += 5;
     if (v.has("cond")) r -= 2.5;
@@ -626,6 +628,7 @@
     const alvo = txt.match(/less ([A-Za-z ]+?) Damage/);
     if (alvo && els.some((e) => new RegExp(EL_EN[e], "i").test(alvo[1]))) r -= 6;
     if (/Minion/.test(txt) && skill.t !== "Minion" && !skill.tg.includes("minion")) r -= 3;
+    if (/Melee Hit|Melee Attack/i.test(txt) && !skill.tg.includes("melee")) r -= 7;
     /* DoT x hit: suporte de "Damage over Time" só vale em skill de DoT, e vice-versa */
     const tipos = tiposDe(skill);
     const supDot = /damage over time/i.test(txt), supHit = /more [A-Za-z ]*Hit Damage|Damage with Hits|more Hit/i.test(txt);

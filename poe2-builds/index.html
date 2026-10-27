@@ -3,106 +3,75 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#100D09" />
+  <meta name="theme-color" content="#0b0a09" />
   <meta name="color-scheme" content="dark" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://apps-4b887-default-rtdb.firebaseio.com https://pobb.in; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';" />
-  <title>Exile Forge — build planner for Path of Exile 2</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'wasm-unsafe-eval'; worker-src 'self' blob: https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://apps-4b887-default-rtdb.firebaseio.com https://pobb.in https://cdn.jsdelivr.net; img-src 'self' data: blob:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self';" />
+  <title>Exile Compass — builds e árvore passiva de Path of Exile 2</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="preload" href="fonts/cinzel-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="Exile Forge" />
+  <meta name="apple-mobile-web-app-title" content="Exile Compass" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-voltar" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></symbol>
+    <symbol id="i-foto" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-menos" viewBox="0 0 24 24"><path d="M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-alvo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/></symbol>
+    <symbol id="i-tudo" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-busca" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15 15l5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-dado" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1.5" fill="currentColor"/><circle cx="15" cy="15" r="1.5" fill="currentColor"/><circle cx="15" cy="9" r="1.5" fill="currentColor"/><circle cx="9" cy="15" r="1.5" fill="currentColor"/></symbol>
+    <symbol id="i-ok" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-bussola" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M15.5 8.5l-2 5-5 2 2-5z" fill="currentColor"/></symbol>
+    <symbol id="i-codigo" viewBox="0 0 24 24"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+
   <header class="topo">
-    <div class="topo-l">
-      <div class="marca"><span class="titulo">EXILE FORGE</span><small>PoE2 builds</small><span id="patch" class="patch"></span></div>
-      <button id="menuBtn" class="icone" aria-label="Opções">⋯</button>
-    </div>
-    <nav class="abas" aria-label="Seções">
-      <button class="aba" data-rota="#/builds">Builds</button>
-      <button class="aba" data-rota="#/criar">Criar</button>
-      <button class="aba" data-rota="#/biblioteca">Biblioteca</button>
-      <button class="aba" data-rota="#/calcs">Calcs</button>
-    </nav>
+    <button id="voltarBtn" class="icone hidden" aria-label="Voltar"><svg class="ic"><use href="#i-voltar"/></svg></button>
+    <a class="marca" href="#/" aria-label="Exile Compass — início">
+      <svg class="ic marca-ic"><use href="#i-bussola"/></svg>
+      <span class="titulo">EXILE COMPASS</span>
+    </a>
+    <button id="menuBtn" class="icone" aria-label="Opções"><svg class="ic"><use href="#i-menu"/></svg></button>
   </header>
 
-  <main id="vista" class="wrap vista"></main>
-  <p class="rodape wrap">Exile Forge é um projeto de fã, não afiliado à Grinding Gear Games. Path of Exile é marca da Grinding Gear Games.</p>
+  <main id="vista" class="vista"></main>
 
-  <!-- seletor com busca (gemas, únicos, nós) -->
-  <div id="picker" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="caixa alta">
-      <div class="ph"><h2 id="pkTitulo">Escolher</h2><button class="icone" data-fechar aria-label="Fechar">✕</button></div>
-      <input id="pkBusca" class="busca" type="search" placeholder="Buscar…" autocomplete="off" />
-      <div id="pkFiltros" class="chips rolar"></div>
-      <div id="pkLista" class="pk-lista"></div>
+  <!-- painel inferior (detalhe de nó, gema, menu) -->
+  <div id="folha" class="folha hidden" role="dialog" aria-modal="true">
+    <div class="folha-fundo" data-fechar></div>
+    <div class="folha-caixa">
+      <div class="folha-alca" data-fechar></div>
+      <div id="folhaCorpo"></div>
     </div>
   </div>
 
-  <!-- importar código do Path of Building 2 -->
-  <div id="pobModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="caixa">
-      <h2>Importar do Path of Building 2</h2>
-      <p class="muted">Cole o <b>código PoB</b> (texto longo que começa com <code>eN</code>) ou um link do <b>pobb.in</b>. Guias da Maxroll/Mobalytics e personagens do poe.ninja têm o botão de exportar para o PoB.</p>
-      <textarea id="pobTexto" rows="6" placeholder="eNrtfQt..." spellcheck="false" autocapitalize="off"></textarea>
-      <p id="pobErro" class="err"></p>
-      <div class="acoes-m">
-        <button class="btn fant" data-fechar>Cancelar</button>
-        <button id="pobOk" class="btn prim">Importar</button>
-      </div>
-    </div>
-  </div>
+  <input id="arquivoFoto" type="file" accept="image/*" multiple hidden />
+  <input id="arquivoBackup" type="file" accept=".json,application/json" hidden />
 
-  <!-- menu -->
-  <div id="menuModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="caixa">
-      <h2>Opções</h2>
-      <div class="menu">
-        <button class="btn fant bloco" id="mExport">Exportar backup (.json)</button>
-        <button class="btn fant bloco" id="mImport">Importar backup</button>
-        <button class="btn fant bloco" id="mSobre">Sobre os dados e atualizações</button>
-      </div>
-      <input id="arquivo" type="file" accept="application/json,.json" hidden />
-      <div class="acoes-m"><button class="btn fant" data-fechar>Fechar</button></div>
-    </div>
-  </div>
-
-  <!-- texto para copiar -->
-  <div id="textoModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="caixa">
-      <h2 id="textoTitulo">Texto</h2>
-      <textarea id="textoArea" rows="10" readonly></textarea>
-      <div class="acoes-m">
-        <button class="btn fant" data-fechar>Fechar</button>
-        <button id="textoCopiar" class="btn prim">Copiar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- exportar para o Build Planner do jogo -->
-  <div id="bpModal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="caixa">
-      <div class="ph"><h2>Levar para o jogo</h2><button class="icone" data-fechar aria-label="Fechar">✕</button></div>
-      <div id="bpCorpo"></div>
-      <div class="acoes-m"><button id="bpCopiar" class="btn fant">Ver JSON</button><button id="bpBaixar" class="btn prim">Baixar .build</button></div>
-    </div>
-  </div>
-
-  <div id="desfazer" class="desfazer hidden"><span id="desfazerTxt"></span><button id="desfazerBtn" class="btn mini">Desfazer</button></div>
-  <div id="toast" class="toast hidden"></div>
+  <div id="desfazer" class="barra hidden" role="status"><span id="desfazerTxt"></span><button id="desfazerBtn" class="btn mini">Desfazer</button></div>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
   <script src="kb/jogo.js"></script>
   <script src="kb/arvore.js"></script>
   <script src="kb/unicos.js"></script>
   <script src="kb/conceitos.js"></script>
   <script src="kb/meta.js"></script>
+  <script src="kb/gemas.js"></script>
+  <script src="kb/tree.js"></script>
   <script src="motor.js"></script>
+  <script src="caminho.js"></script>
+  <script src="arvore.js"></script>
   <script src="pob.js"></script>
   <script src="buildplanner.js"></script>
+  <script src="foto.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

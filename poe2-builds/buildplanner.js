@@ -1,5 +1,5 @@
 /* ============================================================
-   Exile Forge — exportação para o BUILD PLANNER do PoE2
+   Exile Compass — exportação para o BUILD PLANNER do PoE2
    ------------------------------------------------------------
    Formato oficial da GGG (pathofexile.com/developer/docs/game,
    "Build Planner (PoE2 only)", versão 1 experimental): um JSON
@@ -49,10 +49,10 @@
     const avisos = [];
     const r = M.analisar(b);
     const out = {
-      name: limpa(b.nome || "Exile Forge build").slice(0, 80),
-      author: "Exile Forge",
+      name: limpa(b.nome || "Exile Compass build").slice(0, 80),
+      author: "Exile Compass",
       link: APP_URL,
-      description: limpa(`${r.arquetipo}. Made with Exile Forge (fan tool, not affiliated with Grinding Gear Games).`)
+      description: limpa(`${r.arquetipo}. Made with Exile Compass (fan tool, not affiliated with Grinding Gear Games).`)
     };
     const asc = ascId(b);
     if (asc) out.ascendancy = asc;
@@ -68,9 +68,9 @@
         b.nosIds.forEach((id) => add(mapa[id]));
       } catch (e) { avisos.push("Não consegui carregar a árvore completa; exportando só os nós listados."); }
     }
-    (A.ascendencias[b.asc] || []).filter((n) => b.ascNos.includes(n.n)).forEach((n) => add(n.sid, "<gold>{Exile Forge: ascendancy pick}"));
-    b.keystones.forEach((k) => { const sid = sidDe(k, A.keystones); if (sid) add(sid, "<gold>{Exile Forge: keystone}"); else avisos.push(`Keystone ${k} não encontrada.`); });
-    b.notaveis.forEach((k) => { const sid = sidDe(k, A.notaveis); if (sid) add(sid, "<gold>{Exile Forge: key notable}"); else avisos.push(`Notável ${k} não encontrado.`); });
+    (A.ascendencias[b.asc] || []).filter((n) => b.ascNos.includes(n.n)).forEach((n) => add(n.sid, "<gold>{Exile Compass: ascendancy pick}"));
+    b.keystones.forEach((k) => { const sid = sidDe(k, A.keystones); if (sid) add(sid, "<gold>{Exile Compass: keystone}"); else avisos.push(`Keystone ${k} não encontrada.`); });
+    b.notaveis.forEach((k) => { const sid = sidDe(k, A.notaveis); if (sid) add(sid, "<gold>{Exile Compass: key notable}"); else avisos.push(`Notável ${k} não encontrado.`); });
     if (!(Array.isArray(b.nosIds) && b.nosIds.length)) avisos.push("Árvore: só keystones, notáveis e nós de ascendência que você listou (o caminho entre eles não vai). Importando um código PoB a árvore inteira é exportada.");
     out.passives = passivas;
 
@@ -120,7 +120,7 @@
   }
 
   function nomeArquivo(b) {
-    return (String(b.nome || "Exile Forge build").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "-").trim() || "build") + ".build";
+    return (String(b.nome || "Exile Compass build").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "-").trim() || "build") + ".build";
   }
   async function texto(b) { const r = await gerar(b); return { json: JSON.stringify(r.obj, null, 2), avisos: r.avisos, obj: r.obj }; }
   function baixar(nome, json) {

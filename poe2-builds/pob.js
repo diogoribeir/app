@@ -1,5 +1,5 @@
 /* ============================================================
-   Exile Forge — importação de código do Path of Building 2
+   Exile Compass — importação de código do Path of Building 2
    ------------------------------------------------------------
    Código PoB = base64 (url-safe) de um XML comprimido com zlib.
    Decodifica no próprio navegador (DecompressionStream) e

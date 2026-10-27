@@ -1,4 +1,4 @@
-# Exile Forge — gerador da biblioteca
+# Exile Compass — geradores da biblioteca
 
 O app `poe2-builds/` usa uma biblioteca de dados em `poe2-builds/kb/`. Ela tem duas partes:
 
@@ -9,6 +9,10 @@ O app `poe2-builds/` usa uma biblioteca de dados em `poe2-builds/kb/`. Ela tem d
 | `kb/unicos.js` → `window.KB_UNICOS` | **gerado** | únicos (variante atual) com slot, base e modificadores |
 | `kb/conceitos.js` → `window.KB_CONCEITOS` | **curado à mão** | vetores de dano, camadas de defesa, tópicos de mecânica, resumo/afinidades das ascendências, ferramentas |
 | `kb/meta.js` → `window.KB_META` | **curado à mão** | retrato do meta (tier, ascendências, fontes, data) |
+| `kb/nos.js` → `window.KB_NOS` | **gerado** (`gerar_kb.py`) | id → stringId de todos os nós (só para exportar ao Build Planner) |
+| `kb/tree.js` → `window.KB_TREE` | **gerado** (`gerar_assets.py`) | árvore passiva oficial da GGG: nós (posição, tipo, stats, sprite), ligações (retas e arcos), classes/ascendências |
+| `kb/gemas.js` → `window.KB_GEMAS` | **gerado** (`gerar_assets.py`) | ícone de cada gema + suportes recomendados pelo próprio jogo (RePoE) |
+| `img/tree`, `img/asc`, `img/gem` | **gerado** (`gerar_assets.py`) | sprites da árvore, retratos das classes/ascendências (384px) e ícones das gemas (64px) |
 
 ## Atualizar num patch novo (a cada ~4 meses)
 
@@ -28,7 +32,16 @@ O app `poe2-builds/` usa uma biblioteca de dados em `poe2-builds/kb/`. Ela tem d
      classes novas (`classes`).
    - `kb/meta.js`: tier lists recentes + poe.ninja. Os nomes de skill/ascendência precisam bater **exatamente**
      com os do `jogo.js`.
-5. Testar no Chromium (390px, claro/escuro, Firebase bloqueado) e **subir a versão `CACHE` em `poe2-builds/sw.js`**.
+5. Árvore, artes e ícones (exportação oficial da GGG + RePoE), rodar DEPOIS do passo 3 (lê `kb/jogo.js`):
+   ```bash
+   GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 https://github.com/grindinggear/poe2-skilltree-export /caminho/ggg
+   python3 -I poe2-builds-src/gerar_assets.py /caminho/ggg /caminho/repoe-cache
+   ```
+   Baixa `skill_gems.json` e os ícones de `repoe-fork.github.io/poe2/` para a pasta de cache (só na 1ª vez; ~3 min)
+   e reescreve `kb/tree.js`, `kb/gemas.js` e `img/`. Classe/ascendência nova aparece sozinha (retrato vem do
+   `background-<classe>.webp`). Depois confira o caminho de algumas builds (`Caminho.calcular`) e, se a árvore mudou
+   muito, revise os pesos em `poe2-builds/caminho.js` e suba `VERSAO_CAMINHO` no `app.js`.
+6. Testar no Chromium (390px, claro/escuro, Firebase bloqueado) e **subir a versão `CACHE` em `poe2-builds/sw.js`**.
 
 ## Como o gerador classifica os suportes
 

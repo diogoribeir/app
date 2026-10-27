@@ -324,86 +324,99 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 
 ---
 
-## App 8 — ⚒️ Exile Forge (o do Diogo) — *criador/analisador de builds de Path of Exile 2*
+## App 8 — 🧭 Exile Compass (o do Diogo) — *builds de Path of Exile 2 com árvore passiva e caminho calculado*
 - **URL:** https://diogoribeir.github.io/app/poe2-builds/
-- **Pastas:** `poe2-builds/` (app publicado, HTML/CSS/JS puro, PWA) e `poe2-builds-src/` (gerador da
-  biblioteca: `gerar_kb.py` + `lualit.py` + `README.md`).
-- **Por quê:** o Diogo joga PoE2 no **PS5** — PoB2/poe.ninja/Maxroll são ferramentas de PC. Este app faz no
-  celular: montar build, **criticar/classificar/corrigir** com sugestões embasadas, assistente "O que você quer
-  jogar?" (aleatória · meta · único · skill · ascendência), biblioteca e calculadoras. Pensado para controle.
-- **Identidade visual = ferramentas do próprio PoE2 (NÃO seguir os apps do casal):** o Diogo pediu (out/2026) que
-  o app tenha cara de ferramenta de PoE2 — referência: Path of Building 2, poe2db, poe.ninja e os tooltips do jogo.
-  Sempre escuro; títulos em **Cinzel** (fonte OFL embutida em `poe2-builds/fonts/`, estilo Trajan do jogo); molduras
-  douradas; **cores oficiais do PoB2** (`colorCodes` do `Data/Global.lua`: único `#AF6025`, mágico `#8888FF`, gema
-  `#74CABF`, vida `#E05030`, ES `#88FFFF`, mana `#7070FF`, espírito `#F5D076`, fogo/frio/raio/caos, cores de classe,
-  WARNING/NEGATIVE/POSITIVE/TIP nos avisos). Tooltips de item único/gema/nó como no jogo; gemas com **soquete
-  colorido** (STR/DEX/INT); suporte incompatível em vermelho (como o PoB). Sem emojis na interface.
-- **Navegação:** abas no topo (BUILDS · CRIAR · BIBLIOTECA · CALCS) + **rotas por hash** (`#/builds`, `#/criar`,
-  `#/biblioteca`, `#/calcs`, `#/build/<id>/<aba>`) — o voltar do celular funciona. A **página da build** espelha o
-  PoB2: cabeçalho com nota + **painel de stats** (DPS, EHP, vida, ES, mana, espírito usado/total, armadura, evasão,
-  deflexão, bloqueio, resistências coloridas com o que falta para o cap) e abas **Cálculos** (análise) · **Skills**
-  (grupos de soquete) · **Itens** (sets de arma + únicos em tooltip) · **Árvore** (classe/ascendência, nós de
-  ascendência para alocar, keystones, notáveis) · **Config** (nível, liga, números, recuperação, vetores manuais) ·
-  **Notas**. Seletor com busca = `#picker` (`abrirPicker({titulo, filtros, itens(q,f), onPick})`).
-- **Nome (out/2026):** o app se chama **Exile Forge** (era "Forja PoE2"; o Diogo pediu nome em inglês). ⚠️ A pasta/URL
-  (`poe2-builds/`), o nó do Firebase (`planos/poe2-builds-dt2026`) e as chaves do localStorage (`forja:*`) **ficaram
-  com o nome antigo** — renomear quebraria o link salvo e as builds já gravadas. Rodapé com aviso de projeto de fã
-  (exigência da política de terceiros da GGG: não parecer oficial).
-- **Exportar para o jogo — Build Planner do PoE2** (`buildplanner.js`, botão "Levar para o jogo" na página da build):
-  gera o `.build` (JSON) do formato oficial da GGG (pathofexile.com/developer/docs/game → "Build Planner (PoE2 only)",
-  v1 experimental), igual ao exportador do PoB2 (`Modules/BuildExportPoE2.lua`): `ascendancy` = id interno
-  (`KB_JOGO.classes[].ascId`, ex. Deadeye `Ranger1`, Abyssal Lich `Witch3b`), `passives` = `stringId` da árvore
-  (campo `sid` em keystones/notáveis/nós de ascendência; build importada do PoB guarda **todos** os nós em `b.nosIds`
-  e o mapa id→stringId vem de `kb/nos.js`, carregado só na exportação), `skills`/`support_skills` = `gameId` das gemas
-  (campo `gid`), `inventory_slots` = ids da tabela Inventories (`Weapon1`, `Offhand1`, `Helm1`, `BodyArmour1`, `Gloves1`,
-  `Boots1`, `Belt1`, `Amulet1`, `Ring1/2`, `Flask1`) com `unique_name`. Textos de dica usam o markup do jogo (`<gold>{…}`;
-  tirar `{}` de texto livre). Suporte incompatível não é exportado (aviso no modal). O usuário baixa o arquivo e envia/
-  assina no **pathofexile2.com** (o jogo carrega builds assinadas; no PC também pela pasta `BuildPlanner`).
-  ⚠️ Funcionamento no PS5 ainda não confirmado pelo Diogo.
-- **APIs pesquisadas (out/2026):** GGG `api.pathofexile.com` exige OAuth e **não aceita registro de apps novos** (sem
-  importar personagens por ora); poe.ninja tem JSON (`/poe2/api/data/index-state`); RePoE PoE2
-  (`repoe-fork.github.io/poe2/`, JSON de gems/mods/únicos); poe2db (HTML); **poe2wiki recusa servidores na nuvem**
-  (403) — no celular abre; `wiki.js` (leitor in-app via API MediaWiki, `origin=*`) existe mas ainda **não está ligado**.
-  A rede do ambiente do Claude está em **Full** desde out/2026.
-- **Arquivos:** `app.js` (interface/estado/sync) · `motor.js` (**regras sem interface**: compatibilidade de
-  suportes portada do PoB2 — `compativel()` avalia `requireSkillTypes`/`excludeSkillTypes` em RPN igual ao
-  `calcLib.doesTypeExpressionMatch` —, `analisar(b)` → `{achados, notas, rotulos, vetores, arquetipo, geral}`,
-  `recomendarSuportes`, `rankAscPorSkill`, `rankSkillsPorAsc`, `rankSkillsPorUnico`, `aleatoria`, `calcDano`,
-  `ondeInvestir`, `calcDefesa`) · `pob.js` (importa **código do Path of Building 2**: base64url → zlib via
-  `DecompressionStream` → XML `<PathOfBuilding2>` → build; pobb.in é tentado mas costuma bloquear CORS).
-- **Biblioteca (`poe2-builds/kb/`)** — duas naturezas, ⚠️ não confundir:
-  - **GERADA** (não editar à mão): `jogo.js` (`KB_JOGO`: constantes do jogo, classes, 397 skills, 567 suportes
-    com efeito em texto `fx` e rótulos de vetor `v`/elemento `el`), `arvore.js` (`KB_ARVORE`: keystones, ~980
-    notáveis com **região** STR/DEX/INT calculada pela posição, nós de ascendência), `unicos.js` (`KB_UNICOS`).
-    Fonte: repositório do **Path of Building 2** (lido como dados pelo `lualit.py` — **nada do PoB2 é executado**).
-  - **CURADA** (editar à mão, PT-BR): `conceitos.js` (`KB_CONCEITOS`: vetores do slide "Hit Damage Scaling
-    Vectors", camadas de defesa, tópicos de mecânica com números via `{c.chave}` → `KB_JOGO.consts`,
-    resumo/afinidades de cada ascendência, ferramentas) e `meta.js` (`KB_META`: retrato do meta com tier/fontes).
-- **🔄 Atualizar a cada patch (~4 meses; próximo: 1.0 em 11/12/2026 com o Duelist):**
+- **Pastas:** `poe2-builds/` (app publicado, HTML/CSS/JS puro, PWA) e `poe2-builds-src/` (geradores:
+  `gerar_kb.py` + `lualit.py` = dados do PoB2; `gerar_assets.py` = árvore/artes/ícones; `README.md`).
+- **Por quê:** o Diogo joga PoE2 no **PS5** — PoB2/poe.ninja/Maxroll são de PC. O app faz no celular: montar a build
+  em poucos toques (ou **lendo prints do jogo**), ver a **árvore passiva de verdade** com o **caminho sugerido**
+  calculado para a build, gemas com ícones e uma análise com o "próximo passo".
+- **REFEITO DO ZERO (out/2026)** depois do Diogo achar a versão "Exile Forge" ruim ("não tem árvore, não tem ícones,
+  não tem arte das ascendências, complexo, não lê foto, nome ridículo"). Regras que vieram disso — **respeitar**:
+  interface **simples** (3 abas na build, poucas decisões por tela), **visual do jogo** (artes/ícones oficiais),
+  **árvore desenhada** com o caminho, **entrada por foto**, e **uma recomendação por vez** (ele trava com listas longas).
+  Identidade visual = ferramentas de PoE2 (NÃO seguir os apps do casal): sempre escuro, títulos em **Cinzel**
+  (OFL em `fonts/`), dourado das molduras, cores do PoB2 (gema `#74CABF`, único `#AF6025`…). Ícones de interface em
+  SVG (`<symbol>` no `index.html`), sem emojis.
+- **Nome (out/2026):** **Exile Compass** (antes "Exile Forge", antes "Forja PoE2"). ⚠️ A pasta/URL (`poe2-builds/`),
+  o nó do Firebase (`planos/poe2-builds-dt2026`) e as chaves do localStorage (`forja:builds`, `forja:outbox`)
+  **ficaram com o nome antigo** — renomear quebraria o link salvo e as builds gravadas. Rodapé com aviso de projeto
+  de fã (política de terceiros da GGG: não parecer oficial). Ícone = bússola dourada (canvas no Chromium headless).
+- **Telas (rotas por hash; o voltar do celular funciona):** `#/` início (Ler da foto · Nova build · código PoB +
+  cards das builds com retrato da ascendência + ícone da skill + nota) · `#/nova` (abas Ascendência/Skill/Sortear;
+  grade de retratos → `#/nova/a/<asc>` skills recomendadas; ou busca de skill → `#/nova/s/<skill>` ascendências
+  ranqueadas) · `#/foto[/<id>]` (ler prints → confirmar → criar/atualizar) · `#/b/<id>/<aba>` build com abas
+  **Árvore** · **Gemas** · **Análise**. Painel inferior único (`#folha`, `abrirFolha(html, ligar)`) para detalhe de
+  nó/gema, menus, seletor com busca (`seletor()`), nível, renomear, PoB, Build Planner.
+- **Árvore passiva (`arvore.js`, canvas):** dados e artes da **exportação OFICIAL da GGG**
+  (`github.com/grindinggear/poe2-skilltree-export`: posições, ligações retas/arcos, sprites `skills*.webp`/`frame.webp`,
+  retratos `background-<classe>.webp`). Um dedo arrasta, pinça dá zoom, duplo toque aproxima, toque abre o nó.
+  Modos **Árvore** e **Ascendência** (arte da ascendência ao fundo). Estados: dourado cheio = pontos até o nível
+  atual; dourado claro = próximos; ciano = fixado ("quero"); vermelho = evitar. Números = ordem dos marcos
+  (notável/keystone/joia). Nomes dos notáveis aparecem com zoom.
+- **Caminho sugerido (`caminho.js`, a "matemática"):** (1) **perfil** da build → peso por categoria de stat
+  (elemento/tipo da skill, ataque/feitiço/minion, arma, crítico, defesa da classe e o controle **Dano ↔ Defesa** =
+  `b.prioridade`); (2) **valor de cada nó** = Σ linhas: peso × relevância dos qualificadores ("with Bows", "Spell",
+  "Fire"… — elementos são *case-sensitive* para "fire" verbo não virar Fogo) × magnitude ÷ **mediana da categoria na
+  árvore** (medido nos dados); condicional ×0,7, contra tipo de monstro ×0,15, "more" ×2,5, "reduced/less" negativo;
+  keystones só por regra explícita (`KEYSTONE`); (3) **Steiner com prêmios e orçamento**: guloso por ganho/custo^0,85
+  com Dijkstra multi-origem + troca de galhos fracos enquanto o total melhora; a **ordem de subir de nível** é refeita
+  com ganho/custo^1,15 (o que rende mais por ponto primeiro). Pontos: `pontosNoNivel` = (nível−1) + quests (24 até o
+  nível 65, proporcional antes). Ascendência: mesmo cálculo no subgrafo (8 pontos; 2 por provação ≈ níveis 20/40/55/70).
+  `b.planoFixos`/`planoEvitar`/`ascFixos`/`ascEvitar` (tocar no nó → "Quero este"/"Evitar") e `b.nosAtuais`
+  (árvore vinda do código PoB; só conta o que está ligado ao início da classe). O plano fica em `b.plano`
+  (`{h, ordem, passos:[{a,de,ate}], pontos, atuais, asc:{ordem,passos}, ascIds}`) e só recalcula quando o hash das
+  entradas muda (`hashPlano`, `VERSAO_CAMINHO` no `app.js` — subir se mudar a lógica). Abyssal Lich = desenho da
+  Lich com nós trocados (`asc.ov`). Oracle tem nós extras na árvore principal (`n.u = "Druid1"`).
+- **Ler da foto (`foto.js`):** OCR **no celular** com Tesseract.js 5.1.1 (jsDelivr, carregado só quando usado; a CSP
+  libera `cdn.jsdelivr.net` + `wasm-unsafe-eval` + `worker-src blob:`). Preparação da imagem: cinza → **subtrai o fundo
+  local** (média numa janela de ~1,5% da largura, imagem integral) → texto preto no branco; sem isso o degradê do
+  fundo do jogo apaga o texto. Casamento por semelhança (Levenshtein, por palavra-inicial) com skills, suportes,
+  classes, ascendências e únicos; números da tela de personagem por regex (vida, ES, mana, espírito, armadura,
+  evasão, resistências, bloqueio). Suportes lidos vão para a última skill lida. Testado com print sintético nítido e
+  borrado/torto/JPEG: leu tudo (só confunde às vezes "II" com "I"). Funciona com o jogo em **inglês**.
+- **Gemas:** ícones de todas as gemas em `img/gem/*.webp` (RePoE, 64px) + `kb/gemas.js` (`KB_GEMAS[nome] =
+  [arquivo, [suportes recomendados pelo PRÓPRIO JOGO]]` — o `rankSup` do motor dá +1,5 a eles; selo "jogo" na UI).
+- **Exportar para o jogo — Build Planner do PoE2** (`buildplanner.js`, menu ⋯ → "Levar para o jogo"): `.build` (JSON)
+  do formato oficial da GGG (v1 experimental), igual ao exportador do PoB2: `ascendancy` = id interno (`Ranger1`,
+  `Witch3b`…), `passives` = `stringId` de **todos os nós do plano** (`b.nosIds` → `kb/nos.js`, carregado só na
+  exportação), `skills`/`support_skills` = `gameId` (`gid`), `inventory_slots` com `unique_name`. Markup `<gold>{…}`.
+  O usuário envia/assina no **pathofexile2.com**. ⚠️ Funcionamento no PS5 ainda não confirmado pelo Diogo.
+- **Importar código do PoB2 (`pob.js`):** base64url → zlib (`DecompressionStream`) → XML `<PathOfBuilding2>` → build;
+  a árvore do código vira `b.nosAtuais` (o caminho continua dali) e os nós de ascendência viram `ascFixos`.
+- **APIs pesquisadas (out/2026):** GGG `api.pathofexile.com` exige OAuth e **não aceita apps novos**; poe.ninja tem
+  JSON; RePoE PoE2 (`repoe-fork.github.io/poe2/`: JSON + imagens convertidas em `Art/…webp`); poe2db (HTML);
+  **poe2wiki recusa servidores na nuvem** (403; no celular abre — o app só linka). O antigo leitor `wiki.js` foi
+  removido (nunca foi ligado; está no histórico do git). Rede do ambiente do Claude em **Full** desde out/2026.
+- **Motor de análise (`motor.js`, sem interface):** mesmas regras da versão anterior — compatibilidade de suportes
+  portada do PoB2 (`compativel()` em RPN como `calcLib.doesTypeExpressionMatch`), `analisar(b)` →
+  `{achados, notas, rotulos, vetores, arquetipo, geral}`, `recomendarSuportes`, `rankAscPorSkill`,
+  `rankSkillsPorAsc`, `aleatoria`, `montar`… A aba **Análise** mostra nota + rótulos, **Próximo passo** (um só),
+  barras das notas, outros pontos (4 + "ver mais"), números opcionais (ou da foto) e links de estudo. Os nomes de
+  keystones/notáveis/nós de ascendência que o motor usa saem do plano (`Caminho.nomesDoPlano`).
+- **Biblioteca (`poe2-builds/kb/`)** — ⚠️ não confundir:
+  - **GERADA** (não editar à mão): `jogo.js`, `arvore.js`, `unicos.js`, `nos.js` (do **Path of Building 2**, via
+    `gerar_kb.py` — nada do PoB2 é executado) e `tree.js` (`KB_TREE`: nós `{i,x,y,t,n,s,f,g,a,u,p…}`, ligações
+    `lig` `[a,b]`/`[a,b,cx,cy]`, quadros dos sprites `q`/`qo`/`mold`, classes/ascendências com centro/raio) +
+    `gemas.js` (via `gerar_assets.py`, da exportação da GGG + RePoE). Imagens geradas: `img/tree/`, `img/asc/`, `img/gem/`.
+  - **CURADA** (editar à mão, PT-BR): `conceitos.js` (resumo/afinidades das ascendências, vetores, camadas…) e
+    `meta.js` (retrato do meta com tier/fontes; dá o selo "Meta S/A").
+- **🔄 Atualizar a cada patch (~4 meses; próximo: 1.0 em 11/12/2026 com o Duelist):** (1) PoB2:
   `git clone --depth 1 https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2.git <scratch>/pob2` →
-  `python3 -I poe2-builds-src/gerar_kb.py <scratch>/pob2` → revisar `conceitos.js` (mecânicas que mudaram,
-  `revisado`/`patch`) e `meta.js` (tier lists + poe.ninja) → **subir `CACHE` no `sw.js`**. Detalhes em
-  `poe2-builds-src/README.md`. Agente de apoio: `.claude/agents/poe2-builds.md`.
-  ⚠️ Rodar o Lua do PoB2 é bloqueado no ambiente do Claude (código externo) — por isso o parser próprio.
-  ⚠️ poe2wiki/poe2db/poe.ninja **não abrem** do ambiente do Claude (proxy/DNS) — pesquisar via WebSearch.
-- **Análise (regras do `motor.js`):** arma exigida pela skill, ascendência × classe, gems fora da região de
-  atributo, suporte incompatível, 2 suportes da mesma família na skill (só um vale), linhagem repetida (1 por
-  personagem), >5 suportes, conflitos ("não pode critar" em build de crítico, "zera elemental" em skill
-  elemental, "less X damage" no elemento da skill), vetores de dano vazios (sugere suportes compatíveis +
-  notáveis perto da região da classe), resistências < cap (penalidade −60% endgame), caos negativo, vida+ES
-  por nível, camadas de defesa, armadura/evasão com as fórmulas do PoB2, recuperação, stun (melee), espírito
-  (custo × quests/cetro), nº de botões no controle, keystones problemáticas (CI sem ES, Vaal Pact sem leech,
-  Avatar of Fire sem fogo…), sinergia ascendência × skill, meta. Notas 0–10: dano, defesa (marcada "estimada"
-  sem números), recuperação, coerência, controle PS5, acessível (únicos/linhagem). Rótulos: Meta/Fora do
-  meta/Criativa/Build de único · estilo · Mapper/Bosser · Canhão de vidro/Tanque/Equilibrada · HC · starter.
-  Card **Próximo passo** (aba Cálculos) = a correção mais importante (recomendação única — o Diogo trava com listas longas).
+  `python3 -I poe2-builds-src/gerar_kb.py <scratch>/pob2`; (2) árvore/artes/ícones:
+  `GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 https://github.com/grindinggear/poe2-skilltree-export <scratch>/ggg` →
+  `python3 -I poe2-builds-src/gerar_assets.py <scratch>/ggg <scratch>/repoe-cache` (baixa os ícones do RePoE, ~3 min);
+  (3) revisar `conceitos.js`/`meta.js`; (4) conferir o caminho de 3–4 builds (`Caminho.calcular`) e se a classe nova
+  (Duelist) aparece; (5) **subir `CACHE` no `sw.js`**. Detalhes em `poe2-builds-src/README.md`. Agente:
+  `.claude/agents/poe2-builds.md`. ⚠️ Rodar o Lua do PoB2 é bloqueado no ambiente do Claude (por isso o parser próprio).
 - **Sincronização:** Realtime Database via REST (Receita 1), nó **`planos/poe2-builds-dt2026`**: **uma chave por
-  build** (`builds/<id>`, objeto) + lápides `apagadas/<id>` (timestamp) + `_at`. Ao abrir: puxa e mescla por
-  `atualizado` (mais novo vence); offline vai pro outbox (`forja:outbox`) e reenvia. localStorage =
-  `forja:builds` (cópia offline), `forja:atual` (build selecionada), `forja:calc`.
-- **Edição:** direto nos arquivos. Ao mexer em QUALQUER arquivo do app **ou da `kb/`**, subir `CACHE` no
-  `sw.js` (`"poe2-builds-vN"`; v2 = visual PoE2, v3 = Exile Forge + Build Planner). CSP do `index.html` libera só o Firebase e `https://pobb.in`.
-  Ícones em `poe2-builds/icons/` (bigorna + martelo + "2", gerados via canvas no Chromium headless).
+  build** (`builds/<id>`, inclui `plano`) + lápides `apagadas/<id>` + `_at`. Ao abrir: puxa e mescla por `atualizado`;
+  offline vai pro outbox (`forja:outbox`). localStorage = `forja:builds`.
+- **Edição/teste:** ao mexer em QUALQUER arquivo do app ou da `kb/`, **subir `CACHE` no `sw.js`** (`"poe2-builds-vN"`;
+  v4 = Exile Compass). O SW pré-carrega app + kb + sprites da árvore; retratos e ícones de gema (`img/asc`,
+  `img/gem`) vão para o cache `poe2-builds-img-v1` na 1ª vez que aparecem. Testes com Playwright **bloqueando o
+  Firebase** (`route(/firebaseio/, abort)`) para não sujar os dados reais; OCR testado com print sintético gerado no
+  Chromium (o navegador de teste precisa do proxy do ambiente para baixar o Tesseract).
 
 ## Firebase — projeto `apps-4b887` (tudo num projeto só)
 - **Console:** https://console.firebase.google.com/project/apps-4b887

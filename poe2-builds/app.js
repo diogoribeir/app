@@ -1,96 +1,85 @@
 /* ============================================================
-   Exile Forge — interface
+   Exile Compass — interface
    ------------------------------------------------------------
-   Referência visual e de organização: o próprio Path of Exile 2 e
-   o Path of Building 2 (abas Cálculos/Skills/Itens/Árvore/Config/
-   Notas, painel de stats, cores oficiais, tooltips de item/gema).
-   Rotas por hash (#/builds, #/criar, #/biblioteca, #/calcs,
-   #/build/<id>/<aba>) — o "voltar" do celular funciona.
+   Telas (rotas por hash, o "voltar" do celular funciona):
+     #/              início: minhas builds + Ler da foto / Nova build
+     #/nova          nova build: por ascendência, por skill ou sorteio
+     #/nova/a/<asc>  escolher a skill para a ascendência
+     #/nova/s/<sk>   escolher a ascendência para a skill
+     #/foto[/<id>]   montar (ou atualizar) a build lendo prints
+     #/b/<id>[/aba]  build: árvore (caminho) · gemas · análise
    Dados: localStorage (cópia offline) + Firebase RTDB via REST,
    nó planos/poe2-builds-dt2026 — uma chave por build
    (builds/<id>) + lápides (apagadas/<id>) + carimbo _at.
-   Regras ficam no motor.js; a biblioteca em kb/*.js.
+   Árvore/caminho: arvore.js + caminho.js; regras: motor.js.
    ============================================================ */
 "use strict";
 const SYNC_URL = "https://apps-4b887-default-rtdb.firebaseio.com/planos/poe2-builds-dt2026";
-const LS_BUILDS = "forja:builds", LS_OUTBOX = "forja:outbox", LS_CALC = "forja:calc";
-const M = window.Motor, J = window.KB_JOGO, AR = window.KB_ARVORE, C = window.KB_CONCEITOS, META = window.KB_META, UNI = window.KB_UNICOS;
+const LS_BUILDS = "forja:builds", LS_OUTBOX = "forja:outbox";
+const VERSAO_CAMINHO = "c1";
+const M = window.Motor, J = window.KB_JOGO, C = window.KB_CONCEITOS, META = window.KB_META, GEM = window.KB_GEMAS || {}, CAM = window.Caminho;
 
 /* ---------------- helpers ---------------- */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-const clone = (x) => JSON.parse(JSON.stringify(x));
-function esc(s) {
-  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-const fmt = (n) => M.fmtNum(Math.round(n * 10) / 10);
-const P = (t) => esc(M.preencher(t));
-const semEmoji = (t) => String(t || "").replace(/^[^\p{L}\p{N}]+\s*/u, "");
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
-const COR = ["STR", "DEX", "INT"];
-const corDe = (req) => { const m = Math.max(...req); if (!m) return ""; return req.map((v, i) => (v >= m * 0.5 && v > 0 ? COR[i] : "")).filter(Boolean).join("/"); };
-const sock = (req) => `<i class="sock s-${esc(corDe(req || [0, 0, 0]).replace("/", "-"))}" title="${esc(corDe(req || [0, 0, 0]) || "sem cor")}"></i>`;
+const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const semEmoji = (t) => String(t || "").replace(/^[^\p{L}\p{N}]+\s*/u, "");
+const ic = (id, cls) => `<svg class="ic ${cls || ""}"><use href="#i-${id}"/></svg>`;
+const imgAsc = (nome, tam, extra) => `<img class="retrato ${extra || ""}" src="img/asc/${esc(slug(nome))}.webp" width="${tam}" height="${tam}" alt="" loading="lazy">`;
+function imgGema(nome, cls) {
+  const g = GEM[nome];
+  if (!g) return `<span class="gema-ic vazio ${cls || ""}">${esc((nome || "?")[0])}</span>`;
+  return `<img class="gema-ic ${cls || ""}" src="img/gem/${esc(g[0])}.webp" alt="" loading="lazy">`;
+}
 const TIPO_PT = { Attack: "Ataque", Spell: "Feitiço", Buff: "Buff", Minion: "Minion", Warcry: "Grito", Mark: "Marca", Totem: "Totem", Banner: "Bandeira", Shapeshift: "Transformação", Channelling: "Canalização", Meta: "Meta" };
-const SLOT_PT = { amulet: "Amuleto", axe: "Machado", belt: "Cinto", body: "Peitoral", boots: "Botas", bow: "Arco", claw: "Garra", crossbow: "Besta", dagger: "Adaga", flail: "Mangual", flask: "Frasco", focus: "Foco", gloves: "Luvas", helmet: "Elmo", jewel: "Joia", mace: "Maça", quiver: "Aljava", ring: "Anel", sceptre: "Cetro", shield: "Escudo", soulcore: "Soul Core", spear: "Lança", staff: "Cajado", sword: "Espada", talisman: "Talismã", tincture: "Tintura", traptool: "Armadilha", wand: "Varinha", fishing: "Vara de pesca", incursionlimb: "Membro", charm: "Charm" };
-const PAPEIS = [["principal", "Skill principal"], ["secundaria", "Secundária"], ["movimento", "Movimento"], ["buff", "Buff / persistente"], ["disparada", "Disparada (trigger)"], ["utilidade", "Utilidade"]];
-const CLASSE_COR = { Warrior: "#E05030", Mercenary: "#E0E070", Ranger: "#70FF70", Huntress: "#70FF70", Monk: "#30C0D0", Sorceress: "#7070FF", Witch: "#7070FF", Druid: "#C040FF", Duelist: "#E0E070" };
-const clsTxt = (classe, asc) => `<span class="cls" style="color:${CLASSE_COR[classe] || "var(--txt)"}">${esc(asc || classe || "sem classe")}</span>`;
-const vTag = (v) => `<span class="v v-${esc(v)}">${esc(M.VET_ROTULO[v] || v)}</span>`;
-const vTags = (vs) => (vs || []).filter((v) => v !== "inc").map(vTag).join(" ");
-const linhagem = (n) => ((M.SU.get(n) || {}).lin ? "◆ " : "");
-const SEV_PT = { erro: "Erro", alerta: "Alerta", dica: "Dica", ok: "Ponto forte", info: "Info" };
-const ROT = (rot, max) => (rot || []).slice(0, max || 8).map((r) => `<span class="rot ${esc(r.c)}">${esc(semEmoji(r.t))}</span>`).join(" ");
-const casa = (q, ...txt) => !q || q.split(" ").every((p) => txt.some((t) => M.norm(t).includes(p)));
-const lnks = (nome) => `<a class="btn mini fant" href="${esc(M.wikiUrl(nome))}" target="_blank" rel="noopener">Wiki</a><a class="btn mini fant" href="${esc(M.dbUrl(nome))}" target="_blank" rel="noopener">PoE2DB</a>`;
+const EL_PT = { fire: "Fogo", cold: "Gelo", lightning: "Raio", chaos: "Caos", physical: "Físico" };
+const TAG_PT = { projectile: "Projétil", area: "Área", melee: "Corpo a corpo", minion: "Minion", duration: "Duração", chaining: "Corrente", totem: "Totem", curse: "Maldição", herald: "Herald", aura: "Aura", warcry: "Grito", slam: "Slam", strike: "Golpe", channelling: "Canalizada", storm: "Tempestade", plant: "Planta", grenade: "Granada", companion: "Companheiro", shapeshift: "Transformação", trigger: "Disparada", nova: "Nova", remnant: "Remanescente" };
+function resumoSkill(s) {
+  if (!s) return "";
+  const p = [TIPO_PT[s.t] || s.t];
+  if (s.w) { const w = s.w.split(",")[0].trim(); p.push(/^Any/.test(w) ? "Qualquer arma" : M.armaPt(w) !== w ? M.armaPt(w) : w); }
+  M.elementos(s).filter((e) => e !== "physical" || s.t !== "Attack").slice(0, 2).forEach((e) => p.push(EL_PT[e]));
+  s.tg.filter((t) => TAG_PT[t]).slice(0, 2).forEach((t) => p.push(TAG_PT[t]));
+  return [...new Set(p)].filter(Boolean).join(" · ");
+}
+function metaSelo(skill, asc) {
+  const m = META.builds.find((x) => x.skill === skill && (!asc || x.asc.includes(asc)));
+  return m ? `<span class="selo">Meta ${esc(m.tier)}</span>` : "";
+}
+const CLASSES = J.classes;
+const CLASSE_DE = M.CLASSE_DE;
+const notaCls = (n) => (n >= 7 ? "alta" : n >= 5 ? "media" : "baixa");
 
-/* ---------------- tooltips no estilo do jogo ---------------- */
-function ttGema(s, extra) {
-  const sup = !!s.fx;
-  const base = sup ? `Suporte${s.nv ? " · nível " + s.nv : ""}${s.lin ? " · linhagem" : ""}` : [TIPO_PT[s.t] || s.t, s.w].filter(Boolean).join(" · ");
-  return `<div class="tt tgema"><div class="tt-h"><div class="tt-n">${esc(s.n)}</div><div class="tt-b">${esc(base)}</div></div><div class="tt-c">
-    <div class="info">${esc((s.tg || []).join(", "))}${corDe(s.req) ? " · " + esc(corDe(s.req)) : ""}${s.sp ? " · reserva " + s.sp + " de espírito" : ""}</div>
-    ${s.d ? `<div class="sepi"></div><div class="desc">${esc(s.d)}</div>` : ""}
-    ${sup && s.fx.length ? `<div class="sepi"></div>${s.fx.map((f) => `<div class="mod">${esc(f.replace(/\n/g, " "))}</div>`).join("")}` : ""}
-    ${sup ? `<div class="chips" style="justify-content:center;margin-top:6px">${vTags(s.v)}</div>` : ""}
-    ${extra || ""}</div></div>`;
-}
-function ttUnico(u, extra) {
-  return `<div class="tt unique"><div class="tt-h"><div class="tt-n">${esc(u.n)}</div><div class="tt-b">${esc(u.b)}</div></div><div class="tt-c">
-    <div class="info" style="color:var(--txt3)">${esc(SLOT_PT[u.slot] || u.slot)}${u.liga ? " · " + esc(u.liga) : ""}</div><div class="sepi"></div>
-    ${u.m.map((m) => `<div class="mod">${esc(m)}</div>`).join("")}${extra || ""}</div></div>`;
-}
-function ttNo(n, tipo, extra) {
-  return `<div class="tt no"><div class="tt-h"><div class="tt-n">${esc(n.n)}</div><div class="tt-b">${esc(tipo)}${n.reg ? " · região " + esc(n.reg) : ""}</div></div><div class="tt-c">
-    ${n.s.map((x) => `<div class="mod">${esc(x)}</div>`).join("")}${extra || ""}</div></div>`;
-}
-
-/* ---------------- estado ---------------- */
+/* ---------------- estado + sincronização ---------------- */
 let ST = { builds: {}, apagadas: {} };
 let lastAt = 0, offlineAvisado = false;
 function normalizar(b) {
   const out = Object.assign(M.novaBuild({}), b || {});
-  ["grupos", "unicos", "keystones", "ascNos", "notaveis"].forEach((k) => { if (!Array.isArray(out[k])) out[k] = out[k] ? Object.values(out[k]) : []; });
+  ["grupos", "unicos", "keystones", "ascNos", "notaveis", "planoFixos", "planoEvitar", "ascFixos", "ascEvitar", "nosAtuais"].forEach((k) => { if (!Array.isArray(out[k])) out[k] = out[k] ? Object.values(out[k]) : []; });
   if (out.nosIds && !Array.isArray(out.nosIds)) out.nosIds = Object.values(out.nosIds);
   out.grupos = out.grupos.filter(Boolean).map((g) => ({ skill: g.skill || "", papel: g.papel || "secundaria", sup: Array.isArray(g.sup) ? g.sup.filter(Boolean) : g.sup ? Object.values(g.sup) : [] }));
   ["stats", "recup", "vetMan"].forEach((k) => { if (!out[k] || typeof out[k] !== "object") out[k] = {}; });
+  if (out.prioridade == null) out.prioridade = 0.4;
+  if (!out.nivel) out.nivel = 1;
+  if (out.plano && out.plano.ordem && !Array.isArray(out.plano.ordem)) out.plano.ordem = Object.values(out.plano.ordem);
   return out;
 }
 const listaBuilds = () => Object.values(ST.builds).sort((a, b) => (b.atualizado || 0) - (a.atualizado || 0));
-function saveLocal() { try { localStorage.setItem(LS_BUILDS, JSON.stringify(ST)); } catch (e) {} }
+function saveLocal() { try { localStorage.setItem(LS_BUILDS, JSON.stringify(ST)); } catch (e) { /* cheio */ } }
 function loadLocal() {
   try {
     const raw = JSON.parse(localStorage.getItem(LS_BUILDS) || "null");
-    if (raw && raw.builds) { ST = { builds: {}, apagadas: raw.apagadas || {} }; Object.values(raw.builds).forEach((b) => (ST.builds[b.id] = normalizar(b))); }
-  } catch (e) {}
+    if (raw && raw.builds) { ST = { builds: {}, apagadas: raw.apagadas || {} }; Object.values(raw.builds).forEach((b) => { if (b && b.id) ST.builds[b.id] = normalizar(b); }); }
+  } catch (e) { /* ok */ }
 }
-
-/* ---------------- rede (RTDB REST) + outbox ---------------- */
 async function apiGet(p) { const r = await fetch(`${SYNC_URL}/${p}.json`, { cache: "no-store" }); if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }
 async function apiPut(p, v) { const r = await fetch(`${SYNC_URL}/${p}.json`, { method: "PUT", body: JSON.stringify(v) }); if (!r.ok) throw new Error("HTTP " + r.status); }
 async function apiDel(p) { const r = await fetch(`${SYNC_URL}/${p}.json`, { method: "DELETE" }); if (!r.ok) throw new Error("HTTP " + r.status); }
 const getOutbox = () => { try { return JSON.parse(localStorage.getItem(LS_OUTBOX) || "[]"); } catch (e) { return []; } };
-const setOutbox = (q) => { try { localStorage.setItem(LS_OUTBOX, JSON.stringify(q)); } catch (e) {} };
-async function bumpAt() { lastAt = Date.now(); try { await apiPut("_at", lastAt); } catch (e) {} }
+const setOutbox = (q) => { try { localStorage.setItem(LS_OUTBOX, JSON.stringify(q)); } catch (e) { /* ok */ } };
+async function bumpAt() { lastAt = Date.now(); try { await apiPut("_at", lastAt); } catch (e) { /* ok */ } }
 async function push(op, path, v) {
   try {
     if (op === "put") await apiPut(path, v); else await apiDel(path);
@@ -127,789 +116,731 @@ async function pull() {
   } catch (e) { return false; }
 }
 async function syncCheck() {
-  try { const at = await apiGet("_at"); if (typeof at === "number" && at > lastAt + 1500) { await pull(); if (!document.activeElement || !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) render(); } } catch (e) {}
+  try {
+    const at = await apiGet("_at");
+    if (typeof at === "number" && at > lastAt + 1500) {
+      await pull();
+      const foco = document.activeElement;
+      if (!foco || !/INPUT|TEXTAREA|SELECT/.test(foco.tagName)) render();
+    }
+  } catch (e) { /* offline */ }
 }
 function salvar(b) { b.atualizado = Date.now(); ST.builds[b.id] = b; saveLocal(); push("put", "builds/" + b.id, b); }
-const salvarDepois = debounce((b) => salvar(b), 600);
+const salvarDepois = debounce((b) => salvar(b), 700);
 function apagarBuild(id) {
   const b = ST.builds[id]; if (!b) return;
   delete ST.builds[id];
   const t = Date.now(); ST.apagadas[id] = t;
   saveLocal(); push("del", "builds/" + id); push("put", "apagadas/" + id, t);
-  ir("#/builds");
+  ir("#/");
   desfazer("Build apagada", () => { delete ST.apagadas[id]; push("del", "apagadas/" + id); salvar(b); render(); });
 }
 
-/* ---------------- UI base ---------------- */
+/* ---------------- avisos ---------------- */
 let undoFn = null, undoTimer = null, toastTimer = null;
 function desfazer(msg, fn) { undoFn = fn; $("#desfazerTxt").textContent = msg; $("#desfazer").classList.remove("hidden"); clearTimeout(undoTimer); undoTimer = setTimeout(fecharDesfazer, 12000); }
 function fecharDesfazer() { $("#desfazer").classList.add("hidden"); undoFn = null; }
-function toast(msg) { const el = $("#toast"); el.textContent = msg; el.classList.remove("hidden"); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.add("hidden"), 2400); }
-const abrir = (id) => $(id).classList.remove("hidden");
-const fechar = (el) => (typeof el === "string" ? $(el) : el).classList.add("hidden");
-function mostrarTexto(titulo, txt) { $("#textoTitulo").textContent = titulo; $("#textoArea").value = txt; abrir("#textoModal"); }
+function toast(msg) { const el = $("#toast"); el.textContent = msg; el.classList.remove("hidden"); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.add("hidden"), 2600); }
+
+/* ---------------- painel inferior ---------------- */
+let folhaAoFechar = null;
+function abrirFolha(html, ligar, aoFechar) {
+  $("#folhaCorpo").innerHTML = html;
+  $("#folha").classList.remove("hidden");
+  folhaAoFechar = aoFechar || null;
+  if (ligar) ligar($("#folhaCorpo"));
+}
+function fecharFolha() { $("#folha").classList.add("hidden"); $("#folhaCorpo").innerHTML = ""; const f = folhaAoFechar; folhaAoFechar = null; if (f) f(); }
+
+/* ---------------- plano (caminho na árvore) ---------------- */
+function principal(b) { return M.principal(b); }
+function hashPlano(b) {
+  const P = principal(b);
+  return [VERSAO_CAMINHO, b.classe, b.asc, P ? P.s.n : "", P ? (P.g.sup || []).join(",") : "", (b.grupos || []).map((g) => g.skill).join(","), b.arma, b.offhand, b.prioridade, b.defesa || "",
+    (b.planoFixos || []).join(","), (b.planoEvitar || []).join(","), (b.ascFixos || []).join(","), (b.ascEvitar || []).join(","), (b.nosAtuais || []).join(",")].join("|");
+}
+function calcularPlano(b) {
+  const r = CAM.calcular(b, { nivel: 100 });
+  const p = { h: hashPlano(b), ordem: [], passos: [], pontos: 0, asc: { ordem: [], passos: [] } };
+  if (r.arvore) {
+    p.ordem = r.arvore.ordem; p.pontos = r.arvore.pontos; p.atuais = r.arvore.atuais;
+    p.passos = r.arvore.passos.map((x) => ({ a: x.alvo, de: x.de, ate: x.ate }));
+  }
+  if (r.asc) {
+    const ov = r.asc.ov || {};
+    p.asc = { ordem: r.asc.ordem, passos: r.asc.passos.map((x) => ({ a: x.alvo, de: x.de, ate: x.ate })) };
+    p.ascIds = r.asc.ordem.map((id) => (ov[id] ? ov[id].i : id));
+  }
+  b.plano = p;
+  const nomes = CAM.nomesDoPlano(r);
+  b.keystones = nomes.keystones; b.notaveis = nomes.notaveis; b.ascNos = nomes.ascNos;
+  b.nosIds = [...(p.atuais || []), ...p.ordem, ...(p.ascIds || [])];
+  return p;
+}
+function plano(b) {
+  if (!b.plano || b.plano.h !== hashPlano(b)) { calcularPlano(b); salvarDepois(b); }
+  return b.plano;
+}
+const nosDoPasso = (p, ps) => p.ordem.slice(ps.de - 1 - (p.atuais || []).length, ps.ate - (p.atuais || []).length);
+
+/* ---------------- criação de builds ---------------- */
+function novaDe(skill, asc, origem) {
+  const b = normalizar(M.montar(skill, asc, origem || "assistente"));
+  b.nivel = 1; b.prioridade = 0.4;
+  b.nome = skill + (asc ? " · " + asc : "");
+  calcularPlano(b);
+  salvar(b);
+  return b;
+}
 
 /* ---------------- rotas ---------------- */
 function rota() {
-  const p = (location.hash || "#/builds").slice(2).split("/").map(decodeURIComponent);
-  return { v: p[0] || "builds", id: p[1], sub: p[2] || "calcs" };
+  const p = (location.hash || "#/").replace(/^#\/?/, "").split("/").map((x) => { try { return decodeURIComponent(x); } catch (e) { return x; } });
+  return { v: p[0] || "", a: p[1], c: p[2] };
 }
 function ir(h) { if (location.hash === h) render(); else location.hash = h; }
-let ultimaVista = "";
+let arvView = null;
 function render() {
+  if (arvView) { arvView.destruir(); arvView = null; }
   const r = rota();
-  const aba = r.v === "build" ? "#/builds" : "#/" + r.v;
-  $$(".aba").forEach((b) => b.classList.toggle("on", b.dataset.rota === aba));
-  const chave = r.v + "/" + (r.id || "") + "/" + (r.v === "build" ? r.sub : "");
-  if (chave !== ultimaVista) { window.scrollTo(0, 0); ultimaVista = chave; }
-  if (r.v === "build") return renderBuild(r.id, r.sub);
-  if (r.v === "criar") return renderCriar();
-  if (r.v === "biblioteca") return renderBiblioteca();
-  if (r.v === "calcs") return renderCalcs();
-  return renderLista();
+  const vista = $("#vista");
+  $("#voltarBtn").classList.toggle("hidden", !r.v);
+  window.scrollTo(0, 0);
+  if (r.v === "nova") return vNova(vista, r);
+  if (r.v === "foto") return vFoto(vista, r);
+  if (r.v === "b" && ST.builds[r.a]) return vBuild(vista, ST.builds[r.a], r.c || "arvore");
+  return vInicio(vista);
 }
 
-/* ============================================================
-   BUILDS (lista)
-   ============================================================ */
-function renderLista() {
+/* ================= INÍCIO ================= */
+function vInicio(v) {
   const lista = listaBuilds();
-  $("#vista").innerHTML = `
-    <div class="ph"><h2>Builds</h2><div class="linha"><button class="btn mini fant" data-a="pob">Importar PoB</button><button class="btn mini prim" data-a="nova">Nova build</button></div></div>
-    <p class="hint">Monte, importe do Path of Building 2 ou gere pelo assistente. Cada build é avaliada pelas mecânicas do jogo (dados do PoB2).</p>
-    ${lista.length ? `<div class="stack">${lista.map((b) => {
-      const r = M.analisar(b), p = M.principal(b);
-      const erros = r.achados.filter((a) => a.sev === "erro").length;
-      return `<div class="painel liso bcard" data-abrir="${esc(b.id)}"><div class="bc-top"><div class="t">
-          <div class="bc-nome">${esc(b.nome || "Build sem nome")}</div>
-          <div class="bc-sub">${clsTxt(b.classe, b.asc)} · <span class="c-gem">${esc(p ? p.s.n : "sem skill")}</span> · nível ${esc(b.nivel || "?")}</div>
-          <div class="chips">${ROT(r.rotulos, 4)}${erros ? `<span class="rot risco">${erros} erro${erros > 1 ? "s" : ""}</span>` : ""}</div></div>
-          <div class="nota">${fmt(r.geral)}<small>NOTA</small></div></div></div>`;
-    }).join("")}</div>` : `<div class="painel vazio"><h2>Nenhuma build ainda</h2>
-      <p class="muted">Comece pelo assistente (“O que você quer jogar?”), cole um código do Path of Building 2 ou crie do zero.</p>
-      <div class="linha" style="justify-content:center;margin-top:12px"><a class="btn prim" href="#/criar">Assistente</a><button class="btn fant" data-a="pob">Importar PoB</button></div></div>`}`;
-}
-function novaVazia() { const b = M.novaBuild({ nome: "Nova build" }); salvar(b); ir(`#/build/${b.id}/skills`); }
-function usarBuild(b, sub) { b = normalizar(b); salvar(b); ir(`#/build/${b.id}/${sub || "calcs"}`); }
-
-/* ============================================================
-   PÁGINA DA BUILD (abas como no PoB2)
-   ============================================================ */
-const SUBABAS = [["calcs", "Cálculos"], ["skills", "Skills"], ["itens", "Itens"], ["arvore", "Árvore"], ["config", "Config"], ["notas", "Notas"]];
-let filtroAch = "";
-function statsPob(b) {
-  const st = b.stats || {}, K = J.consts;
-  const sp = M.espirito(b);
-  const v = (k) => st[k] !== undefined && st[k] !== "" && st[k] !== null;
-  const linha = (rot, val, cls, vazio) => `<div class="ps${vazio ? " vaz" : ""}"><span>${rot}</span><b class="${cls || ""}">${val}</b></div>`;
-  const num = (k, rot, cls, suf) => v(k) ? linha(rot, M.fmtNum(Math.round(+st[k])) + (suf || ""), cls) : linha(rot, "—", "", true);
-  const res = (k, rot, cls) => {
-    if (!v(k)) return linha(rot, "—", "", true);
-    const x = +st[k], falta = K.resMax - x;
-    return linha(rot, `${x}%${falta > 0 ? ` <span class="c-neg">(−${fmt(falta)})</span>` : ""}`, falta > 0 ? "c-neg" : cls);
-  };
-  return `<div class="pobstats">
-    ${v("dps") ? linha("DPS", M.fmtNum(st.dps), "c-off") : linha("DPS", "—", "", true)}
-    ${num("ehp", "EHP total", "c-def")}
-    ${num("vida", "Vida", "c-life")}${num("es", "Escudo de energia", "c-es")}
-    ${num("mana", "Mana", "c-mana")}${linha("Espírito", `${sp.custo} / ${sp.total}${sp.estimado ? "*" : ""}`, sp.custo > sp.total ? "c-neg" : "c-spirit")}
-    ${num("armadura", "Armadura", "c-armour")}${num("evasao", "Evasão", "c-evasion")}
-    ${num("deflexao", "Deflexão", "c-evasion", "%")}${num("bloqueio", "Bloqueio", "c-armour", "%")}
-    ${res("resFogo", "Res. fogo", "c-fire")}${res("resFrio", "Res. frio", "c-cold")}
-    ${res("resRaio", "Res. raio", "c-lightning")}${v("resCaos") ? linha("Res. caos", st.resCaos + "%", +st.resCaos < 0 ? "c-neg" : "c-chaos") : linha("Res. caos", "—", "", true)}
-  </div>`;
-}
-function renderBuild(id, sub) {
-  const b = ST.builds[id];
-  if (!b) { ir("#/builds"); return; }
-  if (!SUBABAS.some(([s]) => s === sub)) sub = "calcs";
-  const r = M.analisar(b);
-  const corpo = { calcs: abaCalcs, skills: abaSkills, itens: abaItens, arvore: abaArvore, config: abaConfig, notas: abaNotas }[sub](b, r);
-  $("#vista").innerHTML = `
-    <a class="lnk voltar" href="#/builds">‹ Builds</a>
-    <div class="painel">
-      <div class="bp-head"><div class="nota g">${fmt(r.geral)}<small>NOTA</small></div><div class="t">
-        <div class="bp-nome">${esc(b.nome || "Build sem nome")}</div>
-        <div class="bp-arq">${clsTxt(b.classe, b.asc)} · nível ${esc(b.nivel)} · ${esc(b.modo)}</div>
-        <div class="bp-arq">${esc(r.arquetipo)}</div></div></div>
-      <div class="chips" style="margin-top:10px">${ROT(r.rotulos, 10)}</div>
-      ${statsPob(b)}
-      ${(b.stats && Object.keys(b.stats).length) ? "" : `<p class="hint" style="margin:8px 0 0">Sem números do personagem — preencha em Config (copie da tela do PS5) ou importe do PoB.</p>`}
-      <button class="btn prim bloco" style="margin-top:12px" data-a="bp">Levar para o jogo · Build Planner</button>
-    </div>
-    <nav class="subabas">${SUBABAS.map(([s, t]) => `<button class="subaba${s === sub ? " on" : ""}" data-sub="${s}">${t}</button>`).join("")}</nav>
-    <div style="margin-top:12px">${corpo}</div>`;
-}
-
-/* ---- aba Cálculos (análise) ---- */
-function barra(rot, v, suf) {
-  const cls = v < 4 ? "lo" : v < 7 ? "mid" : "hi";
-  return `<div class="barra"><span>${rot}${suf || ""}</span><div class="trilho"><div class="ench ${cls}" style="width:${Math.max(3, v * 10)}%"></div></div><b>${fmt(v)}</b></div>`;
-}
-function abaCalcs(b, r) {
-  const n = r.notas;
-  const cont = (s) => r.achados.filter((a) => a.sev === s).length;
-  const filtros = [["", "Todos"], ["erro", "Erros " + cont("erro")], ["alerta", "Alertas " + cont("alerta")], ["dica", "Dicas " + cont("dica")], ["ok", "Fortes " + cont("ok")], ["info", "Info " + cont("info")]];
-  const achados = r.achados.filter((a) => !filtroAch || a.sev === filtroAch);
-  const P0 = M.principal(b);
-  const prox = r.achados.find((a) => a.sev === "erro") || r.achados.find((a) => a.sev === "alerta") || r.achados.find((a) => a.sev === "dica");
-  return `
-  ${prox ? `<div class="painel proximo"><h3>Próximo passo</h3><div class="at" style="margin-top:6px">${esc(prox.titulo)}</div>${prox.acao ? `<div class="aa">${esc(prox.acao)}</div>` : ""}
-    ${prox.sups && prox.sups.length ? `<div class="chips" style="margin-top:8px"><button class="chip p" data-addsup="${esc(prox.sups[0])}">+ ${linhagem(prox.sups[0])}${esc(prox.sups[0])}</button></div>` : ""}
-    <p class="hint" style="margin:8px 0 0">Uma coisa de cada vez: resolva esta e veja a nota mudar.</p></div>` : ""}
-  <div class="painel"><h3>Avaliação</h3><div class="barras" style="margin-top:10px">
-    ${barra("Dano", n.dano)}${barra("Defesa", n.defesa, n.defesaEstimada ? "*" : "")}${barra("Recuperação", n.recuperacao)}
-    ${barra("Coerência", n.coerencia)}${barra("Controle (PS5)", n.controle)}${barra("Acessível", n.acesso)}</div>
-    ${n.defesaEstimada ? `<p class="hint" style="margin:8px 0 0">* Defesa estimada — preencha os números em Config.</p>` : ""}</div>
-  <div class="painel"><h3>Vetores de dano</h3><p class="hint">Dentro do vetor os bônus somam; entre vetores multiplicam. Vetor vazio é onde o próximo investimento mais rende.</p>
-    <div class="vetores">${C.vetores.map((v) => { const f = r.vetores[v.id] || []; return `<div class="vt ${f.length ? "on" : ""}"><div class="vn">${esc(v.nome)}</div><div class="vf">${f.length ? esc(f.slice(0, 3).join(" · ")) : "vazio"}</div></div>`; }).join("")}</div></div>
-  <div class="painel"><h3>Diagnóstico</h3>
-    <div class="chips rolar" style="margin:10px 0">${filtros.map(([v, t]) => `<button class="chip p${filtroAch === v ? " on" : ""}" data-fach="${v}">${t}</button>`).join("")}</div>
-    ${achados.map((a) => `<div class="ach ${a.sev}"><div class="sev">${SEV_PT[a.sev]}</div><div class="at">${esc(a.titulo)}</div>
-      ${a.porque ? `<div class="ap">${esc(a.porque)}</div>` : ""}${a.acao ? `<div class="aa">${esc(a.acao)}</div>` : ""}
-      ${a.sups && a.sups.length ? `<div class="chips">${a.sups.map((s) => `<button class="chip p" data-addsup="${esc(s)}">+ ${linhagem(s)}${esc(s)}</button>`).join("")}</div>` : ""}
-      ${a.nots && a.nots.length ? `<div class="chips">${a.nots.map((s) => `<button class="chip p" data-addnot="${esc(s)}">◇ ${esc(s)}</button>`).join("")}</div>` : ""}
-      ${a.wiki ? `<a class="wk" href="${esc(M.wikiUrl(a.wiki))}" target="_blank" rel="noopener">Wiki: ${esc(a.wiki.replace(/_/g, " "))}</a>` : ""}</div>`).join("") || '<p class="muted">Nada aqui.</p>'}
-    ${P0 ? `<p class="hint" style="margin-top:10px">“+ suporte” coloca a gema na skill principal (${esc(P0.s.n)}); “◇” aloca o notável na build; ◆ = gema de linhagem (cara, 1 por personagem).</p>` : ""}</div>
-  <div class="painel"><h3>Pesquisa antes de investir</h3><div class="pesq" style="margin-top:10px">
-    ${M.pesquisa(b).map((p) => `<div class="pq"><span>${esc(p.titulo)}</span><span class="lk">${p.links.map(([t, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join("")}</span></div>`).join("")}</div></div>
-  <div class="linha" style="margin-top:12px"><button class="btn fant" data-a="copiar">Copiar análise</button></div>`;
-}
-
-/* ---- aba Skills (grupos de soquete) ---- */
-function abaSkills(b) {
-  return `<p class="hint">Como no PoB2: cada grupo tem a gema ativa e os suportes. Suporte em vermelho não funciona na skill. “Sugerir” preenche os melhores suportes compatíveis por vetor de dano.</p>
-  ${b.grupos.map((g, i) => {
-    const s = M.SK.get(g.skill);
-    return `<div class="grupo${g.papel === "principal" ? " prin" : ""}">
-      <div class="g-tit"><span>Grupo ${i + 1}</span><select data-papel="${i}" aria-label="Papel">${PAPEIS.map(([v, t]) => `<option value="${v}"${v === g.papel ? " selected" : ""}>${t}</option>`).join("")}</select></div>
-      <div class="gema ativa">${sock(s && s.req)}<button class="gn" data-a="g-skill" data-g="${i}">${esc(g.skill || "Escolher gema…")}</button><button class="gx" data-a="g-del" data-g="${i}" aria-label="Remover grupo">✕</button></div>
-      ${s ? `<div class="g-info">${esc([TIPO_PT[s.t] || s.t, s.w, s.sp ? "espírito " + s.sp : ""].filter(Boolean).join(" · "))}</div>` : ""}
-      ${g.sup.map((n) => { const su = M.SU.get(n); const ok = su && s && M.compativel(su, s);
-        return `<div class="gema sup${su && !ok ? " ruim" : ""}">${sock(su && su.req)}<button class="gn" data-a="s-ver" data-n="${esc(n)}">${linhagem(n)}${esc(n)}</button><span class="gm">${su ? vTags(su.v.filter((v) => ["more", "conv", "crit", "taken", "mitig", "vel", "cond", "menos"].includes(v)).slice(0, 2)) : '<span class="v v-menos">?</span>'}</span><button class="gx" data-a="s-del" data-g="${i}" data-n="${esc(n)}" aria-label="Remover">✕</button></div>`; }).join("")}
-      ${s ? `<div class="g-acoes"><button class="btn mini fant" data-a="s-add" data-g="${i}">+ Suporte</button><button class="btn mini fant" data-a="g-sug" data-g="${i}">Sugerir</button></div>` : ""}
-    </div>`;
-  }).join("")}
-  <button class="btn bloco" data-a="g-add">+ Grupo de soquetes</button>`;
-}
-
-/* ---- aba Itens ---- */
-function abaItens(b) {
-  const armas = [["", "—"]].concat(M.ARMAS.map((a) => [a.id, a.pt]));
-  const offs = M.OFFHANDS.map((o) => [o.id, o.pt]);
-  const sel = (f, lista, v) => `<select data-f="${f}">${lista.map(([id, t]) => `<option value="${esc(id)}"${id === v ? " selected" : ""}>${esc(t)}</option>`).join("")}</select>`;
-  return `<div class="painel"><h3>Sets de arma</h3>
-    <div class="g2" style="margin-top:6px"><div><label class="rotulo">Arma · set 1</label>${sel("arma", armas, b.arma)}</div><div><label class="rotulo">Secundária</label>${sel("offhand", offs, b.offhand)}</div>
-    <div><label class="rotulo">Arma · set 2</label>${sel("arma2", armas, b.arma2)}</div><div><label class="rotulo">Secundária</label>${sel("offhand2", offs, b.offhand2)}</div></div></div>
-  <div class="painel"><div class="ph"><h3>Únicos</h3><button class="btn mini prim" data-a="u-add">+ Único</button></div>
-    ${b.unicos.map((n) => { const u = M.UN.get(n); return u ? ttUnico(u, `<div class="acoes"><button class="btn mini fant" data-a="u-del" data-n="${esc(n)}">Remover</button></div>`) : `<p class="c-neg">${esc(n)} (não existe neste patch) <button class="lnk" data-a="u-del" data-n="${esc(n)}">remover</button></p>`; }).join("") || '<p class="muted">Nenhum único na build.</p>'}
-  </div>`;
-}
-
-/* ---- aba Árvore ---- */
-function abaArvore(b) {
-  const ascs = (M.CLASSES.find((c) => c.n === b.classe) || { asc: Object.keys(C.ascendencias) }).asc;
-  const nos = AR.ascendencias[b.asc] || [];
-  const noL = (n, on, act, extra) => `<button class="no-l${on ? " on" : ""}${extra || ""}" data-a="${act}" data-n="${esc(n.n)}"><span class="ic"></span><span><b>${esc(n.n)}</b>${n.reg ? ` <span class="rg">${esc(n.reg)}</span>` : ""}<span class="st">${esc(n.s.join(" · "))}</span></span></button>`;
-  return `<div class="painel"><h3>Classe e ascendência</h3>
-    <div class="g2" style="margin-top:6px"><div><label class="rotulo">Classe</label><select data-f="classe"><option value="">—</option>${M.CLASSES.map((c) => `<option value="${esc(c.n)}"${c.n === b.classe ? " selected" : ""}>${esc(c.n)}</option>`).join("")}</select></div>
-    <div><label class="rotulo">Ascendência</label><select data-f="asc"><option value="">—</option>${ascs.map((a) => `<option value="${esc(a)}"${a === b.asc ? " selected" : ""}>${esc(a)}</option>`).join("")}</select></div></div>
-    ${b.asc ? `<p class="muted" style="margin-top:8px">${esc((C.ascendencias[b.asc] || {}).resumo || "")}</p>` : ""}</div>
-  ${b.asc ? `<div class="painel"><h3>Ascendência — ${esc(b.asc)} <span class="muted" style="font-family:inherit;text-transform:none;letter-spacing:0">(${b.ascNos.length}/${J.consts.pontosAscendencia} pts)</span></h3><p class="hint">Toque para alocar.</p>
-    <div class="nos">${nos.map((n) => noL(n, b.ascNos.includes(n.n), "asc-no")).join("")}</div></div>` : ""}
-  <div class="painel"><div class="ph"><h3>Keystones</h3><button class="btn mini prim" data-a="k-add">+ Keystone</button></div>
-    <div class="nos">${b.keystones.map((k) => { const n = M.KS.get(k) || { n: k, s: ["não existe neste patch"] }; return noL(n, true, "k-del", " ks"); }).join("") || '<p class="muted">Nenhuma. Toque numa alocada para remover.</p>'}</div></div>
-  <div class="painel"><div class="ph"><h3>Notáveis</h3><button class="btn mini prim" data-a="n-add">+ Notável</button></div>
-    <p class="hint">Liste os notáveis que definem a build — o app usa para detectar vetores de dano. A região mostra o setor da roda STR/DEX/INT.</p>
-    <div class="nos">${b.notaveis.map((k) => { const n = M.NT.get(k) || { n: k, s: ["não existe neste patch"] }; return noL(n, true, "n-del"); }).join("") || '<p class="muted">Nenhum.</p>'}</div></div>`;
-}
-
-/* ---- aba Config ---- */
-function abaConfig(b) {
-  const st = b.stats || {};
-  const num = (k, rot, cls) => `<div><label class="rotulo" for="st-${k}"><span class="${cls || ""}">${rot}</span></label><input id="st-${k}" type="number" inputmode="decimal" data-st="${k}" value="${esc(st[k] ?? "")}" placeholder="—" /></div>`;
-  const chips = (campo, lista) => `<div class="chips">${lista.map(([v, t]) => `<button class="chip${b[campo] === v ? " on" : ""}" data-chip="${campo}" data-v="${v}">${t}</button>`).join("")}</div>`;
-  const tg = (grupo, k, rot, sub) => `<label class="cfg"><span>${rot}${sub ? `<small>${sub}</small>` : ""}</span><input type="checkbox" data-${grupo}="${k}"${(grupo === "rec" ? b.recup : b.vetMan)[k] ? " checked" : ""} /></label>`;
-  return `<div class="painel"><h3>Personagem</h3>
-    <label class="rotulo" for="f-nome">Nome da build</label><input id="f-nome" type="text" data-f="nome" value="${esc(b.nome)}" maxlength="80" />
-    <label class="rotulo" for="f-nivel">Nível</label><input id="f-nivel" type="number" inputmode="numeric" min="1" max="100" data-f="nivel" value="${esc(b.nivel)}" />
-    <label class="rotulo">Objetivo</label>${chips("objetivo", [["campanha", "Campanha"], ["mapas", "Mapas"], ["chefes", "Chefes"], ["tudo", "Tudo"]])}
-    <label class="rotulo">Liga</label>${chips("modo", [["SC", "Softcore"], ["HC", "Hardcore"], ["SSF", "SSF"], ["HCSSF", "HC SSF"]])}
-    <label class="rotulo">Orçamento</label>${chips("orcamento", [["baixo", "Baixo"], ["medio", "Médio"], ["alto", "Alto"]])}</div>
-  <div class="painel"><h3>Números do personagem</h3><p class="hint">Copie da tela do personagem no PS5 (resistências já vêm com a penalidade). Sem números o app estima — e avisa.</p>
-    <div class="g2">${num("vida", "Vida", "c-life")}${num("es", "Escudo de energia", "c-es")}${num("mana", "Mana", "c-mana")}${num("espirito", "Espírito total", "c-spirit")}
-      ${num("armadura", "Armadura", "c-armour")}${num("evasao", "Evasão", "c-evasion")}${num("deflexao", "Deflexão %", "c-evasion")}${num("bloqueio", "Bloqueio %")}
-      ${num("resFogo", "Res. fogo %", "c-fire")}${num("resFrio", "Res. frio %", "c-cold")}${num("resRaio", "Res. raio %", "c-lightning")}${num("resCaos", "Res. caos %", "c-chaos")}
-      ${num("crit", "Chance de crítico %")}${num("dps", "DPS (PoB)", "c-off")}</div></div>
-  <div class="painel"><h3>Recuperação</h3>
-    ${tg("rec", "leech", "Leech de vida / ES", "recupera parte do dano causado")}${tg("rec", "regen", "Regeneração de vida")}${tg("rec", "recarga", "Recarga de ES rápida")}
-    ${tg("rec", "frasco", "Frascos de vida / mana")}${tg("rec", "charms", "Charms")}${tg("rec", "onkill", "Vida / ES ao matar")}</div>
-  <div class="painel"><h3>Vetores vindos de itens e árvore</h3><p class="hint">O app detecta vetores pelas gemas, ascendência, keystones, notáveis e únicos. Marque o que vem de itens raros ou nós que você não listou.</p>
-    ${C.vetores.filter((v) => v.id !== "base").map((v) => tg("vm", v.id, esc(v.nome))).join("")}${tg("vm", "ailment", "Build de ailment (ignição / veneno / sangramento)")}</div>`;
-}
-
-/* ---- aba Notas ---- */
-function abaNotas(b) {
-  return `<div class="painel"><h3>Notas</h3><textarea rows="8" data-f="notas" placeholder="Plano da árvore, itens que faltam, ideias…" style="margin-top:8px">${esc(b.notas)}</textarea>
-    ${b.pob ? `<button class="btn fant bloco" style="margin-top:10px" data-a="ver-pob">Ver código PoB importado</button>` : ""}</div>
-  <div class="linha" style="margin-top:12px"><button class="btn fant" data-a="dup">Duplicar build</button><button class="btn perigo" data-a="b-del">Apagar build</button></div>`;
-}
-
-/* ---- eventos da página da build ---- */
-function onBuildInput(e) {
-  const r = rota(); if (r.v !== "build") return;
-  const b = ST.builds[r.id]; if (!b) return;
-  const t = e.target;
-  if (t.dataset.f) {
-    const f = t.dataset.f;
-    let v = t.value;
-    if (f === "nivel") v = Math.max(1, Math.min(100, parseInt(v, 10) || 1));
-    b[f] = v;
-    if (f === "classe" && b.asc && M.CLASSE_DE[b.asc] !== v) { b.asc = ""; b.ascNos = []; }
-    if (f === "asc") { b.ascNos = []; if (v && !b.classe) b.classe = M.CLASSE_DE[v]; }
-    salvarDepois(b);
-    if (e.type === "change" && ["classe", "asc", "arma", "offhand", "arma2", "offhand2"].includes(f)) render();
-  } else if (t.dataset.st) {
-    if (t.value === "") delete b.stats[t.dataset.st]; else b.stats[t.dataset.st] = parseFloat(t.value);
-    salvarDepois(b);
-  } else if (t.dataset.rec !== undefined) { b.recup[t.dataset.rec] = t.checked; salvarDepois(b); }
-  else if (t.dataset.vm !== undefined) { b.vetMan[t.dataset.vm] = t.checked; salvarDepois(b); }
-  else if (t.dataset.papel !== undefined && e.type === "change") {
-    const gi = +t.dataset.papel;
-    if (t.value === "principal") b.grupos.forEach((g) => { if (g.papel === "principal") g.papel = "secundaria"; });
-    b.grupos[gi].papel = t.value; salvar(b); render();
-  }
-}
-function onBuildClick(e) {
-  const r = rota(); if (r.v !== "build") return false;
-  const b = ST.builds[r.id]; if (!b) return false;
-  const sb = e.target.closest("[data-sub]"); if (sb) { ir(`#/build/${b.id}/${sb.dataset.sub}`); return true; }
-  const fa = e.target.closest("[data-fach]"); if (fa) { filtroAch = fa.dataset.fach; render(); return true; }
-  const ch = e.target.closest("[data-chip]"); if (ch) { b[ch.dataset.chip] = ch.dataset.v; salvar(b); render(); return true; }
-  const as = e.target.closest("[data-addsup]");
-  if (as) {
-    const P0 = M.principal(b); if (!P0) return true;
-    const n = as.dataset.addsup;
-    if (P0.g.sup.includes(n)) { toast("Já está na skill"); return true; }
-    const antes = P0.g.sup.slice(); P0.g.sup.push(n); salvar(b); render();
-    desfazer(`+ ${n}${P0.g.sup.length > 5 ? " (passou de 5 — remova um)" : ""}`, () => { P0.g.sup = antes; salvar(b); render(); });
-    return true;
-  }
-  const an = e.target.closest("[data-addnot]");
-  if (an) { if (!b.notaveis.includes(an.dataset.addnot)) b.notaveis.push(an.dataset.addnot); salvar(b); render(); toast("Notável alocado na build"); return true; }
-  const el = e.target.closest("[data-a]"); if (!el) return false;
-  const a = el.dataset.a, gi = +el.dataset.g, n = el.dataset.n, g = b.grupos[gi];
-  const re = () => { salvar(b); render(); };
-  if (a === "g-add") pickSkill(b, (s) => {
-    const papel = M.ehPersistente(s) ? "buff" : b.grupos.some((x) => x.papel === "principal") ? "secundaria" : "principal";
-    b.grupos.push({ skill: s.n, papel, sup: [] });
-    if (papel === "principal" && !b.arma) b.arma = M.armaSugerida(s.w);
-    re();
-  });
-  else if (a === "g-skill") pickSkill(b, (s) => { g.skill = s.n; re(); });
-  else if (a === "g-del") { const c = clone(b.grupos); b.grupos.splice(gi, 1); re(); desfazer("Grupo removido", () => { b.grupos = c; re(); }); }
-  else if (a === "s-add") pickSuporte(M.SK.get(g.skill), b, (su) => { if (g.sup.includes(su.n)) return toast("Já está neste grupo"); g.sup.push(su.n); re(); if (g.sup.length > 5) toast("Máximo de 5 suportes por skill"); });
-  else if (a === "s-del") { g.sup = g.sup.filter((x) => x !== n); re(); }
-  else if (a === "s-ver") { const su = M.SU.get(n); if (su) mostrarTexto(su.n, [su.fx.join("\n").replace(/\n+/g, "\n"), su.d].filter(Boolean).join("\n\n")); }
-  else if (a === "g-sug") { const s = M.SK.get(g.skill); if (!s) return true; const antes = g.sup.slice(); g.sup = M.recomendarSuportes(s, b, 5); re(); desfazer("Suportes sugeridos: " + g.sup.length, () => { g.sup = antes; re(); }); }
-  else if (a === "u-add") pickUnico((u) => { if (!b.unicos.includes(u.n)) b.unicos.push(u.n); re(); });
-  else if (a === "u-del") { b.unicos = b.unicos.filter((x) => x !== n); re(); }
-  else if (a === "k-add") pickNo("keystone", b, (k) => { if (!b.keystones.includes(k.n)) b.keystones.push(k.n); re(); });
-  else if (a === "k-del") { b.keystones = b.keystones.filter((x) => x !== n); re(); }
-  else if (a === "n-add") pickNo("notavel", b, (k) => { if (!b.notaveis.includes(k.n)) b.notaveis.push(k.n); re(); });
-  else if (a === "n-del") { b.notaveis = b.notaveis.filter((x) => x !== n); re(); }
-  else if (a === "asc-no") { b.ascNos = b.ascNos.includes(n) ? b.ascNos.filter((x) => x !== n) : b.ascNos.concat(n); re(); }
-  else if (a === "ver-pob") mostrarTexto("Código PoB", b.pob || "");
-  else if (a === "copiar") mostrarTexto("Análise", textoAnalise(b));
-  else if (a === "dup") { const c = normalizar(Object.assign(clone(b), { id: M.novaBuild().id, nome: (b.nome || "Build") + " (cópia)", criado: Date.now() })); salvar(c); toast("Duplicada"); ir(`#/build/${c.id}/calcs`); }
-  else if (a === "b-del") apagarBuild(b.id);
-  else if (a === "bp") abrirBuildPlanner(b);
-  else return false;
-  return true;
-}
-function textoAnalise(b) {
-  const r = M.analisar(b), n = r.notas, P0 = M.principal(b);
-  let t = `EXILE FORGE — ${b.nome}\n${r.arquetipo}\nNota ${fmt(r.geral)} · ${r.rotulos.map((x) => semEmoji(x.t)).join(" · ")}\n\n`;
-  t += `Dano ${fmt(n.dano)} · Defesa ${fmt(n.defesa)}${n.defesaEstimada ? "*" : ""} · Recuperação ${fmt(n.recuperacao)} · Coerência ${fmt(n.coerencia)} · Controle ${fmt(n.controle)} · Acessível ${fmt(n.acesso)}\n\n`;
-  if (P0) t += `Skill principal: ${P0.s.n} + ${P0.g.sup.join(", ") || "sem suportes"}\n\n`;
-  r.achados.filter((a) => a.sev !== "info").forEach((a) => { t += `[${SEV_PT[a.sev]}] ${a.titulo}${a.acao ? "\n   → " + a.acao : ""}${a.sups && a.sups.length ? " " + a.sups.join(", ") : ""}\n`; });
-  return t + `\n(patch ${C.patch} · dados ${J.meta.fonte})`;
-}
-
-/* ============================================================
-   SELETOR (picker)
-   ============================================================ */
-let PK = null;
-function abrirPicker(cfg) {
-  PK = Object.assign({ filtro: cfg.filtros ? cfg.filtros[0][0] : "", limite: 60 }, cfg);
-  $("#pkTitulo").textContent = cfg.titulo;
-  $("#pkBusca").value = ""; $("#pkBusca").placeholder = cfg.placeholder || "Buscar…";
-  abrir("#picker"); renderPicker();
-}
-function renderPicker() {
-  if (!PK) return;
-  const q = M.norm($("#pkBusca").value);
-  $("#pkFiltros").innerHTML = (PK.filtros || []).map(([v, t]) => `<button class="chip p${PK.filtro === v ? " on" : ""}" data-pkf="${esc(v)}">${esc(t)}</button>`).join("");
-  const itens = PK.itens(q, PK.filtro);
-  PK.atual = itens;
-  let html = itens.slice(0, PK.limite).map((it, i) => `<button class="item${it.off ? " off" : ""}" data-pki="${i}"><b${it.cor ? ` style="color:${it.cor}"` : ""}>${it.pre || ""}${esc(it.titulo)}</b>${it.sub ? `<span class="is">${esc(it.sub)}</span>` : ""}${it.html ? `<span class="chips" style="margin-top:4px">${it.html}</span>` : ""}</button>`).join("");
-  if (itens.length > PK.limite) html += `<button class="item" data-pkmais="1"><span class="is">Mostrar mais (${itens.length - PK.limite})…</span></button>`;
-  $("#pkLista").innerHTML = html || '<p class="muted" style="text-align:center;padding:20px">Nada encontrado.</p>';
-}
-function pickSkill(b, cb) {
-  abrirPicker({
-    titulo: "Gema de skill", placeholder: "Nome, tag (fire, minion, slam…) ou arma",
-    filtros: [["", "Todas"], ["Attack", "Ataques"], ["Spell", "Feitiços"], ["Minion", "Minions"], ["buff", "Persistentes"], ["arma", "Minha arma"]],
-    itens: (q, f) => J.skills.filter((s) => {
-      if (f === "buff") { if (!M.ehPersistente(s)) return false; }
-      else if (f === "arma") { if (!s.w || !b || !M.armaAtende(s.w, b.arma, b.offhand)) return false; }
-      else if (f && s.t !== f) return false;
-      return casa(q, s.n, s.tg.join(" "), s.w, TIPO_PT[s.t] || "");
-    }).map((s) => ({ titulo: s.n, cor: "var(--gem)", pre: sock(s.req) + " ", sub: [TIPO_PT[s.t] || s.t, s.w, s.sp ? "espírito " + s.sp : "", s.tier ? "tier " + s.tier : "especial"].filter(Boolean).join(" · "), dado: s })),
-    onPick: (it) => cb(it.dado)
-  });
-}
-function pickSuporte(skill, b, cb) {
-  abrirPicker({
-    titulo: "Suporte · " + (skill ? skill.n : "?"), placeholder: "Nome ou efeito (more, penetrate…)",
-    filtros: [["comp", "Compatíveis"], ["more", "More"], ["conv", "Conversão"], ["crit", "Crítico"], ["taken", "Inimigo toma +"], ["mitig", "−Defesa inimiga"], ["vel", "Velocidade"], ["ailment", "Ailment"], ["clear", "Área/proj."], ["defesa", "Defesa"], ["todos", "Todos"]],
-    itens: (q, f) => {
-      const l = J.suportes.filter((s) => {
-        const ok = skill ? M.compativel(s, skill) : true;
-        if (f !== "todos" && !ok) return false;
-        if (f && !["comp", "todos"].includes(f) && !s.v.includes(f)) return false;
-        return casa(q, s.n, s.fam, s.fx.join(" "), s.d);
-      });
-      l.sort((x, y) => (M.compativel(y, skill) - M.compativel(x, skill)) || (M.rankSup(y, skill, b) - M.rankSup(x, skill, b)));
-      return l.map((s) => ({ titulo: s.n, cor: skill && !M.compativel(s, skill) ? "var(--unsupported)" : "var(--gem)", pre: sock(s.req) + " " + (s.lin ? "◆ " : ""), off: skill && !M.compativel(s, skill),
-        sub: s.fx.slice(0, 2).join(" · ").replace(/\n/g, " ") || s.d, html: vTags(s.v) + (s.lin ? ' <span class="v v-cond">linhagem</span>' : ""), dado: s }));
-    },
-    onPick: (it) => cb(it.dado)
-  });
-}
-function pickUnico(cb) {
-  const slots = [...new Set(UNI.map((u) => u.slot))].sort();
-  abrirPicker({
-    titulo: "Item único", placeholder: "Nome, base ou efeito",
-    filtros: [["", "Todos"]].concat(slots.map((s) => [s, SLOT_PT[s] || s])),
-    itens: (q, f) => UNI.filter((u) => (!f || u.slot === f) && casa(q, u.n, u.b, u.m.join(" "))).map((u) => ({ titulo: u.n, cor: "var(--unique)", sub: `${SLOT_PT[u.slot] || u.slot} · ${u.b} — ${u.m.slice(0, 2).join(" · ")}`, dado: u })),
-    onPick: (it) => cb(it.dado)
-  });
-}
-function pickNo(tipo, b, cb) {
-  const reg = M.REGIAO_CLASSE[b && b.classe];
-  const base = tipo === "keystone" ? AR.keystones : AR.notaveis;
-  abrirPicker({
-    titulo: tipo === "keystone" ? "Keystone" : "Notável", placeholder: "Nome ou efeito (penetration, more…)",
-    filtros: [["", "Todas as regiões"]].concat(reg ? [["perto", "Perto de mim (" + reg + ")"]] : []).concat(["STR", "STR/DEX", "DEX", "DEX/INT", "INT", "STR/INT", "centro"].map((r) => [r, r])),
-    itens: (q, f) => base.filter((n) => (!f || (f === "perto" ? n.reg === reg : n.reg === f)) && casa(q, n.n, n.s.join(" "))).map((n) => ({ titulo: n.n, cor: "var(--ouro2)", sub: n.reg + " · " + n.s.join(" · "), dado: n })),
-    onPick: (it) => cb(it.dado)
-  });
-}
-
-/* ============================================================
-   CRIAR — "O que você quer jogar?"
-   ============================================================ */
-let CR = { modo: "" };
-const voltarCriar = () => `<button class="lnk voltar" data-cr="">‹ O que você quer jogar?</button>`;
-function proposta(b) {
-  const r = M.analisar(b), P0 = M.principal(b);
-  const buff = b.grupos.filter((g) => g.papel === "buff").map((g) => g.skill);
-  const asc = C.ascendencias[b.asc] || {};
-  return `<div class="painel"><h2>${esc(r.arquetipo)}</h2><div class="chips" style="margin-top:8px">${ROT(r.rotulos, 8)}</div>
-    <dl class="kv">
-      <dt>Classe</dt><dd>${clsTxt(b.classe, b.classe)} · ${clsTxt(b.classe, b.asc || "—")}</dd>
-      <dt>Skill</dt><dd><b class="c-gem">${esc(P0 ? P0.s.n : "—")}</b>${P0 ? `<div class="muted">${esc(P0.s.d)}</div>` : ""}</dd>
-      <dt>Arma</dt><dd>${esc(M.armaPt(b.arma))}${b.offhand ? " + " + esc(b.offhand) : ""}</dd>
-      <dt>Suportes</dt><dd class="c-gem">${esc(P0 ? P0.g.sup.join(", ") : "") || "—"}</dd>
-      <dt>Buff</dt><dd class="c-gem">${esc(buff.join(", ") || "—")}</dd>
-      <dt>Ascendência</dt><dd>${esc(b.ascNos.join(", ") || "—")}${asc.resumo ? `<div class="muted">${esc(asc.resumo)}</div>` : ""}</dd>
-      ${b.keystones.length ? `<dt>Keystone</dt><dd class="c-ouro">${esc(b.keystones.join(", "))}</dd>` : ""}
-      <dt>Defesa</dt><dd>${esc({ armadura: "Armadura + vida", evasao: "Evasão + deflexão", es: "Escudo de energia", vida: "Vida + armadura/evasão", hibrido: "Híbrida" }[asc.def] || "—")}</dd>
-      <dt>Nota prévia</dt><dd><b>${fmt(r.geral)}</b> <span class="muted">(sem números do personagem)</span></dd>
-    </dl></div>`;
-}
-function renderCriar() {
-  const el = $("#vista");
-  if (!CR.modo) {
-    el.innerHTML = `<h2>O que você quer jogar?</h2>
-      <p class="hint">Escolha o ponto de partida. O assistente monta um esqueleto coerente (arma, suportes, ascendência) usando os dados do PoB2 — depois você ajusta.</p>
-      <div class="opcoes">
-        <button class="painel opcao" data-cr="aleatoria"><div class="ot">Build aleatória</div><div class="od">Sorteio coerente para sair do óbvio</div></button>
-        <button class="painel opcao" data-cr="meta"><div class="ot">Meta</div><div class="od">O que está forte no patch</div></button>
-        <button class="painel opcao" data-cr="unico"><div class="ot">Único legal</div><div class="od">Construir em volta de um item</div></button>
-        <button class="painel opcao" data-cr="skill"><div class="ot">Skill divertida</div><div class="od">Começar pela gema</div></button>
-        <button class="painel opcao inteira" data-cr="asc"><div class="ot">Ascendência divertida</div><div class="od">Começar pela fantasia da classe</div></button>
-        <button class="painel opcao inteira" data-cr="zero"><div class="ot">Do zero</div><div class="od">Build em branco, montada por você</div></button>
+  v.innerHTML = `
+    <section class="inicio-hero">
+      <h1>Sua build, com o caminho na árvore</h1>
+      <p>Escolha a ascendência e a skill — ou mande um print do jogo — e veja na árvore passiva o caminho calculado para a sua build.</p>
+      <div class="acoes">
+        <button class="btn grande" data-ir="#/foto">${ic("foto")} Ler da foto</button>
+        <button class="btn grande fant" data-ir="#/nova">${ic("mais")} Nova build</button>
       </div>
-      <div class="painel" style="margin-top:14px"><h3>Depois: pesquise</h3>
-        <p class="muted">Skill → wiki + PoE2DB · Ascendência → wiki + Path of Building 2 · Únicos → wiki + PoE2DB · Inspiração → poe.ninja. A aba Cálculos de cada build traz esses links prontos.</p></div>`;
-    return;
-  }
-  if (CR.modo === "aleatoria") {
-    if (!CR.prop) CR.prop = M.aleatoria({ classe: CR.classe, tipo: CR.tipo });
-    el.innerHTML = `${voltarCriar()}<h2>Build aleatória</h2>
-      <label class="rotulo">Classe</label><div class="chips">${[["", "Qualquer"]].concat(M.CLASSES.map((c) => [c.n, c.n])).map(([v, t]) => `<button class="chip p${(CR.classe || "") === v ? " on" : ""}" data-crc="${esc(v)}">${esc(t)}</button>`).join("")}</div>
-      <label class="rotulo">Tipo</label><div class="chips">${[["", "Qualquer"], ["Attack", "Ataque"], ["Spell", "Feitiço"], ["Minion", "Minion"]].map(([v, t]) => `<button class="chip p${(CR.tipo || "") === v ? " on" : ""}" data-crt="${esc(v)}">${esc(t)}</button>`).join("")}</div>
-      <div style="margin-top:14px">${proposta(CR.prop)}</div>
-      <div class="linha" style="margin-top:12px"><button class="btn fant" data-cra="outra">Sortear outra</button><button class="btn prim" data-cra="usar">Usar esta build</button></div>`;
-    return;
-  }
-  if (CR.modo === "meta") {
-    el.innerHTML = `${voltarCriar()}<h2>Meta</h2><p class="hint">${esc(META.liga)} · ${esc(META.observacao)} Atualizado em ${esc(META.atualizado)} — confira sempre no poe.ninja.</p>
-      <div class="stack">${META.builds.map((m, i) => `<div class="painel liso"><div class="ph"><b class="c-gem">${esc(m.skill)}</b><span class="tier">${esc(m.tier)}</span></div>
-        <div class="muted">${m.asc.map((a) => clsTxt(M.CLASSE_DE[a], a)).join(" / ")} · ${esc({ mapas: "mapas", chefes: "chefes", ambos: "mapas + chefes" }[m.foco] || m.foco)} · dificuldade ${"●".repeat(m.dificuldade)}${"○".repeat(3 - m.dificuldade)}${m.starter ? " · bom começo de liga" : ""}</div>
-        <p class="muted" style="color:var(--txt)">${esc(m.nota)}</p>
-        <div class="chips">${m.asc.map((a) => `<button class="chip p" data-meta="${i}" data-asc="${esc(a)}">Usar com ${esc(a)}</button>`).join("")}</div></div>`).join("")}</div>
-      <p class="rodape">Fontes: ${META.fontes.map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.nome)}</a>`).join(" · ")}</p>`;
-    return;
-  }
-  if (CR.modo === "unico") {
-    const u = CR.sel && M.UN.get(CR.sel);
-    if (!u) {
-      const q = M.norm(CR.busca || "");
-      el.innerHTML = `${voltarCriar()}<h2>Escolha um único</h2>
-        <input class="busca" id="crBusca" type="search" placeholder="Nome ou efeito (ex.: minion, arrow, ignite)" value="${esc(CR.busca || "")}" />
-        <div class="painel liso">${UNI.filter((x) => casa(q, x.n, x.b, x.m.join(" "), x.slot)).slice(0, 40).map((x) => `<button class="item" data-crsel="${esc(x.n)}"><b class="c-unique">${esc(x.n)}</b><span class="is">${esc((SLOT_PT[x.slot] || x.slot) + " · " + x.b)} — ${esc(x.m.slice(0, 2).join(" · "))}</span></button>`).join("")}</div>`;
-      return;
-    }
-    const rk = M.rankSkillsPorUnico(u);
-    el.innerHTML = `<button class="lnk voltar" data-crsel="">‹ Outros únicos</button>${ttUnico(u)}
-      <p class="hint" style="margin-top:10px">Sinais detectados: ${esc(rk.sinais.join(", ") || "nenhum claro — escolha pela fantasia")}${rk.concedida ? ` · concede a skill <b class="c-gem">${esc(rk.concedida)}</b>` : ""}</p>
-      <h3>Skills que combinam</h3><div class="painel liso" style="margin-top:8px">${rk.skills.slice(0, 12).map((x) => `<button class="item" data-crunico="${esc(x.s.n)}"><b class="c-gem">${esc(x.s.n)}</b><span class="is">${esc([TIPO_PT[x.s.t], x.s.w, corDe(x.s.req)].filter(Boolean).join(" · "))}</span></button>`).join("") || '<p class="muted">Nenhuma ligação óbvia.</p>'}</div>`;
-    return;
-  }
-  if (CR.modo === "skill") {
-    const s = CR.sel && M.SK.get(CR.sel);
-    if (!s) {
-      const q = M.norm(CR.busca || "");
-      el.innerHTML = `${voltarCriar()}<h2>Escolha uma gema</h2>
-        <input class="busca" id="crBusca" type="search" placeholder="Nome, tag (fire, minion, slam) ou arma" value="${esc(CR.busca || "")}" />
-        <div class="chips" style="margin-bottom:10px">${[["", "Todas"], ["Attack", "Ataques"], ["Spell", "Feitiços"], ["Minion", "Minions"]].map(([v, t]) => `<button class="chip p${(CR.tipo || "") === v ? " on" : ""}" data-crt="${esc(v)}">${esc(t)}</button>`).join("")}</div>
-        <div class="painel liso">${J.skills.filter((x) => x.tier > 0 && ["Attack", "Spell", "Minion"].includes(x.t) && (!CR.tipo || x.t === CR.tipo) && casa(q, x.n, x.tg.join(" "), x.w)).slice(0, 60).map((x) => `<button class="item" data-crsel="${esc(x.n)}"><b class="c-gem">${sock(x.req)} ${esc(x.n)}</b><span class="is">${esc([TIPO_PT[x.t], x.w].filter(Boolean).join(" · "))} — ${esc(x.d.slice(0, 110))}${x.d.length > 110 ? "…" : ""}</span></button>`).join("")}</div>`;
-      return;
-    }
-    const asc = M.rankAscPorSkill(s).slice(0, 5);
-    el.innerHTML = `<button class="lnk voltar" data-crsel="">‹ Outras gemas</button>
-      ${ttGema(s, `<div class="sepi"></div><div class="info">Suportes recomendados</div><div class="c-gem" style="font-size:.84rem">${esc(M.recomendarSuportes(s, null, 5).join(" · "))}</div><div class="acoes">${lnks(s.n)}</div>`)}
-      <h3 style="margin-top:14px">Ascendências que combinam</h3><div class="painel liso" style="margin-top:8px">${asc.map((a) => `<button class="item" data-crasc="${esc(a.asc)}"><b>${clsTxt(a.classe, a.asc)}</b> <span class="muted">${esc(a.classe)}</span><span class="is">${esc((C.ascendencias[a.asc] || {}).resumo || "")}</span></button>`).join("")}</div>`;
-    return;
-  }
-  if (CR.modo === "asc") {
-    const a = CR.sel;
-    if (!a) {
-      el.innerHTML = `${voltarCriar()}<h2>Escolha a ascendência</h2>
-        ${M.CLASSES.map((c) => `<div class="painel"><h3 style="color:${CLASSE_COR[c.n]}">${esc(c.n)} <span class="muted" style="text-transform:none;letter-spacing:0;font-family:inherit">— ${esc((C.classes[c.n] || {}).arma || "")}</span></h3>
-          ${c.asc.concat(c.n === "Witch" && !c.asc.includes("Abyssal Lich") ? ["Abyssal Lich"] : []).map((x) => `<button class="item" data-crsel="${esc(x)}"><b class="c-ouro">${esc(x)}</b><span class="is">${esc((C.ascendencias[x] || {}).resumo || "")}</span></button>`).join("")}</div>`).join("")}
-        <div class="painel"><h3 style="color:${CLASSE_COR.Duelist}">Duelist</h3><p class="muted">Chega no 1.0 (11/12/2026), com espadas. A biblioteca é atualizada quando o PoB2 tiver os dados.</p></div>`;
-      return;
-    }
-    el.innerHTML = `<button class="lnk voltar" data-crsel="">‹ Outras ascendências</button>
-      <div class="painel"><h2>${clsTxt(M.CLASSE_DE[a], a)}</h2><p class="muted">${esc((C.ascendencias[a] || {}).resumo || "")}</p></div>
-      <div style="margin-top:12px">${(AR.ascendencias[a] || []).map((n) => ttNo(n, "Nó de ascendência")).join("")}</div>
-      <h3 style="margin-top:14px">Skills que combinam</h3><div class="painel liso" style="margin-top:8px">${M.rankSkillsPorAsc(a).slice(0, 10).map((x) => `<button class="item" data-crasc2="${esc(x.s.n)}"><b class="c-gem">${sock(x.s.req)} ${esc(x.s.n)}</b><span class="is">${esc([TIPO_PT[x.s.t], x.s.w].filter(Boolean).join(" · "))}</span></button>`).join("")}</div>`;
-  }
-}
-function onCriarClick(e) {
-  const t = e.target.closest("[data-cr],[data-crc],[data-crt],[data-cra],[data-meta],[data-crsel],[data-crunico],[data-crasc],[data-crasc2]");
-  if (!t) return false;
-  const usar = (b) => { CR = { modo: "" }; usarBuild(b, "calcs"); };
-  if (t.dataset.cr !== undefined) { if (t.dataset.cr === "zero") { CR = { modo: "" }; novaVazia(); return true; } CR = { modo: t.dataset.cr }; }
-  else if (t.dataset.crc !== undefined) { CR.classe = t.dataset.crc; CR.prop = null; }
-  else if (t.dataset.crt !== undefined) { CR.tipo = t.dataset.crt; CR.prop = null; }
-  else if (t.dataset.cra === "outra") CR.prop = null;
-  else if (t.dataset.cra === "usar") { usar(CR.prop); return true; }
-  else if (t.dataset.meta !== undefined) { const m = META.builds[+t.dataset.meta]; usar(M.montar(m.skill, t.dataset.asc, "meta")); return true; }
-  else if (t.dataset.crsel !== undefined) CR.sel = t.dataset.crsel || null;
-  else if (t.dataset.crunico !== undefined) { const s = M.SK.get(t.dataset.crunico); const b = M.montar(s.n, M.rankAscPorSkill(s)[0].asc, "assistente"); b.unicos = [CR.sel]; b.nome = s.n + " + " + CR.sel; usar(b); return true; }
-  else if (t.dataset.crasc !== undefined) { usar(M.montar(CR.sel, t.dataset.crasc, "assistente")); return true; }
-  else if (t.dataset.crasc2 !== undefined) { usar(M.montar(t.dataset.crasc2, CR.sel, "assistente")); return true; }
-  renderCriar(); window.scrollTo(0, 0);
-  return true;
+      <button class="link" data-acao="pob">Tenho um código do Path of Building</button>
+    </section>
+    ${lista.length ? `<div class="secao">Minhas builds</div>` : ""}
+    ${lista.map((b) => {
+      const P = principal(b);
+      let nota = "";
+      try { nota = M.analisar(b).geral; } catch (e) { nota = ""; }
+      return `<div class="cartao build-card" data-ir="#/b/${esc(b.id)}" role="button" tabindex="0">
+        <div class="avatar">${imgAsc(b.asc || b.classe, 58)}${P ? imgGema(P.s.n) : ""}</div>
+        <div class="info"><div class="nome">${esc(b.nome || "Build")}</div>
+          <div class="det">${esc(b.asc || b.classe || "sem ascendência")} · Nível ${esc(b.nivel)}</div>
+          <div class="det">${esc(P ? P.s.n : "sem skill principal")}</div></div>
+        ${nota !== "" ? `<div class="nota ${notaCls(nota)}">${esc(String(nota).replace(".", ","))}</div>` : ""}
+      </div>`;
+    }).join("")}
+    <p class="rodape">Exile Compass é um projeto de fã, sem relação com a Grinding Gear Games. Path of Exile é marca da Grinding Gear Games. Árvore e artes: exportação oficial da GGG; dados: Path of Building 2 e RePoE.</p>`;
 }
 
-/* ============================================================
-   BIBLIOTECA
-   ============================================================ */
-let BB = { seg: "mecanicas", limite: 40, busca: "" };
-const SEGS = [["mecanicas", "Mecânicas"], ["gemas", "Gemas"], ["suportes", "Suportes"], ["unicos", "Únicos"], ["asc", "Ascendências"], ["arvore", "Árvore"], ["ferramentas", "Ferramentas"], ["meta", "Meta"], ["sobre", "Sobre"]];
-const det = (titulo, sub, corpo, aberto) => `<details${aberto ? " open" : ""}><summary><span><span class="ln">${titulo}</span>${sub ? `<span class="ls">${sub}</span>` : ""}</span></summary><div class="lc">${corpo}</div></details>`;
-function contagem(q) {
-  if (!q) return {};
-  return {
-    mecanicas: C.topicos.filter((t) => casa(q, t.titulo, M.preencher(t.resumo), t.pontos.join(" "))).length,
-    gemas: J.skills.filter((s) => casa(q, s.n, s.tg.join(" "), s.d)).length,
-    suportes: J.suportes.filter((s) => casa(q, s.n, s.fx.join(" "), s.d)).length,
-    unicos: UNI.filter((u) => casa(q, u.n, u.b, u.m.join(" "))).length,
-    asc: Object.keys(C.ascendencias).filter((a) => casa(q, a, C.ascendencias[a].resumo, (AR.ascendencias[a] || []).map((n) => n.n + " " + n.s.join(" ")).join(" "))).length,
-    arvore: AR.keystones.concat(AR.notaveis).filter((n) => casa(q, n.n, n.s.join(" "))).length
+/* ================= NOVA BUILD ================= */
+function vNova(v, r) {
+  if (r.a === "a" && r.c) return vNovaSkill(v, r.c);
+  if (r.a === "s" && r.c) return vNovaAsc(v, r.c);
+  const modo = r.a === "skill" ? "skill" : "asc";
+  v.innerHTML = `
+    <div class="passo-tit"><span class="num">1</span><h1>${modo === "asc" ? "Escolha a ascendência" : "Escolha a skill"}</h1></div>
+    <div class="seg" role="tablist">
+      <button class="${modo === "asc" ? "on" : ""}" data-ir="#/nova">Ascendência</button>
+      <button class="${modo === "skill" ? "on" : ""}" data-ir="#/nova/skill">Skill</button>
+      <button data-acao="sortear">${ic("dado")} Sortear</button>
+    </div>
+    <div id="novaCorpo"></div>`;
+  const corpo = $("#novaCorpo");
+  if (modo === "asc") {
+    corpo.innerHTML = `<div class="grade-asc">${CLASSES.map((c) => `<div class="classe-tit">${esc(c.n)}</div>` +
+      c.asc.map((a) => `<button class="asc-op" data-ir="#/nova/a/${encodeURIComponent(a)}">${imgAsc(a, 92)}<span class="n">${esc(a)}</span></button>`).join("")).join("")}</div>`;
+  } else {
+    corpo.innerHTML = `<div class="busca-box">${ic("busca")}<input id="buscaSkill" type="search" placeholder="Buscar skill (ex.: Spark, arco, minion)…" autocomplete="off"></div><div id="listaSkill"></div>`;
+    const todas = J.skills.filter((s) => ["Attack", "Spell", "Minion"].includes(s.t) && !M.ehPersistente(s) && s.gid && !/Ascendancy|Triggered/.test(s.gid));
+    const meta = new Set(META.builds.map((m) => m.skill));
+    const ordenadas = todas.slice().sort((a, b) => (meta.has(b.n) - meta.has(a.n)) || (b.tier || 0) - (a.tier || 0) || a.n.localeCompare(b.n));
+    const desenhar = () => {
+      const q = M.norm($("#buscaSkill").value);
+      const lst = ordenadas.filter((s) => !q || q.split(" ").every((p) => M.norm(s.n + " " + resumoSkill(s) + " " + s.tg.join(" ") + " " + (s.w || "")).includes(p))).slice(0, 60);
+      $("#listaSkill").innerHTML = lst.map((s) => `<button class="skill-op" data-ir="#/nova/s/${encodeURIComponent(s.n)}">${imgGema(s.n)}<span class="info"><span class="n">${esc(s.n)}</span><br><span class="t">${esc(resumoSkill(s))}</span></span>${metaSelo(s.n)}</button>`).join("") || `<p class="vazio-txt">Nada encontrado.</p>`;
+    };
+    $("#buscaSkill").addEventListener("input", debounce(desenhar, 120));
+    desenhar();
+  }
+}
+function vNovaSkill(v, asc) {
+  const cl = CLASSE_DE[asc];
+  if (!cl) return ir("#/nova");
+  const rank = M.rankSkillsPorAsc(asc).filter((x) => x.s.gid && !/Ascendancy|Triggered/.test(x.s.gid));
+  const top = rank.slice(0, 8);
+  const resumo = (C.ascendencias[asc] || {}).resumo || "";
+  v.innerHTML = `
+    <div class="heroi">${imgAsc(asc, 72)}<div class="info"><div class="nome">${esc(asc)}</div><div class="det">${esc(cl)}</div></div></div>
+    ${resumo ? `<p class="sub small">${esc(M.preencher(resumo))}</p>` : ""}
+    <div class="passo-tit"><span class="num">2</span><h1>Escolha a skill principal</h1></div>
+    <div class="secao">Combinam com ${esc(asc)}</div>
+    ${top.map((x) => `<button class="skill-op" data-criar="${esc(x.s.n)}" data-asc="${esc(asc)}">${imgGema(x.s.n)}<span class="info"><span class="n">${esc(x.s.n)}</span><br><span class="t">${esc(resumoSkill(x.s))}</span></span>${metaSelo(x.s.n, asc)}</button>`).join("")}
+    <div class="secao">Todas</div>
+    <div class="busca-box">${ic("busca")}<input id="buscaSkill" type="search" placeholder="Buscar skill…" autocomplete="off"></div>
+    <div id="listaSkill"></div>`;
+  const desenhar = () => {
+    const q = M.norm($("#buscaSkill").value);
+    const lst = rank.slice(8).filter((x) => !q || q.split(" ").every((p) => M.norm(x.s.n + " " + resumoSkill(x.s) + " " + x.s.tg.join(" ")).includes(p))).slice(0, q ? 60 : 24);
+    $("#listaSkill").innerHTML = lst.map((x) => `<button class="skill-op" data-criar="${esc(x.s.n)}" data-asc="${esc(asc)}">${imgGema(x.s.n)}<span class="info"><span class="n">${esc(x.s.n)}</span><br><span class="t">${esc(resumoSkill(x.s))}</span></span></button>`).join("");
   };
+  $("#buscaSkill").addEventListener("input", debounce(desenhar, 120));
+  desenhar();
 }
-function renderBiblioteca() {
-  const q = M.norm(BB.busca);
-  const cnt = contagem(q);
-  const mais = (total) => total > BB.limite ? `<button class="btn fant bloco mais" data-mais="1">Mostrar mais (${total - BB.limite})</button>` : "";
-  let corpo = "";
-  if (BB.seg === "mecanicas") {
-    const tops = C.topicos.filter((t) => casa(q, t.titulo, M.preencher(t.resumo), t.pontos.join(" ")));
-    const cats = [...new Set(tops.map((t) => t.cat))];
-    corpo = (q ? "" : `
-      <div class="painel"><h3>Vetores de escalonamento de dano</h3><p class="hint">Dentro do vetor você soma as fontes; entre vetores você multiplica os totais.</p>
-        <div class="lib">${C.vetores.map((v) => det(esc(v.nome), esc(v.fontes.join(" · ")), `<p>${P(v.desc)}</p><p class="muted"><b>Como investir:</b> ${esc(v.como)}</p>`)).join("")}</div></div>
-      <div class="painel"><h3>Camadas de defesa</h3><div class="lib">${C.camadas.map((c) => det(esc(c.nome), "", `<p>${P(c.desc)}</p>`)).join("")}</div></div>
-      <div class="painel"><h3>Ciclo do jogo</h3><p class="muted">${esc(C.jogo.atual)}</p><p class="muted">${esc(C.jogo.proximo)}</p><p class="muted">${esc(C.jogo.ciclo)}</p></div>`) +
-      cats.map((c) => `<div class="painel"><h3>${esc(c)}</h3><div class="lib">` + tops.filter((t) => t.cat === c).map((t) => det(esc(t.titulo), P(t.resumo).slice(0, 96) + (M.preencher(t.resumo).length > 96 ? "…" : ""),
-        `<p>${P(t.resumo)}</p><ul>${t.pontos.map((p) => `<li>${P(p)}</li>`).join("")}</ul>${t.wiki ? `<a href="${esc(M.wikiUrl(t.wiki))}" target="_blank" rel="noopener">Wiki: ${esc(t.wiki.replace(/_/g, " "))}</a>` : ""}`, !!q)).join("") + `</div></div>`).join("");
-  } else if (BB.seg === "gemas") {
-    const l = J.skills.filter((s) => casa(q, s.n, s.tg.join(" "), s.d, s.w));
-    corpo = `<div class="painel liso lib">${l.slice(0, BB.limite).map((s) => det(`<span class="c-gem">${sock(s.req)} ${esc(s.n)}</span>`, esc([TIPO_PT[s.t] || s.t, s.w].filter(Boolean).join(" · ")),
-      ttGema(s, `<div class="sepi"></div><div class="info">Suportes recomendados</div><div class="c-gem">${esc(M.recomendarSuportes(s, null, 5).join(" · ") || "—")}</div>
-        <div class="info" style="margin-top:6px">Ascendências que combinam</div><div class="c-ouro">${esc(M.rankAscPorSkill(s).slice(0, 3).map((a) => a.asc).join(" · "))}</div>
-        <div class="acoes">${lnks(s.n)}<button class="btn mini prim" data-libskill="${esc(s.n)}">Criar build</button></div>`))).join("")}</div>${mais(l.length)}`;
-  } else if (BB.seg === "suportes") {
-    const l = J.suportes.filter((s) => casa(q, s.n, s.fx.join(" "), s.d, s.fam));
-    corpo = `<div class="painel liso lib">${l.slice(0, BB.limite).map((s) => det(`<span class="c-gem">${sock(s.req)} ${s.lin ? "◆ " : ""}${esc(s.n)}</span>`, vTags(s.v.filter((v) => v !== "inc").slice(0, 4)),
-      ttGema(s, `<div class="sepi"></div><div class="info">Família: ${esc(s.fam)}${s.lin ? " · linhagem (1 por personagem)" : ""}</div><div class="acoes">${lnks(s.n)}</div>`))).join("")}</div>${mais(l.length)}`;
-  } else if (BB.seg === "unicos") {
-    const l = UNI.filter((u) => casa(q, u.n, u.b, u.m.join(" "), u.slot));
-    corpo = `<div class="painel liso lib">${l.slice(0, BB.limite).map((u) => det(`<span class="c-unique">${esc(u.n)}</span>`, esc((SLOT_PT[u.slot] || u.slot) + " · " + u.b),
-      ttUnico(u, `<div class="acoes">${lnks(u.n)}<button class="btn mini prim" data-libunico="${esc(u.n)}">Construir em volta</button></div>`))).join("")}</div>${mais(l.length)}`;
-  } else if (BB.seg === "asc") {
-    corpo = M.CLASSES.map((c) => {
-      const ascs = c.asc.concat(c.n === "Witch" && !c.asc.includes("Abyssal Lich") ? ["Abyssal Lich"] : []).filter((a) => casa(q, a, (C.ascendencias[a] || {}).resumo || "", (AR.ascendencias[a] || []).map((n) => n.n + " " + n.s.join(" ")).join(" ")));
-      if (!ascs.length) return "";
-      return `<div class="painel"><h3 style="color:${CLASSE_COR[c.n]}">${esc(c.n)} <span class="muted" style="text-transform:none;letter-spacing:0;font-family:inherit">— ${esc((C.classes[c.n] || {}).arma || "")}</span></h3><div class="lib">` +
-        ascs.map((a) => det(`<span class="c-ouro">${esc(a)}</span>`, esc(((C.ascendencias[a] || {}).resumo || "").slice(0, 90)) + "…",
-          `<p>${esc((C.ascendencias[a] || {}).resumo || "")}</p>${(AR.ascendencias[a] || []).map((n) => ttNo(n, "Nó de ascendência")).join("")}
-           <p class="muted"><b>Skills que combinam:</b> <span class="c-gem">${esc(M.rankSkillsPorAsc(a).slice(0, 6).map((x) => x.s.n).join(" · "))}</span></p><div class="linha">${lnks(a)}</div>`, !!q)).join("") + `</div></div>`;
-    }).join("");
-  } else if (BB.seg === "arvore") {
-    const ks = AR.keystones.filter((n) => casa(q, n.n, n.s.join(" ")));
-    const nt = AR.notaveis.filter((n) => casa(q, n.n, n.s.join(" ")));
-    corpo = `<p class="hint">Região = setor da roda STR/DEX/INT onde o nó fica (calculado pela posição na árvore do PoB2).</p>
-      <div class="painel"><h3>Keystones (${ks.length})</h3><div class="lib">${ks.map((n) => det(`<span class="c-ouro">${esc(n.n)}</span>`, esc(n.reg), ttNo(n, "Keystone", `<div class="acoes">${lnks(n.n)}</div>`))).join("")}</div></div>
-      <div class="painel"><h3>Notáveis (${nt.length})</h3><div class="lib">${nt.slice(0, BB.limite).map((n) => det(`<span class="c-ouro">${esc(n.n)}</span>`, esc(n.reg), ttNo(n, "Notável"))).join("")}</div>${mais(nt.length)}</div>`;
-  } else if (BB.seg === "ferramentas") {
-    corpo = `<p class="hint">As ferramentas da comunidade — e como usar cada uma no celular.</p>` + C.ferramentas.map((f) => `<div class="painel"><h3>${esc(f.nome)}</h3><p>${esc(f.para)}</p><p class="muted">No celular: ${esc(f.celular)}</p><a class="btn mini fant" href="${esc(f.url)}" target="_blank" rel="noopener">Abrir</a></div>`).join("");
-  } else if (BB.seg === "meta") {
-    corpo = `<div class="painel"><h3>${esc(META.liga)}</h3><p class="muted">${esc(META.observacao)}</p><p class="muted">Atualizado: ${esc(META.atualizado)}. Ascendências populares: ${META.ascPopulares.map((a) => clsTxt(M.CLASSE_DE[a], a)).join(", ")}.</p></div>` +
-      META.builds.map((m) => `<div class="painel liso" style="margin-top:8px"><div class="ph"><b class="c-gem">${esc(m.skill)}</b><span class="tier">${esc(m.tier)}</span></div><div class="muted">${m.asc.map((a) => clsTxt(M.CLASSE_DE[a], a)).join(" / ")}</div><p class="muted" style="color:var(--txt)">${esc(m.nota)}</p></div>`).join("") +
-      `<p class="rodape">${META.fontes.map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.nome)}</a>`).join(" · ")}</p>`;
-  } else if (BB.seg === "sobre") {
-    const k = J.consts;
-    corpo = `<div class="painel"><h3>De onde vêm os dados</h3>
-      <p>Gemas, suportes, únicos, árvore e ascendências são <b>gerados automaticamente</b> dos arquivos do <b>Path of Building 2</b> (${esc(J.meta.fonte)}, patch ${esc(J.meta.patch)}, gerado em ${esc(J.meta.gerado)}).</p>
-      <p class="muted">${Object.entries(J.meta.contagem).map(([a, b]) => `${b} ${a}`).join(" · ")}</p>
-      <p>Mecânicas, resumos de ascendência e o meta são <b>curados</b> (revisão ${esc(C.revisado)}, ${esc(C.patch)}).</p>
-      <p class="muted">${esc(C.jogo.proximo)}</p></div>
-      <div class="painel"><h3>Constantes do jogo (PoB2)</h3><table class="tab-mini">
-        <tr><td>Resistência máx. / cap absoluto</td><td>${k.resMax}% / ${k.resMaxCap}%</td></tr>
-        <tr><td>Penalidade de resistência (endgame)</td><td>${k.resPenalidade}%</td></tr>
-        <tr><td>Redução física máx. (armadura)</td><td>${k.drMaxFisico}%</td></tr>
-        <tr><td>Evasão máx.</td><td>${k.evasaoCap}%</td></tr>
-        <tr><td>Dano desviado pela deflexão</td><td>${k.deflexaoEfeito}%</td></tr>
-        <tr><td>Bloqueio máx. base / absoluto</td><td>${k.bloqueioMaxBase}% / ${k.bloqueioCap}%</td></tr>
-        <tr><td>Recarga de ES</td><td>${k.esRecargaPorSeg}%/s após ${k.esAtraso}s</td></tr>
-        <tr><td>Bônus de crítico base</td><td>${k.critBonusBase}%</td></tr>
-        <tr><td>Espírito das quests</td><td>${k.espiritoQuests}</td></tr>
-        <tr><td>Pontos: níveis + quests / ascendência</td><td>${k.pontosNivel} + ${k.pontosQuest} / ${k.pontosAscendencia}</td></tr>
-        <tr><td>Resistência de chefes (PoB2)</td><td>${k.resChefe}% · pinnacle ${k.resChefePinnacle}%</td></tr></table></div>
-      <div class="painel"><h3>Atualização a cada patch</h3><ol class="muted" style="padding-left:18px;margin:6px 0 0">
-        <li>Quando o PoB2 suportar o patch novo, o gerador <code>poe2-builds-src/gerar_kb.py</code> relê os dados.</li>
-        <li>Mecânicas (<code>kb/conceitos.js</code>) e meta (<code>kb/meta.js</code>) são revisados à mão.</li>
-        <li>Suas builds continuam salvas — o app reanalisa com as regras novas.</li></ol></div>`;
-  }
-  $("#vista").innerHTML = `<input id="libBusca" class="busca" type="search" placeholder="Buscar gema, suporte, único, mecânica…" value="${esc(BB.busca)}" autocomplete="off" />
-    <div class="chips rolar" style="margin-bottom:10px">${SEGS.map(([v, t]) => `<button class="chip p${BB.seg === v ? " on" : ""}" data-seg="${v}">${t}${cnt[v] !== undefined ? ` (${cnt[v]})` : ""}</button>`).join("")}</div>
-    ${corpo}`;
-}
-function onBibliotecaClick(e) {
-  const t = e.target.closest("[data-seg],[data-mais],[data-libskill],[data-libunico]"); if (!t) return false;
-  if (t.dataset.seg) { BB.seg = t.dataset.seg; BB.limite = 40; renderBiblioteca(); window.scrollTo(0, 0); }
-  else if (t.dataset.mais) { BB.limite += 60; renderBiblioteca(); }
-  else if (t.dataset.libskill) { CR = { modo: "skill", sel: t.dataset.libskill }; ir("#/criar"); }
-  else if (t.dataset.libunico) { CR = { modo: "unico", sel: t.dataset.libunico }; ir("#/criar"); }
-  return true;
+function vNovaAsc(v, skill) {
+  const s = M.SK.get(skill);
+  if (!s) return ir("#/nova/skill");
+  const rank = M.rankAscPorSkill(s);
+  const top = new Set(rank.slice(0, 3).map((x) => x.asc));
+  v.innerHTML = `
+    <div class="heroi">${imgGema(s.n, "g")}<div class="info"><div class="nome" style="color:var(--gema)">${esc(s.n)}</div><div class="det">${esc(resumoSkill(s))}</div></div></div>
+    <div class="passo-tit"><span class="num">2</span><h1>Escolha a ascendência</h1></div>
+    <p class="sub small">As com brilho combinam mais com ${esc(s.n)}.</p>
+    <div class="grade-asc">${rank.map((x) => `<button class="asc-op ${top.has(x.asc) ? "on" : ""}" data-criar="${esc(s.n)}" data-asc="${esc(x.asc)}">${imgAsc(x.asc, 92)}<span class="n">${esc(x.asc)}</span><span class="c">${esc(x.classe)}</span></button>`).join("")}</div>`;
 }
 
-/* ============================================================
-   CALCS
-   ============================================================ */
-const CALC_PADRAO = { inc: 150, more: "25, 20", critChance: 10, critBonus: 100, conv: 0, taken: 0, res: 30, vel: 1.5, armadura: 5000, evasao: 5000, nivelMonstro: 83, resEl: 75 };
-let CALC = (() => { try { return Object.assign({}, CALC_PADRAO, JSON.parse(localStorage.getItem(LS_CALC) || "{}"), { base: 100 }); } catch (e) { return Object.assign({ base: 100 }, CALC_PADRAO); } })();
-function renderCalcs() {
-  const inp = (k, rot, tipo) => `<div><label for="c-${k}">${rot}</label><input id="c-${k}" data-calc="${k}" type="${tipo || "number"}" inputmode="decimal" value="${esc(CALC[k])}" /></div>`;
-  const lista = listaBuilds();
-  $("#vista").innerHTML = `
-  <div class="painel"><h3>Onde investir o próximo ponto</h3>
-    <p class="hint">Modelo dos vetores: dano = base × conversão × increased × crítico × inimigo-toma × (1 − resistência) × more × velocidade. Valores relativos — o que importa é a comparação.</p>
-    ${lista.length ? `<select id="calcBuild" style="margin-bottom:10px"><option value="">Preencher com números de uma build…</option>${lista.map((b) => `<option value="${esc(b.id)}">${esc(b.nome)}</option>`).join("")}</select>` : ""}
-    <div class="calc">${inp("inc", "% increased (soma)")}${inp("more", "More (lista: 25, 20)", "text")}${inp("critChance", "Chance de crítico %")}${inp("critBonus", "Bônus de crítico %")}
-      ${inp("conv", "Gain as extra %")}${inp("taken", "Inimigo toma +%")}${inp("res", "Resistência do inimigo %")}${inp("vel", "Ações por segundo")}</div>
-    <div class="chips" style="margin-top:8px"><button class="chip p" data-res="0">Monstro comum 0%</button><button class="chip p" data-res="${J.consts.resChefe}">Chefe ${J.consts.resChefe}%</button><button class="chip p" data-res="${J.consts.resChefePinnacle}">Pinnacle ${J.consts.resChefePinnacle}%</button></div>
-    <div class="res" id="calcRes"></div></div>
-  <div class="painel"><h3>Defesa física e evasão</h3>
-    <div class="calc" style="margin-top:8px">${inp("armadura", "Armadura")}${inp("evasao", "Evasão")}${inp("nivelMonstro", "Nível do monstro")}${inp("resEl", "Sua resistência %")}</div>
-    <div class="res" id="defRes"></div></div>`;
-  atualizarCalc();
+/* ================= FOTO ================= */
+let fotoEstado = null;
+function vFoto(v, r) {
+  const alvo = r.a && ST.builds[r.a] ? ST.builds[r.a] : null;
+  v.innerHTML = `
+    <h1>${alvo ? "Atualizar pela foto" : "Ler a build da foto"}</h1>
+    <p class="sub">Mande prints do jogo e o app lê os nomes para você — sem digitar item por item.</p>
+    <ol class="foto-dica">
+      <li><span class="n">1</span><span>No PS5, aperte <b>Create</b> e tire print da tela de <b>Skills</b> (gemas). Se quiser, também do <b>Personagem</b> (nível e números) e do <b>Equipamento</b>.</span></li>
+      <li><span class="n">2</span><span>Abra no celular pelo app <b>PlayStation</b> (as capturas vão sozinhas) e salve na galeria. Foto da TV também serve — reta e sem reflexo.</span></li>
+      <li><span class="n">3</span><span>Escolha as imagens aqui. A leitura é feita no próprio celular.</span></li>
+    </ol>
+    <button class="btn grande" id="escolherFotos">${ic("foto")} Escolher prints / fotos</button>
+    <div id="fotoProg" class="cartao hidden"><div id="fotoMsg" class="small">Preparando…</div><div class="progresso"><i id="fotoBarra"></i></div><div id="fotoMini" class="miniaturas"></div></div>
+    <div id="fotoRes"></div>`;
+  $("#escolherFotos").addEventListener("click", () => { const inp = $("#arquivoFoto"); inp.value = ""; inp.dataset.alvo = alvo ? alvo.id : ""; inp.click(); });
+  if (fotoEstado && fotoEstado.alvo === (alvo ? alvo.id : "")) mostrarResultadoFoto(fotoEstado.res, alvo);
 }
-function atualizarCalc() {
-  const r = M.calcDano(CALC), inv = M.ondeInvestir(CALC), f = r.f;
-  const max = Math.max(...inv.map((x) => x.ganho), 1);
-  $("#calcRes").innerHTML = `<div class="muted">conv ×${fmt(f.conv)} · inc ×${fmt(f.inc)} · crit ×${fmt(f.crit)} · toma ×${fmt(f.taken)} · res ×${fmt(f.mitig)} · more ×${fmt(f.more)} · vel ×${fmt(f.vel)}</div>
-    <div class="grande">${M.fmtNum(Math.round(r.total))} <span class="muted" style="font-family:inherit">dano relativo/s</span></div>
-    <h3 style="margin-top:8px">Ganho de cada investimento</h3>
-    <div class="inv">${inv.map((x) => `<span>${esc(x.rot)}</span><b>+${fmt(x.ganho)}%</b><div class="trilho"><div class="ench" style="width:${Math.max(2, (x.ganho / max) * 100)}%"></div></div>`).join("")}</div>
-    <p class="hint" style="margin:6px 0 0">O primeiro da lista é onde seu próximo item/ponto rende mais.</p>`;
-  const d = M.calcDefesa(CALC);
-  const mult = (100 - (+CALC.resEl || 0)) / (100 - J.consts.resMax);
-  $("#defRes").innerHTML = `<table class="tab-mini">${d.golpes.map((g) => `<tr><td>Golpe físico de ${M.fmtNum(g.h)}</td><td>−${fmt(g.dr)}%</td></tr>`).join("")}
-    <tr><td>Chance de evitar ataques (precisão ${M.fmtNum(d.acc)})</td><td>${fmt(d.evade)}%</td></tr>
-    <tr><td>Dano elemental vs. quem está no cap (${J.consts.resMax}%)</td><td>×${fmt(mult)}</td></tr></table>
-    <p class="hint" style="margin:6px 0 0">Armadura: A ÷ (A + ${J.consts.armaduraRazao}×dano), máx. ${J.consts.drMaxFisico}%. Evasão: 1 − 0,95×Ev ÷ (Ev + 4×Precisão), máx. ${J.consts.evasaoCap}%.</p>`;
-  try { localStorage.setItem(LS_CALC, JSON.stringify(CALC)); } catch (e) {}
+async function lerFotos(files, alvoId) {
+  const alvo = alvoId ? ST.builds[alvoId] : null;
+  $("#fotoProg").classList.remove("hidden");
+  $("#fotoRes").innerHTML = "";
+  $("#fotoMini").innerHTML = files.map(() => "<img alt=\"\">").join("");
+  $$("#fotoMini img").forEach((im, i) => { im.src = URL.createObjectURL(files[i]); });
+  $("#escolherFotos").disabled = true;
+  try {
+    const res = await window.Foto.ler(files, (p, msg) => { $("#fotoBarra").style.width = Math.round(p * 100) + "%"; $("#fotoMsg").textContent = msg; });
+    fotoEstado = { alvo: alvoId || "", res };
+    mostrarResultadoFoto(res, alvo);
+  } catch (e) {
+    $("#fotoRes").innerHTML = `<div class="cartao"><b>Não consegui ler.</b><p class="small muted">${esc(e.message || e)}</p></div>`;
+  } finally {
+    $("#escolherFotos").disabled = false;
+  }
 }
-function preencherCalc(b) {
+function mostrarResultadoFoto(res, alvo) {
+  const el = $("#fotoRes"); if (!el) return;
+  const nada = !res.grupos.length && !res.asc && !res.unicos.length && !Object.keys(res.stats).length;
+  const P = res.grupos.find((g) => g.papel === "principal");
+  let ascSug = res.asc;
+  if (!ascSug && P) { const rk = M.rankAscPorSkill(M.SK.get(P.skill)).filter((x) => !res.classe || x.classe === res.classe); ascSug = rk.length ? rk[0].asc : ""; }
+  if (!ascSug && alvo) ascSug = alvo.asc;
+  const STAT_PT = { vida: "Vida", es: "Escudo de energia", mana: "Mana", espirito: "Espírito", armadura: "Armadura", evasao: "Evasão", resFogo: "Res. fogo", resFrio: "Res. gelo", resRaio: "Res. raio", resCaos: "Res. caos", bloqueio: "Bloqueio", deflexao: "Deflexão" };
+  el.innerHTML = nada ? `<div class="cartao"><b>Não reconheci nomes do jogo nessas imagens.</b>
+      <p class="small muted">Dica: use os prints do próprio PS5 (mais nítidos que foto da TV) da tela de Skills, com o jogo em inglês.</p>
+      <details><summary class="small">Ver o texto lido</summary><textarea readonly>${esc(res.linhas.join("\n"))}</textarea></details></div>` : `
+    <div class="secao">Encontrei</div>
+    <div class="cartao">
+      <div class="achou"><span class="info"><b>Ascendência</b><div class="t">${res.asc ? "lida na imagem" : "não apareceu — escolhi a que mais combina"}</div></span>
+        <select id="fAsc" class="campo" style="max-width:52%;min-height:42px;border-radius:9px;background:#0f0d0b;border:1px solid var(--borda2);padding:6px">${CLASSES.map((c) => `<optgroup label="${esc(c.n)}">${c.asc.map((a) => `<option ${a === ascSug ? "selected" : ""}>${esc(a)}</option>`).join("")}</optgroup>`).join("")}</select></div>
+      ${res.nivel ? `<label class="achou"><input type="checkbox" data-f="nivel" checked><span class="info"><b>Nível ${res.nivel}</b></span></label>` : ""}
+      ${res.grupos.map((g, i) => `<label class="achou"><input type="checkbox" data-f="g${i}" checked>${imgGema(g.skill, "p")}<span class="info"><b style="color:var(--gema)">${esc(g.skill)}</b>${g.papel === "principal" ? ` <span class="selo">principal</span>` : ""}
+        <div class="t">${g.sup.length ? esc(g.sup.join(" · ")) : "sem suportes lidos"}</div></span></label>`).join("")}
+      ${res.unicos.map((u, i) => `<label class="achou"><input type="checkbox" data-f="u${i}" checked><span class="info"><b style="color:var(--unico)">${esc(u)}</b><div class="t">único</div></span></label>`).join("")}
+      ${Object.entries(res.stats).map(([k, val]) => `<label class="achou"><input type="checkbox" data-f="s:${esc(k)}" checked><span class="info"><b>${esc(STAT_PT[k] || k)}: ${esc(val)}</b></span></label>`).join("")}
+    </div>
+    <button class="btn grande" id="fotoCriar">${ic("ok")} ${alvo ? "Atualizar " + esc(alvo.nome) : "Criar build"}</button>
+    <details style="margin-top:12px"><summary class="small muted">Ver o texto lido</summary><textarea readonly style="width:100%;min-height:140px;background:#0f0d0b;color:var(--txt2);border:1px solid var(--borda2);border-radius:10px">${esc(res.linhas.join("\n"))}</textarea></details>`;
+  const btn = $("#fotoCriar");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    const marc = (k) => { const c = el.querySelector(`[data-f="${k}"]`); return c && c.checked; };
+    const asc = $("#fAsc").value;
+    const grupos = res.grupos.filter((g, i) => marc("g" + i)).map((g) => ({ skill: g.skill, papel: g.papel, sup: g.sup.slice() }));
+    if (grupos.length && !grupos.some((g) => g.papel === "principal")) grupos[0].papel = "principal";
+    let b;
+    if (alvo) {
+      b = alvo;
+      if (grupos.length) b.grupos = grupos;
+    } else {
+      const P0 = grupos.find((g) => g.papel === "principal");
+      b = normalizar(P0 ? M.montar(P0.skill, asc, "foto") : M.novaBuild({ origem: "foto" }));
+      if (grupos.length) b.grupos = grupos;
+      b.nome = (P0 ? P0.skill : "Build") + " · " + asc;
+    }
+    b.asc = asc; b.classe = CLASSE_DE[asc] || b.classe;
+    const P1 = M.principal(b);
+    if (P1 && !M.armaAtende(P1.s.w, b.arma, b.offhand)) { b.arma = M.armaSugerida(P1.s.w) || b.arma; if (b.arma === "Bow") b.offhand = "Quiver"; }
+    if (res.nivel && marc("nivel")) b.nivel = res.nivel;
+    res.unicos.forEach((u, i) => { if (marc("u" + i) && !b.unicos.includes(u)) b.unicos.push(u); });
+    Object.entries(res.stats).forEach(([k, val]) => { if (marc("s:" + k)) b.stats[k] = val; });
+    calcularPlano(b);
+    salvar(b);
+    fotoEstado = null;
+    ir("#/b/" + b.id);
+    toast(alvo ? "Build atualizada" : "Build criada — veja o caminho na árvore");
+  });
+}
+
+/* ================= BUILD ================= */
+function vBuild(v, b, aba) {
+  const P = principal(b);
+  let an = null;
+  try { an = M.analisar(b); } catch (e) { an = null; }
+  v.innerHTML = `
+    <div class="heroi">
+      <div class="avatar">${imgAsc(b.asc || b.classe, 72)}${P ? imgGema(P.s.n) : ""}</div>
+      <div class="info">
+        <button class="nome" data-acao="renomear">${esc(b.nome || "Build")}</button>
+        <div class="det">${esc(b.asc || b.classe || "sem ascendência")}${P ? " · " + esc(P.s.n) : ""}</div>
+        <div class="nivel"><button data-nivel="-1" aria-label="Diminuir nível">${ic("menos")}</button><span data-acao="nivel">Nível ${esc(b.nivel)}</span><button data-nivel="1" aria-label="Aumentar nível">${ic("mais")}</button></div>
+      </div>
+      ${an ? `<div class="nota ${notaCls(an.geral)}" title="Nota geral">${esc(String(an.geral).replace(".", ","))}</div>` : ""}
+    </div>
+    <nav class="abas">
+      <button class="${aba === "arvore" ? "on" : ""}" data-ir="#/b/${esc(b.id)}/arvore">Árvore</button>
+      <button class="${aba === "gemas" ? "on" : ""}" data-ir="#/b/${esc(b.id)}/gemas">Gemas</button>
+      <button class="${aba === "analise" ? "on" : ""}" data-ir="#/b/${esc(b.id)}/analise">Análise</button>
+    </nav>
+    <div id="abaCorpo"></div>`;
+  const corpo = $("#abaCorpo");
+  if (aba === "gemas") return abaGemas(corpo, b);
+  if (aba === "analise") return abaAnalise(corpo, b, an);
+  return abaArvore(corpo, b);
+}
+
+/* ---------- aba ÁRVORE ---------- */
+let modoArv = "main";
+function abaArvore(el, b) {
+  const p = plano(b);
+  el.innerHTML = `
+    <div class="arv" id="arv">
+      <div class="arv-modo"><button data-modo="main" class="${modoArv === "main" ? "on" : ""}">Árvore</button><button data-modo="asc" class="${modoArv === "asc" ? "on" : ""}">Ascendência</button></div>
+      <div class="arv-ctl">
+        <button data-z="in" aria-label="Aproximar">${ic("mais")}</button>
+        <button data-z="out" aria-label="Afastar">${ic("menos")}</button>
+        <button data-z="foco" aria-label="Centralizar no caminho">${ic("alvo")}</button>
+        <button data-z="tudo" aria-label="Ver a árvore inteira">${ic("tudo")}</button>
+      </div>
+      <div class="arv-leg"><span><i style="background:#e8c15a"></i>até o seu nível</span><span><i style="background:rgba(232,193,90,.5)"></i>próximos pontos</span><span><i style="background:#5fd3e0"></i>você quer</span></div>
+    </div>
+    <div class="prio">
+      <div class="prio-l"><span>Mais <b>dano</b></span><span>Mais <b>defesa</b></span></div>
+      <input id="prio" type="range" min="0" max="1" step="0.1" value="${esc(b.prioridade)}" aria-label="Prioridade entre dano e defesa">
+    </div>
+    <div id="resumoPts" class="resumo-pts"></div>
+    <div class="secao" id="passosTit">Ordem para pegar</div>
+    <p class="small muted" style="margin:-4px 0 6px">Calculado pela matemática do app: cada nó ganha uma nota pelo que faz para a sua skill e defesa, e o caminho escolhe o que rende mais por ponto. Toque num nó para ver o porquê, fixar ou evitar.</p>
+    <ol class="passos" id="passos"></ol>`;
+  arvView = window.Arvore.criar($("#arv"), { onTap: (n) => { if (n) folhaNo(b, n); } });
+  atualizarArvore(b, true);
+  $$(".arv-modo button", el).forEach((bt) => bt.addEventListener("click", () => {
+    modoArv = bt.dataset.modo;
+    $$(".arv-modo button", el).forEach((x) => x.classList.toggle("on", x === bt));
+    arvView.modo(modoArv);
+    atualizarArvore(b, false);
+  }));
+  $$(".arv-ctl button", el).forEach((bt) => bt.addEventListener("click", () => {
+    const z = bt.dataset.z;
+    if (z === "in") arvView.zoom(1.5); else if (z === "out") arvView.zoom(1 / 1.5); else if (z === "tudo") arvView.tudo(); else arvView.focar();
+  }));
+  $("#prio").addEventListener("change", (e) => {
+    b.prioridade = +e.target.value;
+    toast("Recalculando o caminho…");
+    setTimeout(() => { calcularPlano(b); salvar(b); atualizarArvore(b, false); toast("Caminho recalculado"); }, 30);
+  });
+}
+function atualizarArvore(b, focar) {
+  const p = plano(b);
+  const agora = CAM.pontosNoNivel(b.nivel);
+  const numero = new Map();
+  const marco = (id) => { const n = CAM.NO.get(id); return n && (n.t === "n" || n.t === "k" || n.t === "j"); };
+  if (modoArv === "asc") p.asc.passos.forEach((ps, i) => numero.set(ps.a, i + 1));
+  else p.passos.forEach((ps, i) => { if (marco(ps.a)) numero.set(ps.a, i + 1); });
+  const A = CAM.ASC.get(b.asc);
+  arvView.definir({
+    classe: CAM.CLASSE.get(b.classe) || null, asc: A || null, ov: (A && A.ov) || {},
+    ordem: p.ordem, atuais: p.atuais || [], ate: agora, numero,
+    fixos: modoArv === "asc" ? b.ascFixos : b.planoFixos, evitar: modoArv === "asc" ? b.ascEvitar : b.planoEvitar,
+    ascOrdem: p.asc.ordem, ascAte: Math.min(8, ascPontosNoNivel(b.nivel))
+  });
+  if (focar) { if (modoArv === "asc") arvView.modo("asc"); else arvView.focar(); }
+  const usados = Math.min(p.pontos, agora);
+  $("#resumoPts").innerHTML = `<span class="chip ouro">Nível ${esc(b.nivel)}: <b>${usados}</b> pontos</span><span class="chip">Plano completo: <b>${p.pontos}</b> (nível 100)</span><span class="chip">Ascendência: <b>${Math.min(8, ascPontosNoNivel(b.nivel))}/8</b></span>`;
+  desenharPassos(b);
+}
+/* pontos de ascendência: 2 por provação (aprox. níveis 20, 40, 55, 70) */
+function ascPontosNoNivel(nv) { return nv >= 70 ? 8 : nv >= 55 ? 6 : nv >= 40 ? 4 : nv >= 20 ? 2 : 0; }
+function perfilAttr(b) { const P = principal(b); if (!P) return ""; const r = P.s.req; return ["Strength", "Dexterity", "Intelligence"][r.indexOf(Math.max(...r))]; }
+function nomeNo(n, ov) { const o = ov && ov[n.i]; return o ? o.n : n.n; }
+function statsNo(n, ov) { const o = ov && ov[n.i]; return (o ? o.s : n.s) || []; }
+function desenharPassos(b) {
+  const p = plano(b);
+  const ol = $("#passos"); if (!ol) return;
+  const asc = modoArv === "asc";
+  const A = CAM.ASC.get(b.asc), ov = (A && A.ov) || {};
+  const agora = asc ? ascPontosNoNivel(b.nivel) : CAM.pontosNoNivel(b.nivel);
+  const passos = asc ? p.asc.passos : p.passos;
+  $("#passosTit").textContent = asc ? "Ordem na ascendência" : "Ordem para pegar";
+  const atuaisN = asc ? 0 : (p.atuais || []).length;
+  let marcouAgora = false;
+  ol.innerHTML = passos.map((ps, i) => {
+    const n = CAM.NO.get(ps.a); if (!n) return "";
+    const feito = ps.ate <= agora;
+    let cls = feito ? "feito" : "";
+    if (!feito && !marcouAgora) { cls = "agora"; marcouAgora = true; }
+    const nos = asc ? p.asc.ordem.slice(ps.de - 1, ps.ate) : nosDoPasso(p, ps);
+    const via = {};
+    const attr = { Strength: "FOR", Dexterity: "DES", Intelligence: "INT" }[perfilAttr(b)] || "";
+    nos.filter((id) => id !== ps.a).forEach((id) => { const m = CAM.NO.get(id); if (m) { const nm = m.t === "at" ? `Atributo (escolha ${attr})` : nomeNo(m, ov); via[nm] = (via[nm] || 0) + 1; } });
+    const viaTxt = Object.entries(via).map(([k, q]) => q > 1 ? `${k} ×${q}` : k).join(" · ");
+    const st = statsNo(n, ov).slice(0, 2).map((x) => x.replace(/\n/g, " ")).join(" · ");
+    const nivelTxt = asc ? "" : ` · ~nível ${CAM.nivelDoPonto(ps.ate + atuaisN)}`;
+    return `<li class="passo ${cls}" data-no="${n.i}"><span class="n">${i + 1}</span><span class="info">
+      <span class="alvo">${esc(nomeNo(n, ov))}</span> <span class="pts">pontos ${ps.de}–${ps.ate}${nivelTxt}</span>
+      ${st ? `<div class="st">${esc(st)}</div>` : ""}${viaTxt ? `<div class="via">passa por: ${esc(viaTxt)}</div>` : ""}</span></li>`;
+  }).join("") || `<p class="vazio-txt">${asc ? "Escolha uma ascendência para ver o caminho dela." : "Escolha a skill principal para calcular o caminho."}</p>`;
+  $$(".passo", ol).forEach((li) => li.addEventListener("click", () => {
+    const id = +li.dataset.no;
+    if (arvView) { arvView.centrar(id); $("#arv").scrollIntoView({ behavior: "smooth", block: "center" }); }
+    const n = CAM.NO.get(id); if (n) folhaNo(b, ov[id] ? Object.assign({}, n, ov[id], { i: id }) : n);
+  }));
+}
+const TIPO_NO = { s: "Passiva pequena", at: "Atributo", n: "Notável", k: "Keystone", j: "Encaixe de joia", c: "Início da classe", as: "Início da ascendência" };
+function folhaNo(b, n) {
+  const asc = !!n.a;
+  const p = plano(b);
+  const perfil = CAM.perfil(b, b.prioridade);
+  const val = CAM.valorNo(Object.assign({}, n, { t: asc && n.t === "n" ? "n" : n.t }), perfil);
+  const ordem = asc ? p.asc.ordem : p.ordem;
+  const idx = ordem.indexOf(n.i);
+  const passos = asc ? p.asc.passos : p.passos;
+  const passo = passos.findIndex((ps) => (asc ? ps.de - 1 <= idx && idx <= ps.ate - 1 : nosDoPasso(p, ps).includes(n.i)));
+  const fixos = asc ? b.ascFixos : b.planoFixos, evitar = asc ? b.ascEvitar : b.planoEvitar;
+  const fixo = fixos.includes(n.i), evit = evitar.includes(n.i);
+  const atual = (p.atuais || []).includes(n.i);
+  const onde = atual ? "Você já tem (importado)" : idx >= 0 ? `No caminho — passo ${passo + 1}, ponto ${idx + 1 + (asc ? 0 : (p.atuais || []).length)}${asc ? "" : " (~nível " + CAM.nivelDoPonto(idx + 1 + (p.atuais || []).length) + ")"}` : "Fora do caminho sugerido";
+  const st = (n.s || []).flatMap((x) => x.split("\n"));
+  const tipo = asc ? (n.t === "n" ? "Notável de ascendência" : n.t === "as" ? "Início" : "Passiva de ascendência") : TIPO_NO[n.t] || "";
+  abrirFolha(`
+    <div class="tt"><div class="tt-h"><div class="tt-n">${esc(n.n)}</div><div class="tt-b">${esc(tipo)}</div></div>
+      <div class="tt-c">${st.map((x) => `<div class="mod">${esc(x)}</div>`).join("") || `<div class="muted small" style="text-align:center">Sem efeito próprio (passagem).</div>`}</div></div>
+    <p class="small" style="margin:10px 0 4px;color:var(--ouro2)">${esc(onde)}</p>
+    ${val.por.length ? `<div class="small muted">Por que vale (para esta build):</div><ul class="pq-lista">${val.por.slice(0, 5).map((x) => `<li><span>${esc(x.l)}</span><b class="${x.v < 0 ? "neg" : ""}">${x.v > 0 ? "+" : ""}${esc(x.v.toFixed(1))}</b></li>`).join("")}</ul>` : n.t !== "c" && n.t !== "as" ? `<p class="small muted">Para esta build esse nó vale pouco (nota ≈ 0).</p>` : ""}
+    ${n.t === "c" || n.t === "as" ? "" : `<div class="linha-btns" style="margin-top:14px">
+      <button class="btn ${fixo ? "" : "fant"}" data-q="fixo">${fixo ? ic("ok") + " Quero (fixado)" : "Quero este"}</button>
+      <button class="btn ${evit ? "perigo" : "fant"}" data-q="evitar">${evit ? ic("x") + " Evitando" : "Evitar"}</button></div>`}
+    <div class="linha-btns" style="margin-top:10px"><a class="btn fant mini" href="${esc(M.wikiUrl(n.n))}" target="_blank" rel="noopener">Ver na wiki</a></div>`, (c) => {
+    $$("[data-q]", c).forEach((bt) => bt.addEventListener("click", () => {
+      const k = bt.dataset.q;
+      const lf = asc ? "ascFixos" : "planoFixos", le = asc ? "ascEvitar" : "planoEvitar";
+      const tira = (arr) => arr.filter((x) => x !== n.i);
+      if (k === "fixo") { b[lf] = fixo ? tira(b[lf]) : [...tira(b[lf]), n.i]; b[le] = tira(b[le]); }
+      else { b[le] = evit ? tira(b[le]) : [...tira(b[le]), n.i]; b[lf] = tira(b[lf]); }
+      fecharFolha();
+      toast("Recalculando o caminho…");
+      setTimeout(() => { calcularPlano(b); salvar(b); if (arvView) atualizarArvore(b, false); toast(k === "fixo" ? (fixo ? "Tirado dos fixos" : "Fixado: o caminho passa por ele") : (evit ? "Liberado" : "O caminho vai desviar dele")); }, 30);
+    }));
+  });
+}
+
+/* ---------- aba GEMAS ---------- */
+function abaGemas(el, b) {
+  const P = principal(b);
+  const s = P && P.s;
+  const sugest = s ? M.recomendarSuportes(s, b, 5) : [];
+  const recJogo = new Set(s && GEM[s.n] && GEM[s.n][1] ? GEM[s.n][1] : []);
+  const atuais = P ? P.g.sup : [];
+  const mesmo = sugest.length && sugest.every((x) => atuais.includes(x)) && atuais.length >= sugest.length;
+  const outros = (b.grupos || []).filter((g) => !P || g !== P.g);
+  el.innerHTML = `
+    <div class="cartao ouro">
+      ${s ? `<div class="skill-top">${imgGema(s.n, "g")}<div><div class="n">${esc(s.n)}</div><div class="small muted">${esc(resumoSkill(s))}</div></div></div>
+        <p class="small" style="color:var(--txt2)">${esc(s.d || "")}</p>` : `<p>Sem skill principal.</p>`}
+      <div class="linha-btns"><button class="btn fant mini" data-acao="trocarSkill">Trocar skill principal</button></div>
+    </div>
+    <div class="secao">Suportes da skill principal (${atuais.length}/5)</div>
+    <div class="cartao">
+      ${atuais.map((n) => linhaSup(n, s, recJogo)).join("") || `<p class="small muted">Nenhum suporte ainda.</p>`}
+      ${atuais.length < 5 && s ? `<div class="linha-btns" style="margin-top:8px"><button class="btn fant mini" data-acao="addSup">${ic("mais")} Adicionar suporte</button></div>` : ""}
+    </div>
+    ${s && !mesmo ? `<div class="cartao ouro"><div class="secao" style="margin-top:0">Sugestão do app</div>
+      <div class="chips" style="margin-bottom:10px">${sugest.map((n) => `<span class="chip">${imgGema(n, "p")} ${esc(n)}${recJogo.has(n) ? ` <span class="selo verde">jogo</span>` : ""}</span>`).join("")}</div>
+      <p class="small muted">Escolhidos pelos vetores de dano (more, conversão, penetração, velocidade…) e pela compatibilidade com ${esc(s.n)}. "jogo" = também recomendado pelo próprio PoE2.</p>
+      <button class="btn mini" data-acao="usarSug">Usar estes suportes</button></div>` : ""}
+    <div class="secao">Outras skills</div>
+    <div class="cartao">
+      ${outros.map((g) => { const x = M.SK.get(g.skill); return `<div class="gema-linha" data-grupo="${esc(g.skill)}">${imgGema(g.skill)}<span class="info"><span class="n">${esc(g.skill)}</span><div class="t">${esc(x ? resumoSkill(x) : "")}${x && x.sp ? " · reserva " + x.sp + " de espírito" : ""}</div></span></div>`; }).join("") || `<p class="small muted">Nenhuma — buffs (auras, heralds) e skills de movimento entram aqui.</p>`}
+      <div class="linha-btns" style="margin-top:8px"><button class="btn fant mini" data-acao="addSkill">${ic("mais")} Adicionar skill</button></div>
+    </div>
+    <div class="secao">Arma</div>
+    <div class="cartao"><div class="campos">
+      <div class="campo"><label for="arma">Arma</label><select id="arma">${M.ARMAS.map((a) => `<option value="${esc(a.id)}" ${a.id === b.arma ? "selected" : ""}>${esc(a.pt)}</option>`).join("")}</select></div>
+      <div class="campo"><label for="off">Mão secundária</label><select id="off">${M.OFFHANDS.map((a) => `<option value="${esc(a.id)}" ${a.id === b.offhand ? "selected" : ""}>${esc(a.pt)}</option>`).join("")}</select></div>
+    </div>${s && !M.armaAtende(s.w, b.arma, b.offhand) ? `<p class="small" style="color:var(--erro)">${esc(s.n)} pede: ${esc(s.w)}.</p>` : ""}</div>`;
+  $$("[data-sup]", el).forEach((d) => d.addEventListener("click", () => folhaSup(b, d.dataset.sup)));
+  $$("[data-grupo]", el).forEach((d) => d.addEventListener("click", () => folhaSkill(b, d.dataset.grupo)));
+  $("#arma").addEventListener("change", (e) => { b.arma = e.target.value; salvar(b); render(); });
+  $("#off").addEventListener("change", (e) => { b.offhand = e.target.value; salvar(b); render(); });
+}
+function linhaSup(n, s, recJogo) {
+  const su = M.SU.get(n);
+  const ok = su && s ? M.compativel(su, s) : true;
+  const fx = su && su.fx && su.fx[0] ? su.fx[0].replace(/\n/g, " ") : "";
+  return `<div class="gema-linha" data-sup="${esc(n)}">${imgGema(n)}<span class="info"><span class="n sup">${esc(n)}</span>${recJogo.has(n) ? ` <span class="selo verde">jogo</span>` : ""}
+    <div class="t ${ok ? "" : "ruim"}">${ok ? esc(fx) : "Não funciona nesta skill"}</div></span></div>`;
+}
+function folhaSup(b, n) {
+  const su = M.SU.get(n);
+  const P = principal(b);
+  abrirFolha(`<div class="tt gema"><div class="tt-h"><div class="tt-n">${esc(n)}</div><div class="tt-b">Gema de suporte${su && su.lin ? " · linhagem" : ""}</div></div>
+    <div class="tt-c">${su ? (su.fx || []).map((f) => `<div class="mod">${esc(f.replace(/\n/g, " "))}</div>`).join("") : ""}${su && su.d ? `<p class="small muted" style="text-align:center">${esc(su.d)}</p>` : ""}</div></div>
+    <div class="linha-btns" style="margin-top:14px"><button class="btn perigo" data-x="tirar">Remover</button><a class="btn fant" href="${esc(M.wikiUrl(n))}" target="_blank" rel="noopener">Wiki</a></div>`, (c) => {
+    $("[data-x=tirar]", c).addEventListener("click", () => { if (P) P.g.sup = P.g.sup.filter((x) => x !== n); salvar(b); fecharFolha(); render(); });
+  });
+}
+function folhaSkill(b, nome) {
+  const s = M.SK.get(nome);
+  const g = b.grupos.find((x) => x.skill === nome);
+  abrirFolha(`<div class="tt gema"><div class="tt-h"><div class="tt-n">${esc(nome)}</div><div class="tt-b">${esc(s ? resumoSkill(s) : "")}</div></div>
+    <div class="tt-c"><p class="small" style="color:var(--txt2)">${esc(s ? s.d : "")}</p></div></div>
+    <div class="linha-btns" style="margin-top:14px"><button class="btn" data-x="principal">Tornar principal</button><button class="btn perigo" data-x="tirar">Remover</button></div>`, (c) => {
+    $("[data-x=tirar]", c).addEventListener("click", () => { b.grupos = b.grupos.filter((x) => x !== g); salvar(b); fecharFolha(); render(); });
+    $("[data-x=principal]", c).addEventListener("click", () => {
+      b.grupos.forEach((x) => { if (x.papel === "principal") x.papel = "secundaria"; });
+      g.papel = "principal";
+      if (!g.sup.length) g.sup = M.recomendarSuportes(s, b, 5);
+      if (s && !M.armaAtende(s.w, b.arma, b.offhand)) { b.arma = M.armaSugerida(s.w) || b.arma; }
+      salvar(b); fecharFolha(); render(); toast("Skill principal trocada — caminho recalculado");
+    });
+  });
+}
+function seletor(titulo, itens, aoEscolher) {
+  abrirFolha(`<h2>${esc(titulo)}</h2><div class="busca-box">${ic("busca")}<input id="selBusca" type="search" placeholder="Buscar…" autocomplete="off"></div><div id="selLista"></div>`, (c) => {
+    const desenhar = () => {
+      const q = M.norm($("#selBusca", c).value);
+      const lst = itens.filter((x) => !q || q.split(" ").every((p) => M.norm(x.n + " " + (x.t || "")).includes(p))).slice(0, 50);
+      $("#selLista", c).innerHTML = lst.map((x) => `<button class="skill-op" data-n="${esc(x.n)}">${imgGema(x.n)}<span class="info"><span class="n">${esc(x.n)}</span><br><span class="t">${esc(x.t || "")}</span></span>${x.selo || ""}</button>`).join("") || `<p class="vazio-txt">Nada encontrado.</p>`;
+      $$("[data-n]", c).forEach((bt) => bt.addEventListener("click", () => { fecharFolha(); aoEscolher(bt.dataset.n); }));
+    };
+    $("#selBusca", c).addEventListener("input", debounce(desenhar, 100));
+    desenhar();
+  });
+}
+
+/* ---------- aba ANÁLISE ---------- */
+function abaAnalise(el, b, an) {
+  if (!an) { el.innerHTML = `<p class="vazio-txt">Sem análise.</p>`; return; }
+  const prox = an.achados.find((a) => a.sev === "erro") || an.achados.find((a) => a.sev === "alerta") || an.achados.find((a) => a.sev === "dica");
+  const resto = an.achados.filter((a) => a !== prox && a.sev !== "info");
+  const N = an.notas;
+  const barra = (rot, v, extra) => `<div class="barra-nota"><span>${esc(rot)}${extra || ""}</span><span class="tr"><i style="width:${Math.max(0, Math.min(100, v * 10))}%"></i></span><b>${esc(String(v).replace(".", ","))}</b></div>`;
   const st = b.stats || {};
-  if (st.crit) CALC.critChance = st.crit;
-  if (st.armadura) CALC.armadura = st.armadura;
-  if (st.evasao) CALC.evasao = st.evasao;
-  const res = ["resFogo", "resFrio", "resRaio"].map((k) => st[k]).filter((x) => x !== undefined);
-  if (res.length) CALC.resEl = Math.min(...res);
-  const P0 = M.principal(b);
-  if (P0) CALC.more = P0.g.sup.map((n) => M.SU.get(n)).filter((s) => s && s.v.includes("more")).map((s) => +((s.fx.join(" ").match(/(\d+)% more/) || [])[1] || 0)).filter(Boolean).join(", ");
-  renderCalcs(); toast("Preenchido com " + b.nome);
+  const CAMPOS = [["vida", "Vida"], ["es", "Escudo de energia"], ["resFogo", "Res. fogo %"], ["resFrio", "Res. gelo %"], ["resRaio", "Res. raio %"], ["resCaos", "Res. caos %"], ["armadura", "Armadura"], ["evasao", "Evasão"]];
+  el.innerHTML = `
+    <div class="cartao ouro" style="display:flex;gap:14px;align-items:center">
+      <div class="nota ${notaCls(an.geral)}" style="width:64px;height:64px;font-size:22px">${esc(String(an.geral).replace(".", ","))}</div>
+      <div><div style="font-weight:700">${esc(an.arquetipo)}</div><div class="chips" style="margin-top:6px">${(an.rotulos || []).slice(0, 5).map((r) => `<span class="chip">${esc(semEmoji(r.t))}</span>`).join("")}</div></div>
+    </div>
+    ${prox ? `<div class="cartao proximo"><div class="tag">Próximo passo</div><div class="tit">${esc(M.preencher(prox.titulo))}</div><div class="small" style="color:var(--txt2)">${esc(M.preencher(prox.porque || ""))}</div>${prox.acao ? `<div class="small" style="color:var(--ouro2);margin-top:6px">${esc(M.preencher(prox.acao))}</div>` : ""}</div>` : `<div class="cartao"><b>Nada urgente para corrigir.</b></div>`}
+    <div class="cartao"><div class="barras">
+      ${barra("Dano", N.dano)}${barra("Defesa", N.defesa, N.defesaEstimada ? " *" : "")}${barra("Recuperação", N.recuperacao)}${barra("Coerência", N.coerencia)}${barra("Controle PS5", N.controle)}${barra("Acessível", N.acesso)}
+    </div>${N.defesaEstimada ? `<p class="small muted" style="margin:8px 0 0">* defesa estimada — preencha seus números abaixo (ou leia da foto do personagem).</p>` : ""}</div>
+    ${resto.length ? `<div class="secao">Outros pontos (${resto.length})</div><div class="cartao">${resto.slice(0, 4).map(achadoHtml).join("")}
+      ${resto.length > 4 ? `<details><summary class="small" style="color:var(--ouro2);padding:6px 0">Ver mais ${resto.length - 4}</summary>${resto.slice(4).map(achadoHtml).join("")}</details>` : ""}</div>` : ""}
+    <div class="secao">Seus números (opcional)</div>
+    <div class="cartao">
+      <div class="campos">${CAMPOS.map(([k, rot]) => `<div class="campo"><label for="st-${k}">${esc(rot)}</label><input id="st-${k}" data-st="${k}" type="number" inputmode="numeric" value="${esc(st[k] == null ? "" : st[k])}"></div>`).join("")}</div>
+      <div class="linha-btns" style="margin-top:12px"><button class="btn fant" data-ir="#/foto/${esc(b.id)}">${ic("foto")} Ler da foto do personagem</button></div>
+    </div>
+    <div class="secao">Aprender mais</div>
+    <div class="cartao">${M.pesquisa(b).map((x) => `<div style="margin:6px 0"><div class="small">${esc(x.titulo)}</div><div class="chips" style="margin-top:4px">${x.links.map(([t, u]) => `<a class="btn fant mini" href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join("")}</div></div>`).join("")}</div>`;
+  $$("[data-st]", el).forEach((inp) => inp.addEventListener("change", () => {
+    const k = inp.dataset.st, v = inp.value.trim();
+    if (v === "") delete b.stats[k]; else b.stats[k] = +v;
+    salvar(b); render();
+  }));
+}
+function achadoHtml(a) {
+  return `<div class="achado ${esc(a.sev)}"><div class="tit">${esc(M.preencher(a.titulo))}</div>${a.porque ? `<div class="pq">${esc(M.preencher(a.porque))}</div>` : ""}${a.acao ? `<div class="ac">${esc(M.preencher(a.acao))}</div>` : ""}</div>`;
 }
 
-/* ============================================================
-   BUILD PLANNER (levar a build para dentro do PoE2)
-   ============================================================ */
-let BP = null;
-async function abrirBuildPlanner(b) {
-  abrir("#bpModal");
-  $("#bpCorpo").innerHTML = '<p class="muted">Montando o arquivo…</p>';
-  try {
-    const r = await window.BuildPlanner.texto(b);
-    BP = { nome: window.BuildPlanner.nomeArquivo(b), json: r.json };
-    const o = r.obj;
-    $("#bpCorpo").innerHTML = `
-      <div class="tt no"><div class="tt-h"><div class="tt-n">${esc(o.name)}</div><div class="tt-b">${esc(o.ascendancy || "sem ascendência")} · ${esc(BP.nome)}</div></div><div class="tt-c">
-        <div class="mod">${o.passives.length} passivas · ${o.skills.length} gemas · ${o.skills.reduce((a, s) => a + (s.support_skills || []).length, 0)} suportes · ${o.inventory_slots.length} slots de item</div></div></div>
-      ${r.avisos.length ? `<div class="ach alerta" style="margin-top:10px"><div class="sev">Atenção</div>${r.avisos.map((x) => `<div class="ap">${esc(x)}</div>`).join("")}</div>` : ""}
-      <h3 style="margin-top:14px">Como levar para o jogo</h3>
-      <ol class="muted" style="padding-left:18px;margin:6px 0 0">
-        <li>Toque em <b>Baixar .build</b> — o arquivo fica nos downloads do celular.</li>
-        <li>Abra <a href="https://pathofexile2.com/" target="_blank" rel="noopener">pathofexile2.com</a>, entre na sua conta e procure o <b>Build Planner</b>. Envie o arquivo e <b>assine</b> a build.</li>
-        <li>No jogo, a build assinada aparece no Build Planner: passivas destacadas na árvore, gemas indicadas no corte de gemas e dicas nos slots de item.</li>
-        <li>No PC também dá para colocar o arquivo direto na pasta <code>Documents/My Games/Path of Exile 2/BuildPlanner</code>.</li>
-      </ol>
-      <p class="hint" style="margin-top:8px">Formato oficial da GGG (Build Planner v1, experimental). Pela documentação, as builds assinadas no site são carregadas pelo jogo — confirme no PS5 na primeira vez.</p>`;
-  } catch (e) { $("#bpCorpo").innerHTML = `<p class="err">${esc(e.message || e)}</p>`; BP = null; }
+/* ================= MENU / AÇÕES ================= */
+function menu() {
+  const r = rota();
+  const b = r.v === "b" ? ST.builds[r.a] : null;
+  const itens = b ? [
+    ["jogo", "bussola", "Levar para o jogo (Build Planner)"],
+    ["fotoAtualizar", "foto", "Atualizar pela foto"],
+    ["renomear", "codigo", "Renomear"],
+    ["duplicar", "mais", "Duplicar"],
+    ["apagar", "x", "Apagar build", "perigo"]
+  ] : [
+    ["pob", "codigo", "Importar código do Path of Building"],
+    ["backupSai", "ok", "Exportar backup (.json)"],
+    ["backupEntra", "mais", "Importar backup"],
+    ["sobre", "bussola", "Sobre o Exile Compass"]
+  ];
+  abrirFolha(`<div class="menu-lista">${itens.map(([a, i, t, c]) => `<button data-acao="${a}" class="${c || ""}">${ic(i)} ${esc(t)}</button>`).join("")}</div>`);
 }
-
-/* ============================================================
-   BACKUP / PoB
-   ============================================================ */
-function exportar() {
-  const blob = new Blob([JSON.stringify({ app: "exile-forge", versao: 1, exportado: new Date().toISOString(), builds: listaBuilds() }, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob); a.download = "exile-forge-builds-" + new Date().toISOString().slice(0, 10) + ".json";
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+function acao(nome, el) {
+  const r = rota();
+  const b = r.v === "b" ? ST.builds[r.a] : null;
+  if (nome !== "pob" && nome !== "sortear") fecharFolhaSeMenu();
+  switch (nome) {
+    case "sortear": { const x = normalizar(M.aleatoria()); x.nome = semEmoji(x.nome); x.nivel = 1; calcularPlano(x); salvar(x); ir("#/b/" + x.id); toast("Build sorteada: " + x.nome); break; }
+    case "pob": return folhaPob();
+    case "renomear": if (b) folhaTexto("Nome da build", b.nome, (t) => { b.nome = t.trim() || b.nome; salvar(b); render(); }); break;
+    case "nivel": if (b) folhaNivel(b); break;
+    case "duplicar": if (b) { const x = normalizar(JSON.parse(JSON.stringify(b))); x.id = M.novaBuild().id; x.nome = b.nome + " (cópia)"; x.criado = Date.now(); salvar(x); ir("#/b/" + x.id); } break;
+    case "apagar": if (b) apagarBuild(b.id); break;
+    case "fotoAtualizar": if (b) ir("#/foto/" + b.id); break;
+    case "jogo": if (b) folhaBuildPlanner(b); break;
+    case "trocarSkill": if (b) {
+      const rk = b.asc ? M.rankSkillsPorAsc(b.asc).map((x) => x.s) : J.skills;
+      seletor("Skill principal", rk.filter((s) => s.gid && ["Attack", "Spell", "Minion"].includes(s.t) && !M.ehPersistente(s)).map((s) => ({ n: s.n, t: resumoSkill(s), selo: metaSelo(s.n, b.asc) })), (n) => {
+        const s = M.SK.get(n);
+        b.grupos.forEach((g) => { if (g.papel === "principal") g.papel = "secundaria"; });
+        b.grupos = b.grupos.filter((g) => g.skill !== n);
+        b.grupos.unshift({ skill: n, papel: "principal", sup: M.recomendarSuportes(s, b, 5) });
+        if (!M.armaAtende(s.w, b.arma, b.offhand)) { b.arma = M.armaSugerida(s.w) || b.arma; if (b.arma === "Bow") b.offhand = "Quiver"; }
+        salvar(b); render(); toast("Skill trocada — caminho recalculado");
+      });
+    } break;
+    case "addSup": if (b) {
+      const P = principal(b); if (!P) break;
+      const lst = M.suportesCompativeis(P.s).filter((x) => !P.g.sup.includes(x.n)).map((x) => ({ x, r: M.rankSup(x, P.s, b) })).sort((a, z) => z.r - a.r);
+      seletor("Adicionar suporte", lst.map(({ x }) => ({ n: x.n, t: (x.fx && x.fx[0] || "").replace(/\n/g, " ") })), (n) => { P.g.sup.push(n); salvar(b); render(); });
+    } break;
+    case "usarSug": if (b) { const P = principal(b); if (P) { P.g.sup = M.recomendarSuportes(P.s, b, 5); salvar(b); render(); toast("Suportes atualizados"); } } break;
+    case "addSkill": if (b) {
+      seletor("Adicionar skill", J.skills.filter((s) => s.gid && !b.grupos.some((g) => g.skill === s.n)).map((s) => ({ n: s.n, t: resumoSkill(s) + (s.sp ? " · espírito " + s.sp : "") })), (n) => {
+        const s = M.SK.get(n);
+        b.grupos.push({ skill: n, papel: M.ehPersistente(s) ? "buff" : "secundaria", sup: [] });
+        salvar(b); render();
+      });
+    } break;
+    case "backupSai": {
+      const blob = new Blob([JSON.stringify({ app: "exile-compass", versao: 1, builds: listaBuilds() }, null, 2)], { type: "application/json" });
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "exile-compass-backup.json"; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+      break;
+    }
+    case "backupEntra": $("#arquivoBackup").value = ""; $("#arquivoBackup").click(); break;
+    case "sobre":
+      abrirFolha(`<h2>Exile Compass</h2><p class="small">Ferramenta de fã para montar builds de Path of Exile 2 no celular (feita para quem joga no PS5).</p>
+        <p class="small muted">Árvore passiva, ícones e artes: exportação oficial da GGG (poe2-skilltree-export, patch ${esc(window.KB_TREE.versao.patch)}). Gemas, regras e números: Path of Building 2 (${esc(J.meta.fonte)}). Ícones das gemas e suportes recomendados: RePoE. Meta: ${esc(META.liga)}.</p>
+        <p class="small muted">Sem relação com a Grinding Gear Games.</p>`);
+      break;
+    default: break;
+  }
 }
-function importarArquivo(file) {
-  const fr = new FileReader();
-  fr.onload = () => {
+function fecharFolhaSeMenu() { if ($("#folhaCorpo .menu-lista")) fecharFolha(); }
+function folhaTexto(titulo, valor, ok) {
+  abrirFolha(`<h2>${esc(titulo)}</h2><input id="txtIn" class="campo" style="width:100%;min-height:46px;border-radius:10px;border:1px solid var(--borda2);background:#0f0d0b;padding:10px" value="${esc(valor)}"><div class="linha-btns" style="margin-top:12px"><button class="btn" id="txtOk">Salvar</button></div>`, (c) => {
+    const inp = $("#txtIn", c); inp.focus(); inp.select();
+    const fim = () => { ok(inp.value); fecharFolha(); };
+    $("#txtOk", c).addEventListener("click", fim);
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") fim(); });
+  });
+}
+function folhaNivel(b) {
+  abrirFolha(`<h2>Nível do personagem</h2><div style="text-align:center;font-size:34px;font-weight:800;color:var(--ouro2)" id="nvTxt">${esc(b.nivel)}</div>
+    <input id="nvIn" type="range" min="1" max="100" value="${esc(b.nivel)}"><p class="small muted">O caminho mostra em dourado cheio o que você já deveria ter neste nível.</p>
+    <div class="linha-btns"><button class="btn" id="nvOk">Pronto</button></div>`, (c) => {
+    $("#nvIn", c).addEventListener("input", (e) => { $("#nvTxt", c).textContent = e.target.value; });
+    $("#nvOk", c).addEventListener("click", () => { b.nivel = +$("#nvIn", c).value; salvar(b); fecharFolha(); render(); });
+  });
+}
+function folhaPob() {
+  abrirFolha(`<h2>Código do Path of Building 2</h2><p class="small muted">Cole o código (ou link do pobb.in) de uma build do PoB2. A árvore que já está nele vira o ponto de partida do caminho.</p>
+    <textarea id="pobTxt" placeholder="eNrt…"></textarea><div id="pobErro" class="small" style="color:var(--erro)"></div>
+    <div class="linha-btns" style="margin-top:10px"><button class="btn" id="pobOk">Importar</button></div>`, (c) => {
+    $("#pobOk", c).addEventListener("click", async () => {
+      try {
+        const r = await window.Pob.importar($("#pobTxt", c).value);
+        const b = normalizar(r.build);
+        const A = CAM.ASC.get(b.asc);
+        const base = A ? (A.base || A.id) : "";
+        b.nosAtuais = (b.nosIds || []).filter((id) => { const n = CAM.NO.get(id); return n && !n.a; });
+        b.ascFixos = (b.nosIds || []).filter((id) => { const n = CAM.NO.get(id); return n && n.a === base && n.t !== "as"; });
+        calcularPlano(b); salvar(b); fecharFolha(); ir("#/b/" + b.id);
+        toast(r.desconhecidos.length ? "Importada — ignorei: " + r.desconhecidos.slice(0, 3).join(", ") : "Build importada do PoB");
+      } catch (e) { $("#pobErro", c).textContent = e.message || String(e); }
+    });
+  });
+}
+async function folhaBuildPlanner(b) {
+  plano(b);
+  abrirFolha(`<h2>Levar para o jogo</h2><p class="small muted">Gera o arquivo <b>.build</b> do Build Planner oficial do PoE2 (árvore do caminho, gemas e únicos). Envie em <b>pathofexile2.com</b> (Build Planner) para usar no jogo.</p><div id="bpAvisos" class="small muted">Gerando…</div><div class="linha-btns" style="margin-top:12px"><button class="btn" id="bpBaixar" disabled>Baixar ${esc(window.BuildPlanner.nomeArquivo(b))}</button></div>`, async (c) => {
     try {
-      const d = JSON.parse(fr.result); const l = Array.isArray(d) ? d : d.builds;
-      if (!Array.isArray(l)) throw new Error("formato");
-      let n = 0; l.forEach((b) => { if (b && b.id) { salvar(normalizar(b)); n++; } });
-      render(); toast(n + " build(s) importada(s)");
-    } catch (e) { toast("Arquivo inválido"); }
-  };
-  fr.readAsText(file);
+      const r = await window.BuildPlanner.texto(b);
+      $("#bpAvisos", c).innerHTML = r.avisos.length ? `<ul>${r.avisos.slice(0, 6).map((a) => `<li>${esc(a)}</li>`).join("")}</ul>` : "Tudo certo.";
+      const bt = $("#bpBaixar", c); bt.disabled = false;
+      bt.addEventListener("click", () => window.BuildPlanner.baixar(window.BuildPlanner.nomeArquivo(b), r.json));
+    } catch (e) { $("#bpAvisos", c).textContent = "Erro: " + (e.message || e); }
+  });
 }
-async function importarPob() {
-  $("#pobErro").textContent = ""; $("#pobOk").disabled = true; $("#pobOk").textContent = "Lendo…";
+
+/* ================= eventos globais ================= */
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-ir],[data-acao],[data-criar],[data-nivel],[data-fechar]");
+  if (!t) return;
+  if (t.hasAttribute("data-fechar")) { fecharFolha(); return; }
+  if (t.dataset.ir) { e.preventDefault(); fecharFolhaSeMenu(); ir(t.dataset.ir); return; }
+  if (t.dataset.criar) { const b = novaDe(t.dataset.criar, t.dataset.asc); modoArv = "main"; ir("#/b/" + b.id); toast("Caminho calculado para " + b.nome); return; }
+  if (t.dataset.nivel) {
+    const r = rota(); const b = ST.builds[r.a]; if (!b) return;
+    b.nivel = Math.max(1, Math.min(100, (b.nivel || 1) + +t.dataset.nivel));
+    salvarDepois(b);
+    const sp = $("[data-acao=nivel]"); if (sp) sp.textContent = "Nível " + b.nivel;
+    if (arvView) atualizarArvore(b, false);
+    return;
+  }
+  if (t.dataset.acao) acao(t.dataset.acao, t);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") fecharFolha();
+  if (e.key === "Enter" && e.target.classList && e.target.classList.contains("build-card")) e.target.click();
+});
+$("#menuBtn").addEventListener("click", menu);
+$("#voltarBtn").addEventListener("click", () => { if (history.length > 1) history.back(); else ir("#/"); });
+$("#desfazerBtn").addEventListener("click", () => { const f = undoFn; fecharDesfazer(); if (f) f(); });
+$("#arquivoFoto").addEventListener("change", (e) => {
+  const fs = Array.from(e.target.files || []).slice(0, 6);
+  if (fs.length) lerFotos(fs, e.target.dataset.alvo || "");
+});
+$("#arquivoBackup").addEventListener("change", async (e) => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
   try {
-    const r = await window.Pob.importar($("#pobTexto").value);
-    fechar("#pobModal"); $("#pobTexto").value = "";
-    usarBuild(r.build, "calcs");
-    toast("Importado do PoB" + (r.desconhecidos.length ? ` (${r.desconhecidos.length} gema(s) não reconhecida(s))` : ""));
-  } catch (e) { $("#pobErro").textContent = e.message || String(e); }
-  finally { $("#pobOk").disabled = false; $("#pobOk").textContent = "Importar"; }
-}
+    const d = JSON.parse(await f.text());
+    const lst = Array.isArray(d.builds) ? d.builds : Object.values(d.builds || {});
+    let n = 0;
+    lst.forEach((x) => { if (x && x.id) { salvar(normalizar(x)); n++; } });
+    toast(n + " builds importadas"); render();
+  } catch (err) { toast("Arquivo de backup inválido"); }
+});
+window.addEventListener("hashchange", () => { fecharFolha(); render(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { flush(); syncCheck(); } });
+window.addEventListener("online", () => { flush(); syncCheck(); });
 
-/* ============================================================
-   EVENTOS + BOOT
-   ============================================================ */
-function wire() {
-  $$(".aba").forEach((b) => b.addEventListener("click", () => { if (b.dataset.rota === "#/criar" && rota().v === "criar") CR = { modo: "" }; ir(b.dataset.rota); }));
-  window.addEventListener("hashchange", render);
-  document.body.addEventListener("click", (e) => {
-    const f = e.target.closest("[data-fechar]"); if (f) return fechar(f.closest(".modal"));
-    if (e.target.classList.contains("modal")) return fechar(e.target);
-  });
-  $("#vista").addEventListener("click", (e) => {
-    const v = rota().v;
-    if (v === "build" && onBuildClick(e)) return;
-    if (v === "criar" && onCriarClick(e)) return;
-    if (v === "biblioteca" && onBibliotecaClick(e)) return;
-    if (v === "calcs") { const r = e.target.closest("[data-res]"); if (r) { CALC.res = +r.dataset.res; renderCalcs(); } return; }
-    const a = e.target.closest("[data-a]");
-    if (a && a.dataset.a === "nova") return novaVazia();
-    if (a && a.dataset.a === "pob") { $("#pobErro").textContent = ""; return abrir("#pobModal"); }
-    const card = e.target.closest("[data-abrir]"); if (card) ir(`#/build/${card.dataset.abrir}/calcs`);
-  });
-  $("#vista").addEventListener("input", (e) => {
-    const v = rota().v;
-    if (v === "build") return onBuildInput(e);
-    if (v === "calcs" && e.target.dataset.calc) { CALC[e.target.dataset.calc] = e.target.value; return atualizarCalc(); }
-    if (v === "biblioteca" && e.target.id === "libBusca") return buscaLib(e.target.value);
-    if (v === "criar" && e.target.id === "crBusca") return buscaCriar(e.target.value);
-  });
-  $("#vista").addEventListener("change", (e) => {
-    const v = rota().v;
-    if (v === "build") return onBuildInput(e);
-    if (v === "calcs" && e.target.id === "calcBuild" && e.target.value) { const b = ST.builds[e.target.value]; if (b) preencherCalc(b); }
-  });
-  /* picker */
-  $("#pkBusca").addEventListener("input", debounce(() => { if (PK) { PK.limite = 60; renderPicker(); } }, 120));
-  $("#pkFiltros").addEventListener("click", (e) => { const c = e.target.closest("[data-pkf]"); if (!c || !PK) return; PK.filtro = c.dataset.pkf; PK.limite = 60; renderPicker(); });
-  $("#pkLista").addEventListener("click", (e) => {
-    const r = e.target.closest("[data-pki],[data-pkmais]"); if (!r || !PK) return;
-    if (r.dataset.pkmais) { PK.limite += 80; renderPicker(); return; }
-    const it = PK.atual[+r.dataset.pki], cb = PK.onPick;
-    fechar("#picker"); PK = null; cb(it);
-  });
-  $("#pobOk").addEventListener("click", importarPob);
-  $("#bpBaixar").addEventListener("click", () => { if (BP) { window.BuildPlanner.baixar(BP.nome, BP.json); toast("Arquivo " + BP.nome + " baixado"); } });
-  $("#bpCopiar").addEventListener("click", () => { if (BP) { fechar("#bpModal"); mostrarTexto("Arquivo .build (JSON)", BP.json); } });
-  $("#menuBtn").addEventListener("click", () => abrir("#menuModal"));
-  $("#mExport").addEventListener("click", () => { fechar("#menuModal"); exportar(); });
-  $("#mImport").addEventListener("click", () => $("#arquivo").click());
-  $("#arquivo").addEventListener("change", (e) => { const f = e.target.files[0]; if (f) importarArquivo(f); e.target.value = ""; fechar("#menuModal"); });
-  $("#mSobre").addEventListener("click", () => { fechar("#menuModal"); BB.seg = "sobre"; ir("#/biblioteca"); });
-  $("#textoCopiar").addEventListener("click", async () => { try { await navigator.clipboard.writeText($("#textoArea").value); toast("Copiado"); } catch (e) { $("#textoArea").select(); toast("Selecionado — copie pelo menu do sistema"); } });
-  $("#desfazerBtn").addEventListener("click", () => { const fn = undoFn; fecharDesfazer(); if (fn) fn(); });
-}
-const buscaLib = debounce((v) => {
-  BB.busca = v; BB.limite = 40; renderBiblioteca();
-  const i = $("#libBusca"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
-}, 220);
-const buscaCriar = debounce((v) => {
-  CR.busca = v; renderCriar();
-  const i = $("#crBusca"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
-}, 220);
-
-async function boot() {
-  $("#patch").textContent = (C.patch.split(" ")[0] || J.meta.patch);
-  wire();
-  loadLocal();
-  render();
-  if (await pull()) render();
-  await flush();
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) syncCheck(); });
-  window.addEventListener("online", () => { offlineAvisado = false; flush().then(syncCheck); });
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
-}
-boot();
+/* ================= início ================= */
+loadLocal();
+render();
+pull().then((ok) => { if (ok) { const foco = document.activeElement; if (!foco || !/INPUT|TEXTAREA|SELECT/.test(foco.tagName)) render(); } flush(); });
+setInterval(() => { if (!document.hidden) syncCheck(); }, 20000);
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});

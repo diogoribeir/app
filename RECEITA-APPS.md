@@ -18,7 +18,7 @@
 | ✈️ Paris Trip Planner (Tati) | https://diogoribeir.github.io/app/paris-planner/ | `paris-planner/` (build) + `paris-planner-src/` (fonte) | RTDB `planos/paris-planner-dt2026` |
 | 🎮 Perfil | https://diogoribeir.github.io/app/perfil-gamer/ | `perfil-gamer/` (app) + `perfil-gamer-src/` (dados) | RTDB `planos/perfil-gamer-dt2026` (nuvem = fonte da verdade; `dados.js` = seed) |
 | 🏆 Placar do Casal | https://diogoribeir.github.io/app/casal-pontos/ | `casal-pontos/` | RTDB `planos/casal-<hash do código secreto>` (código do casal = senha + namespace; log de eventos = fonte da verdade) |
-| ⚒️ Exile Forge (builds de Path of Exile 2) | https://diogoribeir.github.io/app/poe2-builds/ | `poe2-builds/` (app) + `poe2-builds-src/` (gerador da biblioteca a partir do Path of Building 2) | RTDB `planos/poe2-builds-dt2026` (uma chave por build `builds/<id>` + lápides `apagadas/<id>`) |
+| 🧭 Exile Compass (builds de Path of Exile 2: árvore passiva com caminho calculado, leitura de prints) | https://diogoribeir.github.io/app/poe2-builds/ | `poe2-builds/` (app) + `poe2-builds-src/` (geradores: dados do Path of Building 2 + árvore/artes da exportação oficial da GGG + ícones do RePoE) | RTDB `planos/poe2-builds-dt2026` (uma chave por build `builds/<id>` + lápides `apagadas/<id>`) |
 | 🇫🇷 Lingo (francês) | https://diogoribeir.github.io/app/lingo/ | `lingo-src/` (fonte Next.js, exportada estática) | RTDB `planos/lingo-dt2026` (pacote único de todas as chaves `lingo:*`; `lib/nuvem.ts`) · **GitHub Pages** (estático; migrado do Vercel em ago/2026). Tutor roda no navegador, modo demonstração |
 
 ### Infraestrutura fixa
