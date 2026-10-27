@@ -331,9 +331,20 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Por quê:** o Diogo joga PoE2 no **PS5** — PoB2/poe.ninja/Maxroll são ferramentas de PC. Este app faz no
   celular: montar build, **criticar/classificar/corrigir** com sugestões embasadas, assistente "O que você quer
   jogar?" (aleatória · meta · único · skill · ascendência), biblioteca e calculadoras. Pensado para controle.
-- **Abas:** 🛠️ Builds (lista + nota) · 🧭 Criar (assistente) · 🔬 Análise · 📚 Saber (biblioteca) · 🧮 Calc.
-  Editor = página sobreposta (`#editor`) com seções recolhíveis; seletor com busca = `#picker` (genérico,
-  `abrirPicker({titulo, filtros, itens(q,f), onPick})`).
+- **Identidade visual = ferramentas do próprio PoE2 (NÃO seguir os apps do casal):** o Diogo pediu (out/2026) que
+  o app tenha cara de ferramenta de PoE2 — referência: Path of Building 2, poe2db, poe.ninja e os tooltips do jogo.
+  Sempre escuro; títulos em **Cinzel** (fonte OFL embutida em `poe2-builds/fonts/`, estilo Trajan do jogo); molduras
+  douradas; **cores oficiais do PoB2** (`colorCodes` do `Data/Global.lua`: único `#AF6025`, mágico `#8888FF`, gema
+  `#74CABF`, vida `#E05030`, ES `#88FFFF`, mana `#7070FF`, espírito `#F5D076`, fogo/frio/raio/caos, cores de classe,
+  WARNING/NEGATIVE/POSITIVE/TIP nos avisos). Tooltips de item único/gema/nó como no jogo; gemas com **soquete
+  colorido** (STR/DEX/INT); suporte incompatível em vermelho (como o PoB). Sem emojis na interface.
+- **Navegação:** abas no topo (BUILDS · CRIAR · BIBLIOTECA · CALCS) + **rotas por hash** (`#/builds`, `#/criar`,
+  `#/biblioteca`, `#/calcs`, `#/build/<id>/<aba>`) — o voltar do celular funciona. A **página da build** espelha o
+  PoB2: cabeçalho com nota + **painel de stats** (DPS, EHP, vida, ES, mana, espírito usado/total, armadura, evasão,
+  deflexão, bloqueio, resistências coloridas com o que falta para o cap) e abas **Cálculos** (análise) · **Skills**
+  (grupos de soquete) · **Itens** (sets de arma + únicos em tooltip) · **Árvore** (classe/ascendência, nós de
+  ascendência para alocar, keystones, notáveis) · **Config** (nível, liga, números, recuperação, vetores manuais) ·
+  **Notas**. Seletor com busca = `#picker` (`abrirPicker({titulo, filtros, itens(q,f), onPick})`).
 - **Arquivos:** `app.js` (interface/estado/sync) · `motor.js` (**regras sem interface**: compatibilidade de
   suportes portada do PoB2 — `compativel()` avalia `requireSkillTypes`/`excludeSkillTypes` em RPN igual ao
   `calcLib.doesTypeExpressionMatch` —, `analisar(b)` → `{achados, notas, rotulos, vetores, arquetipo, geral}`,
@@ -365,13 +376,13 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   Avatar of Fire sem fogo…), sinergia ascendência × skill, meta. Notas 0–10: dano, defesa (marcada "estimada"
   sem números), recuperação, coerência, controle PS5, acessível (únicos/linhagem). Rótulos: Meta/Fora do
   meta/Criativa/Build de único · estilo · Mapper/Bosser · Canhão de vidro/Tanque/Equilibrada · HC · starter.
-  Card **👉 Próximo passo** = a correção mais importante (recomendação única — o Diogo trava com listas longas).
+  Card **Próximo passo** (aba Cálculos) = a correção mais importante (recomendação única — o Diogo trava com listas longas).
 - **Sincronização:** Realtime Database via REST (Receita 1), nó **`planos/poe2-builds-dt2026`**: **uma chave por
   build** (`builds/<id>`, objeto) + lápides `apagadas/<id>` (timestamp) + `_at`. Ao abrir: puxa e mescla por
   `atualizado` (mais novo vence); offline vai pro outbox (`forja:outbox`) e reenvia. localStorage =
   `forja:builds` (cópia offline), `forja:atual` (build selecionada), `forja:calc`.
 - **Edição:** direto nos arquivos. Ao mexer em QUALQUER arquivo do app **ou da `kb/`**, subir `CACHE` no
-  `sw.js` (`"poe2-builds-vN"`). CSP do `index.html` libera só o Firebase e `https://pobb.in`.
+  `sw.js` (`"poe2-builds-vN"`; v2 = visual PoE2). CSP do `index.html` libera só o Firebase e `https://pobb.in`.
   Ícones em `poe2-builds/icons/` (bigorna + martelo + "2", gerados via canvas no Chromium headless).
 
 ## Firebase — projeto `apps-4b887` (tudo num projeto só)
