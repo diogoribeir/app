@@ -82,7 +82,7 @@
       if (n.u && (!d.asc || n.u !== d.asc.id)) return false;
       return true;
     };
-    const dados = (n) => (modo === "asc" && d.ov[n.i]) ? Object.assign({}, n, d.ov[n.i]) : n;
+    const dados = (n) => (modo === "asc" && d.ov[n.i]) ? Object.assign({}, n, d.ov[n.i], { i: n.i, oi: d.ov[n.i].i }) : n;
     const estado = (n) => {
       if (n.t === "c") return d.classe && n.i === d.classe.ini ? 2 : 0;
       if (modo === "asc") { if (n.t === "as") return 2; return ascPlano.has(n.i) ? (d.ascOrdem.indexOf(n.i) < d.ascAte ? 2 : 1) : 0; }
@@ -263,7 +263,7 @@
     function focar() {
       if (!W) tamanho();
       if (modo === "asc" && d.asc) {
-        const R = d.asc.r * 1.4;
+        const R = d.asc.r * 1.18;
         s = Math.min(W, H) / (2 * R); ox = W / 2 - d.asc.cx * s; oy = H / 2 - d.asc.cy * s; pedir(); return;
       }
       const ids = [...(d.classe ? [d.classe.ini] : []), ...d.ordem.slice(0, Math.max(12, Math.min(30, d.ate || 30)))];

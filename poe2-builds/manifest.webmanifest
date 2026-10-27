@@ -1,14 +1,14 @@
 {
-  "name": "Exile Forge — PoE2 build planner",
-  "short_name": "Exile Forge",
-  "description": "Cria, critica, classifica e corrige builds de Path of Exile 2 no celular — com base nos dados do Path of Building 2.",
+  "name": "Exile Compass — builds de Path of Exile 2",
+  "short_name": "Exile Compass",
+  "description": "Monte builds de Path of Exile 2 no celular: árvore passiva com o caminho calculado, gemas com ícones, análise e leitura de prints do jogo.",
   "lang": "pt-BR",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#100D09",
-  "theme_color": "#100D09",
+  "background_color": "#0b0a09",
+  "theme_color": "#0b0a09",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }

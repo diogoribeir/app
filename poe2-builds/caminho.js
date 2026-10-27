@@ -427,7 +427,11 @@
       const orc = pontosNoNivel(opt.nivel || b.nivelAlvo || 100);
       const fixos = new Set((b.planoFixos || []).filter((id) => g.ok(NO.get(id))));
       const evitar = new Set(b.planoEvitar || []);
-      const atuais = (b.nosAtuais || []).filter((id) => g.ok(NO.get(id)));
+      /* só vale o que está ligado ao início da classe (ilhas soltas são ignoradas) */
+      const marc = new Set((b.nosAtuais || []).filter((id) => g.ok(NO.get(id))));
+      const atuais = [];
+      const fila = [g.ini], visto = new Set([g.ini]);
+      while (fila.length) { const u = fila.shift(); for (const v of VIZ.get(u) || []) if (marc.has(v) && !visto.has(v)) { visto.add(v); atuais.push(v); fila.push(v); } }
       const T0 = new Set([g.ini, ...atuais]);
       let r = guloso(T0, g.ok, val, Math.max(0, orc - atuais.length), evitar, fixos, null);
       r = melhorar(T0, g.ok, val, Math.max(0, orc - atuais.length), evitar, fixos, r);

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gera a biblioteca de dados do app Exile Forge a partir do Path of Building 2.
+"""Gera a biblioteca de dados do app Exile Compass a partir do Path of Building 2.
 
 Uso (a cada patch do jogo, ~4 meses):
     git clone --depth 1 https://github.com/PathOfBuildingCommunity/PathOfBuilding-PoE2.git /tmp/pob2

@@ -1,5 +1,5 @@
 /* ============================================================
-   Exile Forge — RETRATO DO META (curado à mão)
+   Exile Compass — RETRATO DO META (curado à mão)
    ------------------------------------------------------------
    Fonte: tier lists públicas e guias de out/2026 (0.5.4–0.5.5).
    Não é o poe.ninja ao vivo (o site bloqueia leitura automática):
