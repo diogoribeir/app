@@ -2,7 +2,7 @@
    Guarda os arquivos do app (inclusive a biblioteca kb/) no cache e serve de lá.
    As requisições ao Firebase/pobb.in (outra origem) NUNCA passam pelo cache.
    Ao mudar QUALQUER arquivo (app ou kb/), subir a versão do CACHE. */
-var CACHE = "poe2-builds-v1";
+var CACHE = "poe2-builds-v2";
 var ASSETS = [
   "./",
   "./index.html",
@@ -16,6 +16,8 @@ var ASSETS = [
   "./kb/conceitos.js",
   "./kb/meta.js",
   "./manifest.webmanifest",
+  "./fonts/cinzel-latin-600-normal.woff2",
+  "./fonts/cinzel-latin-700-normal.woff2",
   "./icons/icon-192.png",
   "./icons/icon-512.png"
 ];

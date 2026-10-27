@@ -127,7 +127,7 @@
 
   /* ---------------- descrição de vetores ---------------- */
   const VETOR = new Map(C.vetores.map((v) => [v.id, v]));
-  const VET_ROTULO = { more: "more", conv: "conversão", inc: "increased", crit: "crítico", taken: "inimigo toma +", mitig: "−defesa inimiga", vel: "velocidade", ailment: "ailment", clear: "área/projéteis", defesa: "defesa", efic: "eficiência", menos: "tem penalidade", semcrit: "proíbe crítico", semailment: "proíbe ailments", semelem: "zera elemental", semcaos: "zera caos" };
+  const VET_ROTULO = { more: "more", conv: "conversão", inc: "increased", crit: "crítico", taken: "inimigo toma +", mitig: "−defesa inimiga", vel: "velocidade", ailment: "ailment", clear: "área/projéteis", defesa: "defesa", efic: "eficiência", menos: "tem penalidade", semcrit: "proíbe crítico", semailment: "proíbe ailments", semelem: "zera elemental", semcaos: "zera caos", cond: "condicional" };
 
   /* ---------------- helpers de build ---------------- */
   function principal(b) {

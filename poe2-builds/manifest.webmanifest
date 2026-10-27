@@ -1,5 +1,5 @@
 {
-  "name": "Forja PoE2 — builds de Path of Exile 2",
+  "name": "Forja — planejador de builds de Path of Exile 2",
   "short_name": "Forja PoE2",
   "description": "Cria, critica, classifica e corrige builds de Path of Exile 2 no celular — com base nos dados do Path of Building 2.",
   "lang": "pt-BR",
@@ -7,8 +7,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1A1410",
-  "theme_color": "#1A1410",
+  "background_color": "#100D09",
+  "theme_color": "#100D09",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
