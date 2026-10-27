@@ -1,5 +1,5 @@
 /* ============================================================
-   Forja PoE2 — biblioteca CURADA (editar à mão a cada patch)
+   Exile Forge — biblioteca CURADA (editar à mão a cada patch)
    ------------------------------------------------------------
    • Números entre {c.chave} são preenchidos pelo app a partir de
      KB_JOGO.consts (gerado do Path of Building 2) — assim, quando

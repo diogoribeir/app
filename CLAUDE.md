@@ -324,7 +324,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 
 ---
 
-## App 8 — ⚒️ Forja PoE2 (o do Diogo) — *criador/analisador de builds de Path of Exile 2*
+## App 8 — ⚒️ Exile Forge (o do Diogo) — *criador/analisador de builds de Path of Exile 2*
 - **URL:** https://diogoribeir.github.io/app/poe2-builds/
 - **Pastas:** `poe2-builds/` (app publicado, HTML/CSS/JS puro, PWA) e `poe2-builds-src/` (gerador da
   biblioteca: `gerar_kb.py` + `lualit.py` + `README.md`).
@@ -345,6 +345,26 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   (grupos de soquete) · **Itens** (sets de arma + únicos em tooltip) · **Árvore** (classe/ascendência, nós de
   ascendência para alocar, keystones, notáveis) · **Config** (nível, liga, números, recuperação, vetores manuais) ·
   **Notas**. Seletor com busca = `#picker` (`abrirPicker({titulo, filtros, itens(q,f), onPick})`).
+- **Nome (out/2026):** o app se chama **Exile Forge** (era "Forja PoE2"; o Diogo pediu nome em inglês). ⚠️ A pasta/URL
+  (`poe2-builds/`), o nó do Firebase (`planos/poe2-builds-dt2026`) e as chaves do localStorage (`forja:*`) **ficaram
+  com o nome antigo** — renomear quebraria o link salvo e as builds já gravadas. Rodapé com aviso de projeto de fã
+  (exigência da política de terceiros da GGG: não parecer oficial).
+- **Exportar para o jogo — Build Planner do PoE2** (`buildplanner.js`, botão "Levar para o jogo" na página da build):
+  gera o `.build` (JSON) do formato oficial da GGG (pathofexile.com/developer/docs/game → "Build Planner (PoE2 only)",
+  v1 experimental), igual ao exportador do PoB2 (`Modules/BuildExportPoE2.lua`): `ascendancy` = id interno
+  (`KB_JOGO.classes[].ascId`, ex. Deadeye `Ranger1`, Abyssal Lich `Witch3b`), `passives` = `stringId` da árvore
+  (campo `sid` em keystones/notáveis/nós de ascendência; build importada do PoB guarda **todos** os nós em `b.nosIds`
+  e o mapa id→stringId vem de `kb/nos.js`, carregado só na exportação), `skills`/`support_skills` = `gameId` das gemas
+  (campo `gid`), `inventory_slots` = ids da tabela Inventories (`Weapon1`, `Offhand1`, `Helm1`, `BodyArmour1`, `Gloves1`,
+  `Boots1`, `Belt1`, `Amulet1`, `Ring1/2`, `Flask1`) com `unique_name`. Textos de dica usam o markup do jogo (`<gold>{…}`;
+  tirar `{}` de texto livre). Suporte incompatível não é exportado (aviso no modal). O usuário baixa o arquivo e envia/
+  assina no **pathofexile2.com** (o jogo carrega builds assinadas; no PC também pela pasta `BuildPlanner`).
+  ⚠️ Funcionamento no PS5 ainda não confirmado pelo Diogo.
+- **APIs pesquisadas (out/2026):** GGG `api.pathofexile.com` exige OAuth e **não aceita registro de apps novos** (sem
+  importar personagens por ora); poe.ninja tem JSON (`/poe2/api/data/index-state`); RePoE PoE2
+  (`repoe-fork.github.io/poe2/`, JSON de gems/mods/únicos); poe2db (HTML); **poe2wiki recusa servidores na nuvem**
+  (403) — no celular abre; `wiki.js` (leitor in-app via API MediaWiki, `origin=*`) existe mas ainda **não está ligado**.
+  A rede do ambiente do Claude está em **Full** desde out/2026.
 - **Arquivos:** `app.js` (interface/estado/sync) · `motor.js` (**regras sem interface**: compatibilidade de
   suportes portada do PoB2 — `compativel()` avalia `requireSkillTypes`/`excludeSkillTypes` em RPN igual ao
   `calcLib.doesTypeExpressionMatch` —, `analisar(b)` → `{achados, notas, rotulos, vetores, arquetipo, geral}`,
@@ -382,7 +402,7 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   `atualizado` (mais novo vence); offline vai pro outbox (`forja:outbox`) e reenvia. localStorage =
   `forja:builds` (cópia offline), `forja:atual` (build selecionada), `forja:calc`.
 - **Edição:** direto nos arquivos. Ao mexer em QUALQUER arquivo do app **ou da `kb/`**, subir `CACHE` no
-  `sw.js` (`"poe2-builds-vN"`; v2 = visual PoE2). CSP do `index.html` libera só o Firebase e `https://pobb.in`.
+  `sw.js` (`"poe2-builds-vN"`; v2 = visual PoE2, v3 = Exile Forge + Build Planner). CSP do `index.html` libera só o Firebase e `https://pobb.in`.
   Ícones em `poe2-builds/icons/` (bigorna + martelo + "2", gerados via canvas no Chromium headless).
 
 ## Firebase — projeto `apps-4b887` (tudo num projeto só)

@@ -6,7 +6,7 @@ name: Publicar apps no GitHub Pages
 #   /paris-planner/     -> planejador React da viagem
 #   /perfil-gamer/      -> biblioteca de jogos PS4/PS5
 #   /casal-pontos/      -> gamificacao do casal (vacilos, pontos, loja)
-#   /poe2-builds/       -> Forja PoE2 (criar/analisar builds de Path of Exile 2)
+#   /poe2-builds/       -> Exile Forge (criar/analisar builds de Path of Exile 2)
 #   /lingo/             -> curso de frances (Next.js exportado estatico)
 # Roda automaticamente quando um app muda no master, e pode ser
 # disparado manualmente na aba Actions (botao "Run workflow").
