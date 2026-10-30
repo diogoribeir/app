@@ -324,30 +324,73 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 
 ---
 
-## App 8 — 🧭 Exile Compass (o do Diogo) — *builds de Path of Exile 2 com árvore passiva e caminho calculado*
+## App 8 — 🧭 Exile Compass (o do Diogo) — *diagnóstico de builds de Path of Exile 2*
 - **URL:** https://diogoribeir.github.io/app/poe2-builds/
 - **Pastas:** `poe2-builds/` (app publicado, HTML/CSS/JS puro, PWA) e `poe2-builds-src/` (geradores:
-  `gerar_kb.py` + `lualit.py` = dados do PoB2; `gerar_assets.py` = árvore/artes/ícones; `README.md`).
-- **Por quê:** o Diogo joga PoE2 no **PS5** — PoB2/poe.ninja/Maxroll são de PC. O app faz no celular: montar a build
-  em poucos toques (ou **lendo prints do jogo**), ver a **árvore passiva de verdade** com o **caminho sugerido**
-  calculado para a build, gemas com ícones e uma análise com o "próximo passo".
-- **REFEITO DO ZERO (out/2026)** depois do Diogo achar a versão "Exile Forge" ruim ("não tem árvore, não tem ícones,
-  não tem arte das ascendências, complexo, não lê foto, nome ridículo"). Regras que vieram disso — **respeitar**:
-  interface **simples** (3 abas na build, poucas decisões por tela), **visual do jogo** (artes/ícones oficiais),
-  **árvore desenhada** com o caminho, **entrada por foto**, e **uma recomendação por vez** (ele trava com listas longas).
-  Identidade visual = ferramentas de PoE2 (NÃO seguir os apps do casal): sempre escuro, títulos em **Cinzel**
-  (OFL em `fonts/`), dourado das molduras, cores do PoB2 (gema `#74CABF`, único `#AF6025`…). Ícones de interface em
-  SVG (`<symbol>` no `index.html`), sem emojis.
-- **Nome (out/2026):** **Exile Compass** (antes "Exile Forge", antes "Forja PoE2"). ⚠️ A pasta/URL (`poe2-builds/`),
-  o nó do Firebase (`planos/poe2-builds-dt2026`) e as chaves do localStorage (`forja:builds`, `forja:outbox`)
-  **ficaram com o nome antigo** — renomear quebraria o link salvo e as builds gravadas. Rodapé com aviso de projeto
-  de fã (política de terceiros da GGG: não parecer oficial). Ícone = bússola dourada (canvas no Chromium headless).
-- **Telas (rotas por hash; o voltar do celular funciona):** `#/` início (Ler da foto · Nova build · código PoB +
-  cards das builds com retrato da ascendência + ícone da skill + nota) · `#/nova` (abas Ascendência/Skill/Sortear;
-  grade de retratos → `#/nova/a/<asc>` skills recomendadas; ou busca de skill → `#/nova/s/<skill>` ascendências
-  ranqueadas) · `#/foto[/<id>]` (ler prints → confirmar → criar/atualizar) · `#/b/<id>/<aba>` build com abas
-  **Árvore** · **Gemas** · **Análise**. Painel inferior único (`#folha`, `abrirFolha(html, ligar)`) para detalhe de
-  nó/gema, menus, seletor com busca (`seletor()`), nível, renomear, PoB, Build Planner.
+  `gerar_kb.py` + `lualit.py` = dados do PoB2; `gerar_assets.py` = árvore/artes/ícones/runas; `gerar_ref.py` =
+  referências do poe.ninja; `README.md`).
+- **O QUE O APP É (out/2026, depois de 3 tentativas — respeitar):** um **diagnóstico** que resolve problemas.
+  O Diogo joga no **PS5** e disse: *"quero algo que indique o que estou fazendo errado no meu build, onde melhorar, o que
+  está faltando, onde focar considerando a etapa em que estou — fazer build no PoE é resolução de problemas"* e que as
+  sugestões sejam **baseadas em builds que existem (poe.ninja, Mobalytics…) e em conhecimento do app, SEM INVENTAR**.
+  Fluxo: **(1) Onde você está?** (Ato 1–4, Interlúdios, Mapas T1–5/6–10/11–15, Chefes) + nível → **(2) O que está
+  acontecendo?** (morro muito, morro de um golpe, chefe demora, limpo devagar, sem mana, atordoado, ailments) →
+  **(3) Prints do PS5** (Skills, Personagem/defesas, Equipamento) com conferência/edição manual → **resultado**:
+  **"Sua maior fraqueza"** (número + porquê com a conta + "Como resolver agora" em passos + a base/fonte), "Depois
+  disso" (próximos 4), "Faltam dados", "O que já está bom" e **"Quem joga <skill> — <etapa>"** (referência real).
+  As versões anteriores (montador "Exile Forge" e o "Exile Compass" de árvore + caminho) foram rejeitadas; a árvore
+  com caminho calculado continua como aba secundária.
+  Não há integração com o PS5 (a API da GGG não aceita apps novos) → a build entra por **prints** (OCR no celular).
+  O jogo dele está em **inglês** (o OCR casa com os nomes em inglês).
+- **Identidade visual = ferramentas de PoE2** (NÃO seguir os apps do casal): sempre escuro, títulos em **Cinzel**
+  (OFL em `fonts/`), dourado das molduras, cores do PoB2; ícones de interface em SVG (`<symbol>` no `index.html`),
+  sem emojis. Interface **simples**, uma recomendação principal por vez (ele trava com listas longas).
+- **Nome:** **Exile Compass** (antes "Exile Forge"/"Forja PoE2"). ⚠️ Pasta/URL (`poe2-builds/`), nó do Firebase
+  (`planos/poe2-builds-dt2026`) e chaves do localStorage (`forja:builds`, `forja:outbox`) **ficaram com o nome antigo**.
+- **Telas (rotas por hash):** `#/` início ("Diagnosticar minha build", "Montar uma build do zero", código PoB; cards das
+  builds mostram a maior fraqueza) · `#/diag[/<id>]` fluxo do diagnóstico (estado em `rascunho` até "Ver diagnóstico";
+  `concluirDiag` grava `b.etapa`, `b.sintomas`, `b.ascPts`, `grupos[].nv` = nível da gema, `b.stats`) · `#/nova…`
+  montar do zero (ascendência/skill/sorteio) · `#/b/<id>/<aba>` build com abas **Diagnóstico** (padrão) · **Árvore** ·
+  **Gemas**. Painel inferior único `#folha` (`abrirFolha`), seletor com busca (`seletor()`), etapa/sintomas
+  (`folhaEtapa`/`folhaSintomas`).
+- **Motor do diagnóstico (`diagnostico.js`, `window.Diag`):** `diagnosticar(b)` → `{etapa, problemas[{id, area, sev,
+  tit, num, pq, passos, fonte, lista?}], bons, faltam, ref}`; ordena por **gravidade** (`sev` 0–100 × fator da etapa ×
+  fator dos sintomas). Checagens, todas com base em dado:
+  - **Resistências** (fogo/gelo/raio): falta até 75% e "você toma N× o dano" = (100−res)/25; passos = mods de item,
+    **runa** do nível certo (`kb/runas.js`), nó de resistência **a ≤ 8 pontos** do que ele tem (`nosPerto`, BFS na
+    árvore oficial), charm (`Topaz/Ruby/Sapphire`) se morre, e o aviso de −10% ao matar o chefe do ato. Caos só no endgame.
+  - **Vida + ES** contra os quartis de quem joga a mesma skill na etapa (`KB_REF…st.pool/vida`); passos = mods,
+    Body Rune, nó de vida perto.
+  - **Nível da gema** (`grupos[].nv`) contra o máximo que o nível de personagem permite (`KB_JOGO.skills[].lv` =
+    `[nível exigido, índice de dano]` por nível de gema, do PoB2) e o **ganho de dano-base** até lá; passo = Uncut
+    Skill Gem do nível (o nível da gema não lapidada vem do nível da área).
+  - **Suportes** contra os mais ligados à skill naquela etapa (poe.ninja `linkedgems`), por **família** (tier I/II/III);
+    incompatíveis (motor), tier abaixo do que a maioria usa, menos de 5 suportes (Jeweller's Orbs).
+  - **Buffs de espírito** que ≥40% usam; **ascendência** (`b.ascPts` contra o esperado na etapa: 2 no Ato 2 —
+    Trial of the Sekhemas, 4 no Ato 3 — Trial of Chaos, 8 no endgame); **DPS** informado contra os quartis.
+  - **Sintomas:** mana (suportes que encarecem, suportes/buffs de mana que a referência usa, nó perto), stun (nós de
+    Stun Threshold/Recovery + Stone Charm), ailments (charms Thawing/Grounding/Antidote/Dousing/Staunching com nível).
+  - Achados `erro`/`alerta` do `motor.js` entram com gravidade 62/38.
+  Fatos do jogo usados (confirmados em out/2026): teto 75%; −10% de resistência por chefe de ato, interlúdios −40/−50%
+  por nível de área, −60% no endgame (o painel do jogo já mostra o valor com penalidade); 2 pontos de ascendência por
+  provação. Etapas (área, dados do RePoE `world_areas`): Ato 1 = 1–15, Ato 2 = 16–31, Ato 3 = 33–45, Ato 4 = 46–53,
+  interlúdios 54–64, mapas 65+ (tier 1–16 = 65–80).
+- **Referências reais (`kb/ref.js` = `KB_REF`, gerado por `gerar_ref.py`):** o poe.ninja guarda "fotos" da liga em
+  vários momentos (3 h, 6 h, 12 h, 18 h, 1/2/3/5 dias, 1/2/4 semanas, agora) — cada foto mostra os personagens do
+  topo naquele momento (3 h ≈ níveis 1–45, 6 h ≈ 20–73…). Para as ~60 skills principais mais jogadas, o gerador
+  junta por **etapa**: suportes ligados (`sup`), buffs de espírito (`esp`), ascendências (`asc`), nós de ascendência/
+  keystones (`nos`), únicos (`uni`), armas, e quartis de **vida/ES/pool/EHP/DPS** (`st`) dos personagens na faixa de
+  nível da etapa. API usada: `poe.ninja/poe2/api/builds/<versão>/search?overview=…&type=exp&skills=…&timemachine=…`
+  (protobuf; decodificado sem schema) + `…/builds/dictionary/<hash>` (formato "NDIC": cabeçalho de 44 bytes, (K−1)
+  pares u32, N comprimentos u8, strings). Baixa com **curl** (o Python-urllib leva 403), 1 pedido/s — ~1 h para 60
+  skills. Skill sem referência → o diagnóstico usa só as regras do jogo (e avisa).
+- **Combinações reais (`kb/combos.js` = `KB_COMBOS`, `gerar_ref.py --so-combos`, ~2 min):** para cada ascendência,
+  quantos jogadores usam cada **modo de arma** (`"Bow / Quiver"`, `"Mace / Shield"`… — 45 modos no poe.ninja) e cada
+  **skill principal**. Levantamento de out/2026 (Forbidden Rites, 124 mil personagens): arma × ascendência = 1.035
+  possíveis → 699 com ≥1 jogador → **179 viáveis** (≥20 jogadores e ≥1% da ascendência); skill principal × ascendência =
+  4.623 possíveis → 3.302 com ≥1 → **538 viáveis** (≥20 e ≥2%). Usado em: "Montar do zero" (skills/ascendências
+  ordenadas pelo uso real, com "N jogadores"/"X% usam") e no diagnóstico (alerta de **combinação rara**: <20
+  jogadores e <1% da ascendência; `Diag.uso()`, `Diag.modoArma()` converte `b.arma`/`b.offhand` para o nome do ninja).
 - **Árvore passiva (`arvore.js`, canvas):** dados e artes da **exportação OFICIAL da GGG**
   (`github.com/grindinggear/poe2-skilltree-export`: posições, ligações retas/arcos, sprites `skills*.webp`/`frame.webp`,
   retratos `background-<classe>.webp`). Um dedo arrasta, pinça dá zoom, duplo toque aproxima, toque abre o nó.
@@ -373,7 +416,9 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   local** (média numa janela de ~1,5% da largura, imagem integral) → texto preto no branco; sem isso o degradê do
   fundo do jogo apaga o texto. Casamento por semelhança (Levenshtein, por palavra-inicial) com skills, suportes,
   classes, ascendências e únicos; números da tela de personagem por regex (vida, ES, mana, espírito, armadura,
-  evasão, resistências, bloqueio). Suportes lidos vão para a última skill lida. Testado com print sintético nítido e
+  evasão, resistências, bloqueio). Suportes lidos vão para a última skill lida; **"Level N"** vira nível da gema
+  (até 21, perto de uma skill) ou do personagem (junto da classe/ascendência). O OCR troca o "I" dos tiers de suporte por
+  `] | ! 1 l` — `variantes()` testa versões corrigidas da linha e fica com a que casa mais nomes. Testado com print sintético nítido e
   borrado/torto/JPEG: leu tudo (só confunde às vezes "II" com "I"). Funciona com o jogo em **inglês**.
 - **Gemas:** ícones de todas as gemas em `img/gem/*.webp` (RePoE, 64px) + `kb/gemas.js` (`KB_GEMAS[nome] =
   [arquivo, [suportes recomendados pelo PRÓPRIO JOGO]]` — o `rankSup` do motor dá +1,5 a eles; selo "jogo" na UI).
@@ -391,14 +436,16 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **Motor de análise (`motor.js`, sem interface):** mesmas regras da versão anterior — compatibilidade de suportes
   portada do PoB2 (`compativel()` em RPN como `calcLib.doesTypeExpressionMatch`), `analisar(b)` →
   `{achados, notas, rotulos, vetores, arquetipo, geral}`, `recomendarSuportes`, `rankAscPorSkill`,
-  `rankSkillsPorAsc`, `aleatoria`, `montar`… A aba **Análise** mostra nota + rótulos, **Próximo passo** (um só),
-  barras das notas, outros pontos (4 + "ver mais"), números opcionais (ou da foto) e links de estudo. Os nomes de
+  `rankSkillsPorAsc`, `aleatoria`, `montar`… Os achados `erro`/`alerta` entram no diagnóstico (a antiga aba
+  **Análise** foi removida — o diagnóstico substitui). Os nomes de
   keystones/notáveis/nós de ascendência que o motor usa saem do plano (`Caminho.nomesDoPlano`).
 - **Biblioteca (`poe2-builds/kb/`)** — ⚠️ não confundir:
   - **GERADA** (não editar à mão): `jogo.js`, `arvore.js`, `unicos.js`, `nos.js` (do **Path of Building 2**, via
     `gerar_kb.py` — nada do PoB2 é executado) e `tree.js` (`KB_TREE`: nós `{i,x,y,t,n,s,f,g,a,u,p…}`, ligações
     `lig` `[a,b]`/`[a,b,cx,cy]`, quadros dos sprites `q`/`qo`/`mold`, classes/ascendências com centro/raio) +
-    `gemas.js` (via `gerar_assets.py`, da exportação da GGG + RePoE). Imagens geradas: `img/tree/`, `img/asc/`, `img/gem/`.
+    `gemas.js` + `runas.js` (`KB_RUNAS`: runas/soul cores de resistência e vida com nível; charms e contra o que
+    ativam) (via `gerar_assets.py`, da exportação da GGG + RePoE) + `ref.js` (`KB_REF`, poe.ninja, via `gerar_ref.py`).
+    Imagens geradas: `img/tree/`, `img/asc/`, `img/gem/`.
   - **CURADA** (editar à mão, PT-BR): `conceitos.js` (resumo/afinidades das ascendências, vetores, camadas…) e
     `meta.js` (retrato do meta com tier/fontes; dá o selo "Meta S/A").
 - **🔄 Atualizar a cada patch (~4 meses; próximo: 1.0 em 11/12/2026 com o Duelist):** (1) PoB2:
@@ -406,14 +453,16 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   `python3 -I poe2-builds-src/gerar_kb.py <scratch>/pob2`; (2) árvore/artes/ícones:
   `GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 https://github.com/grindinggear/poe2-skilltree-export <scratch>/ggg` →
   `python3 -I poe2-builds-src/gerar_assets.py <scratch>/ggg <scratch>/repoe-cache` (baixa os ícones do RePoE, ~3 min);
-  (3) revisar `conceitos.js`/`meta.js`; (4) conferir o caminho de 3–4 builds (`Caminho.calcular`) e se a classe nova
-  (Duelist) aparece; (5) **subir `CACHE` no `sw.js`**. Detalhes em `poe2-builds-src/README.md`. Agente:
+  (3) **referências** `python3 -I poe2-builds-src/gerar_ref.py --skills 60` (~1 h; pega a liga de desafio mais nova
+  do poe.ninja — **rodar de novo uns dias depois de cada liga começar**, quando as fotos de 3 h/6 h/1 dia já existem);
+  (4) revisar `conceitos.js`/`meta.js`; (5) conferir o diagnóstico de 3–4 builds e se a classe nova (Duelist) aparece;
+  (6) **subir `CACHE` no `sw.js`**. Detalhes em `poe2-builds-src/README.md`. Agente:
   `.claude/agents/poe2-builds.md`. ⚠️ Rodar o Lua do PoB2 é bloqueado no ambiente do Claude (por isso o parser próprio).
 - **Sincronização:** Realtime Database via REST (Receita 1), nó **`planos/poe2-builds-dt2026`**: **uma chave por
   build** (`builds/<id>`, inclui `plano`) + lápides `apagadas/<id>` + `_at`. Ao abrir: puxa e mescla por `atualizado`;
   offline vai pro outbox (`forja:outbox`). localStorage = `forja:builds`.
 - **Edição/teste:** ao mexer em QUALQUER arquivo do app ou da `kb/`, **subir `CACHE` no `sw.js`** (`"poe2-builds-vN"`;
-  v4 = Exile Compass). O SW pré-carrega app + kb + sprites da árvore; retratos e ícones de gema (`img/asc`,
+  v4 = Exile Compass, v5 = diagnóstico). O SW pré-carrega app + kb + sprites da árvore; retratos e ícones de gema (`img/asc`,
   `img/gem`) vão para o cache `poe2-builds-img-v1` na 1ª vez que aparecem. Testes com Playwright **bloqueando o
   Firebase** (`route(/firebaseio/, abort)`) para não sujar os dados reais; OCR testado com print sintético gerado no
   Chromium (o navegador de teste precisa do proxy do ambiente para baixar o Tesseract).

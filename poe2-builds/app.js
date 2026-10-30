@@ -1,17 +1,20 @@
 /* ============================================================
    Exile Compass — interface
    ------------------------------------------------------------
+   O app é um DIAGNÓSTICO: etapa + sintomas + prints → a maior
+   fraqueza da build, com número, porquê e como resolver.
    Telas (rotas por hash, o "voltar" do celular funciona):
-     #/              início: minhas builds + Ler da foto / Nova build
-     #/nova          nova build: por ascendência, por skill ou sorteio
+     #/              início: Diagnosticar minha build + minhas builds
+     #/diag[/<id>]   fluxo: etapa → sintomas → prints/conferir
+     #/nova          montar do zero: por ascendência, skill ou sorteio
      #/nova/a/<asc>  escolher a skill para a ascendência
      #/nova/s/<sk>   escolher a ascendência para a skill
-     #/foto[/<id>]   montar (ou atualizar) a build lendo prints
-     #/b/<id>[/aba]  build: árvore (caminho) · gemas · análise
+     #/b/<id>[/aba]  build: diagnóstico · árvore (caminho) · gemas
    Dados: localStorage (cópia offline) + Firebase RTDB via REST,
    nó planos/poe2-builds-dt2026 — uma chave por build
    (builds/<id>) + lápides (apagadas/<id>) + carimbo _at.
-   Árvore/caminho: arvore.js + caminho.js; regras: motor.js.
+   Diagnóstico: diagnostico.js (+ kb/ref.js do poe.ninja, kb/runas.js);
+   árvore/caminho: arvore.js + caminho.js; regras: motor.js.
    ============================================================ */
 "use strict";
 const SYNC_URL = "https://apps-4b887-default-rtdb.firebaseio.com/planos/poe2-builds-dt2026";
@@ -57,9 +60,9 @@ let ST = { builds: {}, apagadas: {} };
 let lastAt = 0, offlineAvisado = false;
 function normalizar(b) {
   const out = Object.assign(M.novaBuild({}), b || {});
-  ["grupos", "unicos", "keystones", "ascNos", "notaveis", "planoFixos", "planoEvitar", "ascFixos", "ascEvitar", "nosAtuais"].forEach((k) => { if (!Array.isArray(out[k])) out[k] = out[k] ? Object.values(out[k]) : []; });
+  ["grupos", "unicos", "keystones", "ascNos", "notaveis", "planoFixos", "planoEvitar", "ascFixos", "ascEvitar", "nosAtuais", "sintomas"].forEach((k) => { if (!Array.isArray(out[k])) out[k] = out[k] ? Object.values(out[k]) : []; });
   if (out.nosIds && !Array.isArray(out.nosIds)) out.nosIds = Object.values(out.nosIds);
-  out.grupos = out.grupos.filter(Boolean).map((g) => ({ skill: g.skill || "", papel: g.papel || "secundaria", sup: Array.isArray(g.sup) ? g.sup.filter(Boolean) : g.sup ? Object.values(g.sup) : [] }));
+  out.grupos = out.grupos.filter(Boolean).map((g) => ({ skill: g.skill || "", papel: g.papel || "secundaria", sup: Array.isArray(g.sup) ? g.sup.filter(Boolean) : g.sup ? Object.values(g.sup) : [], nv: g.nv || "" }));
   ["stats", "recup", "vetMan"].forEach((k) => { if (!out[k] || typeof out[k] !== "object") out[k] = {}; });
   if (out.prioridade == null) out.prioridade = 0.4;
   if (!out.nivel) out.nivel = 1;
@@ -207,8 +210,9 @@ function render() {
   $("#voltarBtn").classList.toggle("hidden", !r.v);
   window.scrollTo(0, 0);
   if (r.v === "nova") return vNova(vista, r);
-  if (r.v === "foto") return vFoto(vista, r);
-  if (r.v === "b" && ST.builds[r.a]) return vBuild(vista, ST.builds[r.a], r.c || "arvore");
+  if (r.v === "diag") return vDiag(vista, r);
+  if (r.v === "foto") { location.replace("#/diag" + (r.a ? "/" + encodeURIComponent(r.a) : "")); return; }
+  if (r.v === "b" && ST.builds[r.a]) return vBuild(vista, ST.builds[r.a], r.c || "diag");
   return vInicio(vista);
 }
 
@@ -217,28 +221,28 @@ function vInicio(v) {
   const lista = listaBuilds();
   v.innerHTML = `
     <section class="inicio-hero">
-      <h1>Sua build, com o caminho na árvore</h1>
-      <p>Escolha a ascendência e a skill — ou mande um print do jogo — e veja na árvore passiva o caminho calculado para a sua build.</p>
+      <h1>O que está errado na sua build?</h1>
+      <p>Diga em que etapa você está, o que está dando errado e mande os prints do jogo. O app mostra sua maior fraqueza, por que ela pesa e como resolver agora.</p>
       <div class="acoes">
-        <button class="btn grande" data-ir="#/foto">${ic("foto")} Ler da foto</button>
-        <button class="btn grande fant" data-ir="#/nova">${ic("mais")} Nova build</button>
+        <button class="btn grande" data-ir="#/diag">${ic("alvo")} Diagnosticar minha build</button>
+        <button class="btn grande fant" data-ir="#/nova">${ic("mais")} Montar uma build do zero</button>
       </div>
       <button class="link" data-acao="pob">Tenho um código do Path of Building</button>
     </section>
     ${lista.length ? `<div class="secao">Minhas builds</div>` : ""}
     ${lista.map((b) => {
       const P = principal(b);
-      let nota = "";
-      try { nota = M.analisar(b).geral; } catch (e) { nota = ""; }
+      let fr = null;
+      try { fr = DG.diagnosticar(b).problemas[0] || null; } catch (e) { fr = null; }
+      const E = DG.ETAPA.get(b.etapa) || null;
       return `<div class="cartao build-card" data-ir="#/b/${esc(b.id)}" role="button" tabindex="0">
         <div class="avatar">${imgAsc(b.asc || b.classe, 58)}${P ? imgGema(P.s.n) : ""}</div>
         <div class="info"><div class="nome">${esc(b.nome || "Build")}</div>
-          <div class="det">${esc(b.asc || b.classe || "sem ascendência")} · Nível ${esc(b.nivel)}</div>
-          <div class="det">${esc(P ? P.s.n : "sem skill principal")}</div></div>
-        ${nota !== "" ? `<div class="nota ${notaCls(nota)}">${esc(String(nota).replace(".", ","))}</div>` : ""}
+          <div class="det">${esc(b.asc || b.classe || "sem ascendência")} · Nível ${esc(b.nivel)}${E ? " · " + esc(E.n) : ""}</div>
+          <div class="det ${fr ? "fraq" : ""}">${fr ? "Maior fraqueza: " + esc(fr.tit) : esc(P ? P.s.n : "sem skill principal")}</div></div>
       </div>`;
     }).join("")}
-    <p class="rodape">Exile Compass é um projeto de fã, sem relação com a Grinding Gear Games. Path of Exile é marca da Grinding Gear Games. Árvore e artes: exportação oficial da GGG; dados: Path of Building 2 e RePoE.</p>`;
+    <p class="rodape">Exile Compass é um projeto de fã, sem relação com a Grinding Gear Games. Path of Exile é marca da Grinding Gear Games. Árvore e artes: exportação oficial da GGG; dados: Path of Building 2, RePoE e poe.ninja.</p>`;
 }
 
 /* ================= NOVA BUILD ================= */
@@ -275,7 +279,12 @@ function vNova(v, r) {
 function vNovaSkill(v, asc) {
   const cl = CLASSE_DE[asc];
   if (!cl) return ir("#/nova");
-  const rank = M.rankSkillsPorAsc(asc).filter((x) => x.s.gid && !/Ascendancy|Triggered/.test(x.s.gid));
+  const CB = (window.KB_COMBOS || { asc: {} }).asc[asc];
+  const usoSk = new Map(CB ? CB.sk : []);
+  let rank = M.rankSkillsPorAsc(asc).filter((x) => x.s.gid && !/Ascendancy|Triggered/.test(x.s.gid));
+  /* com dados do poe.ninja: primeiro o que os jogadores dessa ascendência realmente usam */
+  if (CB) rank = rank.slice().sort((a, b) => (usoSk.get(b.s.n) || 0) - (usoSk.get(a.s.n) || 0) || b.score - a.score);
+  const selo = (n) => { const c = usoSk.get(n); return c ? `<span class="selo verde">${Math.round(100 * c / CB.n)}% usam</span>` : ""; };
   const top = rank.slice(0, 8);
   const resumo = (C.ascendencias[asc] || {}).resumo || "";
   v.innerHTML = `
@@ -283,7 +292,8 @@ function vNovaSkill(v, asc) {
     ${resumo ? `<p class="sub small">${esc(M.preencher(resumo))}</p>` : ""}
     <div class="passo-tit"><span class="num">2</span><h1>Escolha a skill principal</h1></div>
     <div class="secao">Combinam com ${esc(asc)}</div>
-    ${top.map((x) => `<button class="skill-op" data-criar="${esc(x.s.n)}" data-asc="${esc(asc)}">${imgGema(x.s.n)}<span class="info"><span class="n">${esc(x.s.n)}</span><br><span class="t">${esc(resumoSkill(x.s))}</span></span>${metaSelo(x.s.n, asc)}</button>`).join("")}
+    ${CB ? `<p class="small muted">Ordenado pelo que os ${esc(fmtN(CB.n))} jogadores de ${esc(asc)} usam na liga atual (poe.ninja).</p>` : ""}
+    ${top.map((x) => `<button class="skill-op" data-criar="${esc(x.s.n)}" data-asc="${esc(asc)}">${imgGema(x.s.n)}<span class="info"><span class="n">${esc(x.s.n)}</span><br><span class="t">${esc(resumoSkill(x.s))}</span></span>${selo(x.s.n) || metaSelo(x.s.n, asc)}</button>`).join("")}
     <div class="secao">Todas</div>
     <div class="busca-box">${ic("busca")}<input id="buscaSkill" type="search" placeholder="Buscar skill…" autocomplete="off"></div>
     <div id="listaSkill"></div>`;
@@ -298,109 +308,165 @@ function vNovaSkill(v, asc) {
 function vNovaAsc(v, skill) {
   const s = M.SK.get(skill);
   if (!s) return ir("#/nova/skill");
-  const rank = M.rankAscPorSkill(s);
-  const top = new Set(rank.slice(0, 3).map((x) => x.asc));
+  const CBA = (window.KB_COMBOS || { asc: {} }).asc;
+  const qt = (asc) => { const c = CBA[asc]; const x = c && c.sk.find(([n]) => n === s.n); return x ? x[1] : 0; };
+  let rank = M.rankAscPorSkill(s);
+  if (Object.keys(CBA).length) rank = rank.slice().sort((a, b) => qt(b.asc) - qt(a.asc) || b.score - a.score);
+  const top = new Set(rank.slice(0, 3).filter((x) => !Object.keys(CBA).length || qt(x.asc) > 0).map((x) => x.asc));
   v.innerHTML = `
     <div class="heroi">${imgGema(s.n, "g")}<div class="info"><div class="nome" style="color:var(--gema)">${esc(s.n)}</div><div class="det">${esc(resumoSkill(s))}</div></div></div>
     <div class="passo-tit"><span class="num">2</span><h1>Escolha a ascendência</h1></div>
-    <p class="sub small">As com brilho combinam mais com ${esc(s.n)}.</p>
-    <div class="grade-asc">${rank.map((x) => `<button class="asc-op ${top.has(x.asc) ? "on" : ""}" data-criar="${esc(s.n)}" data-asc="${esc(x.asc)}">${imgAsc(x.asc, 92)}<span class="n">${esc(x.asc)}</span><span class="c">${esc(x.classe)}</span></button>`).join("")}</div>`;
+    <p class="sub small">As com brilho são as que mais jogadores usam com ${esc(s.n)} na liga atual (poe.ninja).</p>
+    <div class="grade-asc">${rank.map((x) => `<button class="asc-op ${top.has(x.asc) ? "on" : ""}" data-criar="${esc(s.n)}" data-asc="${esc(x.asc)}">${imgAsc(x.asc, 92)}<span class="n">${esc(x.asc)}</span><span class="c">${qt(x.asc) ? esc(fmtN(qt(x.asc))) + " jogadores" : esc(x.classe)}</span></button>`).join("")}</div>`;
 }
 
-/* ================= FOTO ================= */
-let fotoEstado = null;
-function vFoto(v, r) {
-  const alvo = r.a && ST.builds[r.a] ? ST.builds[r.a] : null;
-  v.innerHTML = `
-    <h1>${alvo ? "Atualizar pela foto" : "Ler a build da foto"}</h1>
-    <p class="sub">Mande prints do jogo e o app lê os nomes para você — sem digitar item por item.</p>
-    <ol class="foto-dica">
-      <li><span class="n">1</span><span>No PS5, aperte <b>Create</b> e tire print da tela de <b>Skills</b> (gemas). Se quiser, também do <b>Personagem</b> (nível e números) e do <b>Equipamento</b>.</span></li>
-      <li><span class="n">2</span><span>Abra no celular pelo app <b>PlayStation</b> (as capturas vão sozinhas) e salve na galeria. Foto da TV também serve — reta e sem reflexo.</span></li>
-      <li><span class="n">3</span><span>Escolha as imagens aqui. A leitura é feita no próprio celular.</span></li>
-    </ol>
-    <button class="btn grande" id="escolherFotos">${ic("foto")} Escolher prints / fotos</button>
-    <div id="fotoProg" class="cartao hidden"><div id="fotoMsg" class="small">Preparando…</div><div class="progresso"><i id="fotoBarra"></i></div><div id="fotoMini" class="miniaturas"></div></div>
-    <div id="fotoRes"></div>`;
-  $("#escolherFotos").addEventListener("click", () => { const inp = $("#arquivoFoto"); inp.value = ""; inp.dataset.alvo = alvo ? alvo.id : ""; inp.click(); });
-  if (fotoEstado && fotoEstado.alvo === (alvo ? alvo.id : "")) mostrarResultadoFoto(fotoEstado.res, alvo);
+/* ================= DIAGNÓSTICO: fluxo (etapa → sintomas → prints/conferir) ================= */
+const DG = window.Diag;
+let rascunho = null;
+function novoRascunho(alvo) {
+  const P = alvo ? principal(alvo) : null;
+  const nv = alvo ? +alvo.nivel || 1 : 1;
+  return {
+    alvo: alvo ? alvo.id : "",
+    etapa: alvo && alvo.etapa ? alvo.etapa : "", etapaManual: !!(alvo && alvo.etapa),
+    nivel: nv, sintomas: new Set(alvo ? alvo.sintomas || [] : []),
+    asc: alvo ? alvo.asc : "", skill: P ? P.s.n : "", nvGema: P && P.g.nv ? +P.g.nv : "",
+    sup: P ? P.g.sup.slice() : [], outras: alvo ? alvo.grupos.filter((g) => !P || g !== P.g).map((g) => ({ skill: g.skill, papel: g.papel, nv: g.nv || "" })) : [],
+    stats: alvo ? Object.assign({}, alvo.stats) : {}, ascPts: alvo && alvo.ascPts != null ? alvo.ascPts : null,
+    unicos: alvo ? alvo.unicos.slice() : [], textoLido: ""
+  };
 }
-async function lerFotos(files, alvoId) {
-  const alvo = alvoId ? ST.builds[alvoId] : null;
+const CAMPOS_ST = [["vida", "Vida"], ["es", "Escudo de energia"], ["resFogo", "Res. fogo %"], ["resFrio", "Res. gelo %"], ["resRaio", "Res. raio %"], ["resCaos", "Res. caos %"], ["espirito", "Espírito"], ["dps", "DPS da skill (se souber)"]];
+function vDiag(v, r) {
+  const alvo = r.a && ST.builds[r.a] ? ST.builds[r.a] : null;
+  if (!rascunho || rascunho.alvo !== (alvo ? alvo.id : "")) rascunho = novoRascunho(alvo);
+  const d = rascunho;
+  const etapaSug = DG.etapaPorNivel(d.nivel);
+  if (!d.etapaManual) d.etapa = etapaSug;
+  const s = M.SK.get(d.skill);
+  v.innerHTML = `
+    <h1>${alvo ? "Atualizar diagnóstico" : "Diagnóstico da build"}</h1>
+    <p class="sub">Responda 3 coisas e eu mostro a maior fraqueza da sua build e como resolver nesta etapa.</p>
+
+    <div class="passo-tit"><span class="num">1</span><h2>Onde você está?</h2></div>
+    <div class="chips grande">${DG.ETAPAS.map((e) => `<button class="chip-op ${d.etapa === e.id ? "on" : ""}" data-etapa="${e.id}">${esc(e.n)}</button>`).join("")}</div>
+    <div class="linha-nivel"><span>Nível do personagem</span>
+      <div class="nivel"><button data-dn="-1" aria-label="Diminuir">${ic("menos")}</button><input id="dNivel" type="number" inputmode="numeric" min="1" max="100" value="${esc(d.nivel)}"><button data-dn="1" aria-label="Aumentar">${ic("mais")}</button></div></div>
+
+    <div class="passo-tit"><span class="num">2</span><h2>O que está acontecendo?</h2></div>
+    <div class="chips grande">${DG.SINTOMAS.map((x) => `<button class="chip-op ${d.sintomas.has(x.id) ? "on" : ""}" data-sint="${x.id}">${esc(x.n)}</button>`).join("")}</div>
+
+    <div class="passo-tit"><span class="num">3</span><h2>Mostre a build</h2></div>
+    <ol class="foto-dica">
+      <li><span class="n">a</span><span>No PS5, aperte <b>Create</b> e tire print das telas <b>Skills</b> (gemas) e <b>Personagem</b> (defesas: vida, resistências). Equipamento ajuda a achar os únicos.</span></li>
+      <li><span class="n">b</span><span>As capturas chegam no celular pelo app <b>PlayStation</b>. Foto da TV também serve, reta e sem reflexo.</span></li>
+    </ol>
+    <button class="btn grande" id="escolherFotos">${ic("foto")} Escolher prints</button>
+    <div id="fotoProg" class="cartao hidden"><div id="fotoMsg" class="small">Preparando…</div><div class="progresso"><i id="fotoBarra"></i></div><div id="fotoMini" class="miniaturas"></div></div>
+
+    <div class="secao" id="confere">Confira (ou preencha à mão)</div>
+    <div class="cartao">
+      <div class="campo"><label for="dAsc">Ascendência</label><select id="dAsc"><option value="">— escolha —</option>${CLASSES.map((c) => `<optgroup label="${esc(c.n)}">${c.asc.map((a) => `<option ${a === d.asc ? "selected" : ""}>${esc(a)}</option>`).join("")}</optgroup>`).join("")}</select></div>
+      <div class="campo" style="margin-top:10px"><label>Skill principal</label>
+        <button class="skill-op" id="dSkill" style="margin:0">${s ? imgGema(s.n) : `<span class="gema-ic vazio">+</span>`}<span class="info"><span class="n">${esc(s ? s.n : "Escolher skill")}</span><br><span class="t">${esc(s ? resumoSkill(s) : "toque para escolher")}</span></span></button></div>
+      ${s ? `<div class="campos" style="margin-top:10px"><div class="campo"><label for="dNvGema">Nível da gema</label><input id="dNvGema" type="number" inputmode="numeric" min="1" max="21" value="${esc(d.nvGema)}" placeholder="ex.: 9"></div>
+        <div class="campo"><label>Pontos de ascendência</label><div class="chips">${[0, 2, 4, 6, 8].map((n) => `<button class="chip-op mini ${d.ascPts === n ? "on" : ""}" data-asc-pts="${n}">${n}</button>`).join("")}</div></div></div>
+      <div class="campo" style="margin-top:10px"><label>Suportes da ${esc(s.n)} (${d.sup.length}/5)</label>
+        <div class="chips">${d.sup.map((n) => `<span class="chip">${imgGema(n, "p")} ${esc(n)} <button class="x" data-tira-sup="${esc(n)}" aria-label="Tirar">${ic("x")}</button></span>`).join("")}
+        ${d.sup.length < 5 ? `<button class="chip-op mini" id="dAddSup">${ic("mais")} suporte</button>` : ""}</div></div>` : ""}
+      ${d.outras.length ? `<div class="campo" style="margin-top:10px"><label>Outras skills lidas</label><div class="chips">${d.outras.map((g) => `<span class="chip">${imgGema(g.skill, "p")} ${esc(g.skill)}</span>`).join("")}</div></div>` : ""}
+      ${d.unicos.length ? `<div class="campo" style="margin-top:10px"><label>Únicos</label><div class="chips">${d.unicos.map((u) => `<span class="chip" style="color:var(--unico)">${esc(u)}</span>`).join("")}</div></div>` : ""}
+      <div class="campos" style="margin-top:12px">${CAMPOS_ST.map(([k, rot]) => `<div class="campo"><label for="dst-${k}">${esc(rot)}</label><input id="dst-${k}" data-dst="${k}" type="number" inputmode="numeric" value="${esc(d.stats[k] == null ? "" : d.stats[k])}"></div>`).join("")}</div>
+      ${d.textoLido ? `<details style="margin-top:10px"><summary class="small muted">Ver o texto lido dos prints</summary><textarea readonly style="width:100%;min-height:120px;background:#0f0d0b;color:var(--txt2);border:1px solid var(--borda2);border-radius:10px">${esc(d.textoLido)}</textarea></details>` : ""}
+    </div>
+    <button class="btn grande" id="verDiag" ${d.asc && d.skill ? "" : "disabled"}>${ic("alvo")} Ver diagnóstico</button>
+    ${d.asc && d.skill ? "" : `<p class="small muted" style="text-align:center">Falta ${!d.asc ? "a ascendência" : ""}${!d.asc && !d.skill ? " e " : ""}${!d.skill ? "a skill principal" : ""} — mande um print da tela de Skills ou escolha acima.</p>`}`;
+
+  const re = () => { const y = window.scrollY; render(); window.scrollTo(0, y); };
+  $$("[data-etapa]", v).forEach((bt) => bt.addEventListener("click", () => { d.etapa = bt.dataset.etapa; d.etapaManual = true; re(); }));
+  $$("[data-sint]", v).forEach((bt) => bt.addEventListener("click", () => {
+    const id = bt.dataset.sint;
+    if (d.sintomas.has(id)) d.sintomas.delete(id); else { if (id === "melhorar") d.sintomas.clear(); else d.sintomas.delete("melhorar"); d.sintomas.add(id); }
+    re();
+  }));
+  const setNivel = (n) => { d.nivel = Math.max(1, Math.min(100, n || 1)); re(); };
+  $$("[data-dn]", v).forEach((bt) => bt.addEventListener("click", () => setNivel(d.nivel + +bt.dataset.dn)));
+  $("#dNivel").addEventListener("change", (e) => setNivel(+e.target.value));
+  $("#dAsc").addEventListener("change", (e) => { d.asc = e.target.value; re(); });
+  $("#dSkill").addEventListener("click", () => {
+    const lista = (d.asc ? M.rankSkillsPorAsc(d.asc).map((x) => x.s) : J.skills).filter((x) => x.gid && ["Attack", "Spell", "Minion"].includes(x.t) && !M.ehPersistente(x));
+    seletor("Skill principal", lista.map((x) => ({ n: x.n, t: resumoSkill(x), selo: metaSelo(x.n, d.asc) })), (n) => { if (n !== d.skill) { d.skill = n; d.sup = []; d.nvGema = ""; } re(); });
+  });
+  if ($("#dNvGema")) $("#dNvGema").addEventListener("change", (e) => { d.nvGema = e.target.value ? Math.max(1, Math.min(21, +e.target.value)) : ""; });
+  $$("[data-asc-pts]", v).forEach((bt) => bt.addEventListener("click", () => { const n = +bt.dataset.ascPts; d.ascPts = d.ascPts === n ? null : n; re(); }));
+  $$("[data-tira-sup]", v).forEach((bt) => bt.addEventListener("click", () => { d.sup = d.sup.filter((x) => x !== bt.dataset.tiraSup); re(); }));
+  if ($("#dAddSup")) $("#dAddSup").addEventListener("click", () => {
+    const sk = M.SK.get(d.skill);
+    const lst = M.suportesCompativeis(sk).filter((x) => !d.sup.includes(x.n)).sort((a, z) => a.n.localeCompare(z.n));
+    seletor("Adicionar suporte", lst.map((x) => ({ n: x.n, t: (x.fx && x.fx[0] || "").replace(/\n/g, " ") })), (n) => { d.sup.push(n); re(); });
+  });
+  $$("[data-dst]", v).forEach((inp) => inp.addEventListener("change", () => { const k = inp.dataset.dst; if (inp.value.trim() === "") delete d.stats[k]; else d.stats[k] = +inp.value; }));
+  $("#escolherFotos").addEventListener("click", () => { const inp = $("#arquivoFoto"); inp.value = ""; inp.click(); });
+  $("#verDiag").addEventListener("click", () => concluirDiag(d, alvo));
+}
+async function lerFotosDiag(files) {
+  const d = rascunho; if (!d) return;
   $("#fotoProg").classList.remove("hidden");
-  $("#fotoRes").innerHTML = "";
   $("#fotoMini").innerHTML = files.map(() => "<img alt=\"\">").join("");
   $$("#fotoMini img").forEach((im, i) => { im.src = URL.createObjectURL(files[i]); });
   $("#escolherFotos").disabled = true;
   try {
     const res = await window.Foto.ler(files, (p, msg) => { $("#fotoBarra").style.width = Math.round(p * 100) + "%"; $("#fotoMsg").textContent = msg; });
-    fotoEstado = { alvo: alvoId || "", res };
-    mostrarResultadoFoto(res, alvo);
+    let achou = 0;
+    if (res.asc) { d.asc = res.asc; achou++; }
+    if (res.nivel) { d.nivel = res.nivel; achou++; }
+    const pri = res.grupos.find((g) => g.papel === "principal");
+    if (pri) { d.skill = pri.skill; d.sup = pri.sup.slice(0, 5); if (pri.nv) d.nvGema = pri.nv; achou++; }
+    res.grupos.filter((g) => g !== pri).forEach((g) => { if (!d.outras.some((o) => o.skill === g.skill)) d.outras.push({ skill: g.skill, papel: g.papel, nv: g.nv || "" }); });
+    res.unicos.forEach((u) => { if (!d.unicos.includes(u)) d.unicos.push(u); });
+    Object.entries(res.stats).forEach(([k, val]) => { d.stats[k] = val; achou++; });
+    if (!d.asc && pri) { const rk = M.rankAscPorSkill(M.SK.get(pri.skill)).filter((x) => !res.classe || x.classe === res.classe); if (rk.length) d.asc = rk[0].asc; }
+    d.textoLido = (d.textoLido ? d.textoLido + "\n---\n" : "") + res.linhas.join("\n");
+    render();
+    const c = $("#confere"); if (c) c.scrollIntoView({ block: "start" });
+    toast(achou ? "Li os prints — confira os dados" : "Não reconheci nomes do jogo — confira o texto lido");
   } catch (e) {
-    $("#fotoRes").innerHTML = `<div class="cartao"><b>Não consegui ler.</b><p class="small muted">${esc(e.message || e)}</p></div>`;
+    toast("Não consegui ler: " + (e.message || e));
   } finally {
-    $("#escolherFotos").disabled = false;
+    const bt = $("#escolherFotos"); if (bt) bt.disabled = false;
   }
 }
-function mostrarResultadoFoto(res, alvo) {
-  const el = $("#fotoRes"); if (!el) return;
-  const nada = !res.grupos.length && !res.asc && !res.unicos.length && !Object.keys(res.stats).length;
-  const P = res.grupos.find((g) => g.papel === "principal");
-  let ascSug = res.asc;
-  if (!ascSug && P) { const rk = M.rankAscPorSkill(M.SK.get(P.skill)).filter((x) => !res.classe || x.classe === res.classe); ascSug = rk.length ? rk[0].asc : ""; }
-  if (!ascSug && alvo) ascSug = alvo.asc;
-  const STAT_PT = { vida: "Vida", es: "Escudo de energia", mana: "Mana", espirito: "Espírito", armadura: "Armadura", evasao: "Evasão", resFogo: "Res. fogo", resFrio: "Res. gelo", resRaio: "Res. raio", resCaos: "Res. caos", bloqueio: "Bloqueio", deflexao: "Deflexão" };
-  el.innerHTML = nada ? `<div class="cartao"><b>Não reconheci nomes do jogo nessas imagens.</b>
-      <p class="small muted">Dica: use os prints do próprio PS5 (mais nítidos que foto da TV) da tela de Skills, com o jogo em inglês.</p>
-      <details><summary class="small">Ver o texto lido</summary><textarea readonly>${esc(res.linhas.join("\n"))}</textarea></details></div>` : `
-    <div class="secao">Encontrei</div>
-    <div class="cartao">
-      <div class="achou"><span class="info"><b>Ascendência</b><div class="t">${res.asc ? "lida na imagem" : "não apareceu — escolhi a que mais combina"}</div></span>
-        <select id="fAsc" class="campo" style="max-width:52%;min-height:42px;border-radius:9px;background:#0f0d0b;border:1px solid var(--borda2);padding:6px">${CLASSES.map((c) => `<optgroup label="${esc(c.n)}">${c.asc.map((a) => `<option ${a === ascSug ? "selected" : ""}>${esc(a)}</option>`).join("")}</optgroup>`).join("")}</select></div>
-      ${res.nivel ? `<label class="achou"><input type="checkbox" data-f="nivel" checked><span class="info"><b>Nível ${res.nivel}</b></span></label>` : ""}
-      ${res.grupos.map((g, i) => `<label class="achou"><input type="checkbox" data-f="g${i}" checked>${imgGema(g.skill, "p")}<span class="info"><b style="color:var(--gema)">${esc(g.skill)}</b>${g.papel === "principal" ? ` <span class="selo">principal</span>` : ""}
-        <div class="t">${g.sup.length ? esc(g.sup.join(" · ")) : "sem suportes lidos"}</div></span></label>`).join("")}
-      ${res.unicos.map((u, i) => `<label class="achou"><input type="checkbox" data-f="u${i}" checked><span class="info"><b style="color:var(--unico)">${esc(u)}</b><div class="t">único</div></span></label>`).join("")}
-      ${Object.entries(res.stats).map(([k, val]) => `<label class="achou"><input type="checkbox" data-f="s:${esc(k)}" checked><span class="info"><b>${esc(STAT_PT[k] || k)}: ${esc(val)}</b></span></label>`).join("")}
-    </div>
-    <button class="btn grande" id="fotoCriar">${ic("ok")} ${alvo ? "Atualizar " + esc(alvo.nome) : "Criar build"}</button>
-    <details style="margin-top:12px"><summary class="small muted">Ver o texto lido</summary><textarea readonly style="width:100%;min-height:140px;background:#0f0d0b;color:var(--txt2);border:1px solid var(--borda2);border-radius:10px">${esc(res.linhas.join("\n"))}</textarea></details>`;
-  const btn = $("#fotoCriar");
-  if (!btn) return;
-  btn.addEventListener("click", () => {
-    const marc = (k) => { const c = el.querySelector(`[data-f="${k}"]`); return c && c.checked; };
-    const asc = $("#fAsc").value;
-    const grupos = res.grupos.filter((g, i) => marc("g" + i)).map((g) => ({ skill: g.skill, papel: g.papel, sup: g.sup.slice() }));
-    if (grupos.length && !grupos.some((g) => g.papel === "principal")) grupos[0].papel = "principal";
-    let b;
-    if (alvo) {
-      b = alvo;
-      if (grupos.length) b.grupos = grupos;
-    } else {
-      const P0 = grupos.find((g) => g.papel === "principal");
-      b = normalizar(P0 ? M.montar(P0.skill, asc, "foto") : M.novaBuild({ origem: "foto" }));
-      if (grupos.length) b.grupos = grupos;
-      b.nome = (P0 ? P0.skill : "Build") + " · " + asc;
-    }
-    b.asc = asc; b.classe = CLASSE_DE[asc] || b.classe;
-    const P1 = M.principal(b);
-    if (P1 && !M.armaAtende(P1.s.w, b.arma, b.offhand)) { b.arma = M.armaSugerida(P1.s.w) || b.arma; if (b.arma === "Bow") b.offhand = "Quiver"; }
-    if (res.nivel && marc("nivel")) b.nivel = res.nivel;
-    res.unicos.forEach((u, i) => { if (marc("u" + i) && !b.unicos.includes(u)) b.unicos.push(u); });
-    Object.entries(res.stats).forEach(([k, val]) => { if (marc("s:" + k)) b.stats[k] = val; });
-    calcularPlano(b);
-    salvar(b);
-    fotoEstado = null;
-    ir("#/b/" + b.id);
-    toast(alvo ? "Build atualizada" : "Build criada — veja o caminho na árvore");
-  });
+function concluirDiag(d, alvo) {
+  let b;
+  if (alvo) {
+    b = alvo;
+    const P = principal(b);
+    if (!P || P.s.n !== d.skill) {
+      b.grupos.forEach((g) => { if (g.papel === "principal") g.papel = "secundaria"; });
+      b.grupos = b.grupos.filter((g) => g.skill !== d.skill);
+      b.grupos.unshift({ skill: d.skill, papel: "principal", sup: d.sup.slice(), nv: d.nvGema || "" });
+    } else { P.g.sup = d.sup.slice(); P.g.nv = d.nvGema || ""; }
+  } else {
+    b = normalizar(M.montar(d.skill, d.asc, "diagnostico"));
+    b.grupos = [{ skill: d.skill, papel: "principal", sup: d.sup.slice(), nv: d.nvGema || "" }];
+    b.nome = d.skill + " · " + d.asc;
+  }
+  d.outras.forEach((o) => { if (!b.grupos.some((g) => g.skill === o.skill)) b.grupos.push({ skill: o.skill, papel: o.papel || "secundaria", sup: [], nv: o.nv || "" }); });
+  b.asc = d.asc; b.classe = CLASSE_DE[d.asc] || b.classe;
+  const P = principal(b);
+  if (P && !M.armaAtende(P.s.w, b.arma, b.offhand)) { b.arma = M.armaSugerida(P.s.w) || b.arma; if (b.arma === "Bow") b.offhand = "Quiver"; }
+  b.nivel = d.nivel; b.etapa = d.etapa; b.sintomas = [...d.sintomas]; b.ascPts = d.ascPts;
+  b.stats = Object.assign({}, d.stats);
+  b.unicos = [...new Set([...(b.unicos || []), ...d.unicos])];
+  calcularPlano(b);
+  salvar(b);
+  rascunho = null;
+  ir("#/b/" + b.id + "/diag");
 }
 
 /* ================= BUILD ================= */
 function vBuild(v, b, aba) {
   const P = principal(b);
-  let an = null;
-  try { an = M.analisar(b); } catch (e) { an = null; }
   v.innerHTML = `
     <div class="heroi">
       <div class="avatar">${imgAsc(b.asc || b.classe, 72)}${P ? imgGema(P.s.n) : ""}</div>
@@ -409,18 +475,17 @@ function vBuild(v, b, aba) {
         <div class="det">${esc(b.asc || b.classe || "sem ascendência")}${P ? " · " + esc(P.s.n) : ""}</div>
         <div class="nivel"><button data-nivel="-1" aria-label="Diminuir nível">${ic("menos")}</button><span data-acao="nivel">Nível ${esc(b.nivel)}</span><button data-nivel="1" aria-label="Aumentar nível">${ic("mais")}</button></div>
       </div>
-      ${an ? `<div class="nota ${notaCls(an.geral)}" title="Nota geral">${esc(String(an.geral).replace(".", ","))}</div>` : ""}
     </div>
     <nav class="abas">
+      <button class="${aba === "diag" ? "on" : ""}" data-ir="#/b/${esc(b.id)}/diag">Diagnóstico</button>
       <button class="${aba === "arvore" ? "on" : ""}" data-ir="#/b/${esc(b.id)}/arvore">Árvore</button>
       <button class="${aba === "gemas" ? "on" : ""}" data-ir="#/b/${esc(b.id)}/gemas">Gemas</button>
-      <button class="${aba === "analise" ? "on" : ""}" data-ir="#/b/${esc(b.id)}/analise">Análise</button>
     </nav>
     <div id="abaCorpo"></div>`;
   const corpo = $("#abaCorpo");
   if (aba === "gemas") return abaGemas(corpo, b);
-  if (aba === "analise") return abaAnalise(corpo, b, an);
-  return abaArvore(corpo, b);
+  if (aba === "arvore") return abaArvore(corpo, b);
+  return abaDiag(corpo, b);
 }
 
 /* ---------- aba ÁRVORE ---------- */
@@ -570,7 +635,8 @@ function abaGemas(el, b) {
   el.innerHTML = `
     <div class="cartao ouro">
       ${s ? `<div class="skill-top">${imgGema(s.n, "g")}<div><div class="n">${esc(s.n)}</div><div class="small muted">${esc(resumoSkill(s))}</div></div></div>
-        <p class="small" style="color:var(--txt2)">${esc(s.d || "")}</p>` : `<p>Sem skill principal.</p>`}
+        <p class="small" style="color:var(--txt2)">${esc(s.d || "")}</p>
+        <div class="linha-nivel"><span>Nível da gema${s.lv ? ` <small class="muted">(no nível ${esc(b.nivel)} dá até ${esc(DG.nivelGema(s, +b.nivel || 1))})</small>` : ""}</span><input id="nvGemaPri" class="campo-num" type="number" inputmode="numeric" min="1" max="21" value="${esc(P.g.nv || "")}" placeholder="?"></div>` : `<p>Sem skill principal.</p>`}
       <div class="linha-btns"><button class="btn fant mini" data-acao="trocarSkill">Trocar skill principal</button></div>
     </div>
     <div class="secao">Suportes da skill principal (${atuais.length}/5)</div>
@@ -594,6 +660,7 @@ function abaGemas(el, b) {
     </div>${s && !M.armaAtende(s.w, b.arma, b.offhand) ? `<p class="small" style="color:var(--erro)">${esc(s.n)} pede: ${esc(s.w)}.</p>` : ""}</div>`;
   $$("[data-sup]", el).forEach((d) => d.addEventListener("click", () => folhaSup(b, d.dataset.sup)));
   $$("[data-grupo]", el).forEach((d) => d.addEventListener("click", () => folhaSkill(b, d.dataset.grupo)));
+  if ($("#nvGemaPri")) $("#nvGemaPri").addEventListener("change", (e) => { P.g.nv = e.target.value ? Math.max(1, Math.min(21, +e.target.value)) : ""; salvar(b); toast("Nível da gema salvo — o diagnóstico já usa"); });
   $("#arma").addEventListener("change", (e) => { b.arma = e.target.value; salvar(b); render(); });
   $("#off").addEventListener("change", (e) => { b.offhand = e.target.value; salvar(b); render(); });
 }
@@ -642,41 +709,87 @@ function seletor(titulo, itens, aoEscolher) {
   });
 }
 
-/* ---------- aba ANÁLISE ---------- */
-function abaAnalise(el, b, an) {
-  if (!an) { el.innerHTML = `<p class="vazio-txt">Sem análise.</p>`; return; }
-  const prox = an.achados.find((a) => a.sev === "erro") || an.achados.find((a) => a.sev === "alerta") || an.achados.find((a) => a.sev === "dica");
-  const resto = an.achados.filter((a) => a !== prox && a.sev !== "info");
-  const N = an.notas;
-  const barra = (rot, v, extra) => `<div class="barra-nota"><span>${esc(rot)}${extra || ""}</span><span class="tr"><i style="width:${Math.max(0, Math.min(100, v * 10))}%"></i></span><b>${esc(String(v).replace(".", ","))}</b></div>`;
-  const st = b.stats || {};
-  const CAMPOS = [["vida", "Vida"], ["es", "Escudo de energia"], ["resFogo", "Res. fogo %"], ["resFrio", "Res. gelo %"], ["resRaio", "Res. raio %"], ["resCaos", "Res. caos %"], ["armadura", "Armadura"], ["evasao", "Evasão"]];
-  el.innerHTML = `
-    <div class="cartao ouro" style="display:flex;gap:14px;align-items:center">
-      <div class="nota ${notaCls(an.geral)}" style="width:64px;height:64px;font-size:22px">${esc(String(an.geral).replace(".", ","))}</div>
-      <div><div style="font-weight:700">${esc(an.arquetipo)}</div><div class="chips" style="margin-top:6px">${(an.rotulos || []).slice(0, 5).map((r) => `<span class="chip">${esc(semEmoji(r.t))}</span>`).join("")}</div></div>
-    </div>
-    ${prox ? `<div class="cartao proximo"><div class="tag">Próximo passo</div><div class="tit">${esc(M.preencher(prox.titulo))}</div><div class="small" style="color:var(--txt2)">${esc(M.preencher(prox.porque || ""))}</div>${prox.acao ? `<div class="small" style="color:var(--ouro2);margin-top:6px">${esc(M.preencher(prox.acao))}</div>` : ""}</div>` : `<div class="cartao"><b>Nada urgente para corrigir.</b></div>`}
-    <div class="cartao"><div class="barras">
-      ${barra("Dano", N.dano)}${barra("Defesa", N.defesa, N.defesaEstimada ? " *" : "")}${barra("Recuperação", N.recuperacao)}${barra("Coerência", N.coerencia)}${barra("Controle PS5", N.controle)}${barra("Acessível", N.acesso)}
-    </div>${N.defesaEstimada ? `<p class="small muted" style="margin:8px 0 0">* defesa estimada — preencha seus números abaixo (ou leia da foto do personagem).</p>` : ""}</div>
-    ${resto.length ? `<div class="secao">Outros pontos (${resto.length})</div><div class="cartao">${resto.slice(0, 4).map(achadoHtml).join("")}
-      ${resto.length > 4 ? `<details><summary class="small" style="color:var(--ouro2);padding:6px 0">Ver mais ${resto.length - 4}</summary>${resto.slice(4).map(achadoHtml).join("")}</details>` : ""}</div>` : ""}
-    <div class="secao">Seus números (opcional)</div>
-    <div class="cartao">
-      <div class="campos">${CAMPOS.map(([k, rot]) => `<div class="campo"><label for="st-${k}">${esc(rot)}</label><input id="st-${k}" data-st="${k}" type="number" inputmode="numeric" value="${esc(st[k] == null ? "" : st[k])}"></div>`).join("")}</div>
-      <div class="linha-btns" style="margin-top:12px"><button class="btn fant" data-ir="#/foto/${esc(b.id)}">${ic("foto")} Ler da foto do personagem</button></div>
-    </div>
-    <div class="secao">Aprender mais</div>
-    <div class="cartao">${M.pesquisa(b).map((x) => `<div style="margin:6px 0"><div class="small">${esc(x.titulo)}</div><div class="chips" style="margin-top:4px">${x.links.map(([t, u]) => `<a class="btn fant mini" href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join("")}</div></div>`).join("")}</div>`;
-  $$("[data-st]", el).forEach((inp) => inp.addEventListener("change", () => {
-    const k = inp.dataset.st, v = inp.value.trim();
-    if (v === "") delete b.stats[k]; else b.stats[k] = +v;
-    salvar(b); render();
-  }));
+/* ---------- aba DIAGNÓSTICO ---------- */
+const AREA_PT = { defesa: "Defesa", dano: "Dano", mana: "Mana", stun: "Stun", ailment: "Ailments", recup: "Recuperação", clear: "Limpeza" };
+function cartaoProblema(p, grande) {
+  return `<div class="${grande ? "cartao fraqueza" : ""}">
+    ${grande ? `<div class="tag">Sua maior fraqueza · ${esc(AREA_PT[p.area] || p.area)}</div>` : ""}
+    <div class="tit">${esc(p.tit)}</div>
+    ${p.num ? `<div class="num">${esc(p.num)}</div>` : ""}
+    ${p.pq ? `<p class="pq">${esc(p.pq)}</p>` : ""}
+    ${p.passos && p.passos.length ? `<div class="tag2">Como resolver agora</div><ol class="resolver">${p.passos.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>` : ""}
+    ${p.lista ? `<div class="ref-lista">${p.lista.map((x) => barraRef(x.n, x.p, x.tem, true)).join("")}</div>` : ""}
+    ${p.fonte ? `<div class="fonte">Base: ${esc(p.fonte)}</div>` : ""}
+  </div>`;
 }
-function achadoHtml(a) {
-  return `<div class="achado ${esc(a.sev)}"><div class="tit">${esc(M.preencher(a.titulo))}</div>${a.porque ? `<div class="pq">${esc(M.preencher(a.porque))}</div>` : ""}${a.acao ? `<div class="ac">${esc(M.preencher(a.acao))}</div>` : ""}</div>`;
+function barraRef(nome, p, tem, gema) {
+  return `<div class="ref-l">${gema ? imgGema(nome, "p") : ""}<span class="nm">${esc(nome)}${tem === true ? ` <span class="ok">${ic("ok")}</span>` : tem === false ? ` <span class="nao">você não usa</span>` : ""}</span>
+    <span class="br"><i style="width:${Math.max(2, Math.min(100, p))}%"></i></span><b>${esc(p)}%</b></div>`;
+}
+function abaDiag(el, b) {
+  const r = DG.diagnosticar(b);
+  const P = principal(b);
+  const E = r.etapa;
+  const top = r.problemas[0];
+  const resto = r.problemas.slice(1, 5);
+  const sints = (b.sintomas || []).map((id) => (DG.SINTOMAS.find((x) => x.id === id) || {}).n).filter(Boolean);
+  const ref = r.ref;
+  const fam = (n) => { const x = M.SU.get(n); return x ? x.fam : n; };
+  const meusSup = new Set(P ? P.g.sup.map(fam) : []);
+  const minhas = new Set((b.grupos || []).map((g) => g.skill));
+  const etqDims = ref && ref.dims ? DG.ETAPA.get(ref.etDims) : null;
+  const momento = (m) => !m || m === "atual" ? "agora" : m.replace(/^hour-(\d+)/, "$1 h de liga").replace(/^day-(\d+)/, (x, n) => n + (n === "1" ? " dia" : " dias") + " de liga").replace(/^week-(\d+)/, (x, n) => n + (n === "1" ? " semana" : " semanas") + " de liga");
+  el.innerHTML = `
+    <div class="situ">
+      <button class="chip-op on" data-acao="etapa">${esc(E.n)} · nível ${esc(b.nivel)}</button>
+      <button class="chip-op ${sints.length ? "on2" : ""}" data-acao="sintomas">${esc(sints.length ? sints.join(", ") : "Sem sintomas")}</button>
+      <button class="chip-op" data-ir="#/diag/${esc(b.id)}">${ic("foto")} Atualizar prints</button>
+    </div>
+    ${top ? cartaoProblema(top, true) : `<div class="cartao fraqueza ok"><div class="tag">Diagnóstico</div><div class="tit">Nada grave com os dados que tenho</div>
+      <p class="pq">${r.faltam.length ? "Mande os prints que faltam (abaixo) para eu checar tudo." : "Resistências, vida e skill estão dentro do esperado para a etapa."}</p></div>`}
+    ${resto.length ? `<div class="secao">Depois disso</div>${resto.map((p, i) => `<details class="cartao prob"><summary><span class="n">${i + 2}</span><span class="t">${esc(p.tit)}<small>${esc(p.num || "")}</small></span></summary>${cartaoProblema(p, false)}</details>`).join("")}` : ""}
+    ${r.faltam.length ? `<div class="secao">Faltam dados</div><div class="cartao">${r.faltam.map((f) => `<div class="falta"><b>${esc(f.t)}</b><span>${esc(f.como)}</span></div>`).join("")}
+      <button class="btn fant mini" data-ir="#/diag/${esc(b.id)}" style="margin-top:8px">${ic("foto")} Mandar prints / preencher</button></div>` : ""}
+    ${r.bons.length ? `<div class="secao">O que já está bom</div><div class="chips">${r.bons.map((x) => `<span class="chip okc">${ic("ok")} ${esc(x)}</span>`).join("")}</div>` : ""}
+    ${ref && ref.dims ? `<div class="secao">Quem joga ${esc(P.s.n)} — ${esc(etqDims ? etqDims.n : E.n)}</div>
+      <div class="cartao refc">
+        <p class="small muted" style="margin-top:0">${esc(fmtN(ref.dims.n))} personagens no topo da liga com ${esc(momento(ref.dims.m))} (${esc((window.KB_REF || {}).fonte || "poe.ninja")}). É referência do que funciona, não regra.</p>
+        ${ref.st && (ref.st.vida || ref.st.pool) ? `<div class="ref-num">${ref.st.vida ? `<div><b>${fmtN(ref.st.vida[1])}</b><span>vida típica</span></div>` : ""}${ref.st.es ? `<div><b>${fmtN(ref.st.es[1])}</b><span>ES típico</span></div>` : ""}${ref.st.dps ? `<div><b>${fmtN(ref.st.dps[1])}</b><span>DPS típico</span></div>` : ""}</div>` : ""}
+        <div class="tag2">Suportes ligados à skill</div>
+        <div class="ref-lista">${(ref.dims.sup || []).slice(0, 8).map(([n, p]) => barraRef(n, p, P ? meusSup.has(fam(n)) : null, true)).join("")}</div>
+        ${(ref.dims.esp || []).length ? `<div class="tag2">Buffs de espírito</div><div class="ref-lista">${ref.dims.esp.slice(0, 5).map(([n, p]) => barraRef(n, p, minhas.has(n), true)).join("")}</div>` : ""}
+        ${(ref.dims.asc || []).length ? `<div class="tag2">Ascendências</div><div class="ref-lista">${ref.dims.asc.slice(0, 4).map(([n, p]) => barraRef(n, p, n === b.asc ? true : null)).join("")}</div>` : ""}
+        ${(ref.dims.uni || []).length ? `<div class="tag2">Únicos mais usados</div><div class="ref-lista">${ref.dims.uni.slice(0, 5).map(([n, p]) => barraRef(n, p, (b.unicos || []).includes(n) ? true : null)).join("")}</div>` : ""}
+        <div class="chips" style="margin-top:12px">
+          <a class="btn fant mini" href="${esc(((window.KB_REF || {}).url || "https://poe.ninja/poe2/builds") + "?skills=" + encodeURIComponent(P.s.n))}" target="_blank" rel="noopener">Ver no poe.ninja</a>
+          <a class="btn fant mini" href="https://maxroll.gg/poe2/build-guides" target="_blank" rel="noopener">Guias Maxroll</a>
+          <a class="btn fant mini" href="https://mobalytics.gg/poe-2/builds" target="_blank" rel="noopener">Mobalytics</a>
+        </div>
+      </div>` : P ? `<div class="secao">Referência</div><div class="cartao"><p class="small muted" style="margin:0">Ainda não tenho dados do poe.ninja para ${esc(P.s.n)} (é uma skill pouco jogada). O diagnóstico usa só as regras do jogo.</p></div>` : ""}
+    <p class="rodape">Diagnóstico com regras e dados do jogo (Path of Building 2, exportação da GGG, RePoE) e referência de builds reais (poe.ninja). Nada aqui é inventado: cada item mostra a sua base.</p>`;
+}
+const fmtN = (n) => Math.round(+n || 0).toLocaleString("pt-BR");
+function folhaEtapa(b) {
+  abrirFolha(`<h2>Onde você está?</h2><div class="chips grande">${DG.ETAPAS.map((e) => `<button class="chip-op ${b.etapa === e.id ? "on" : ""}" data-e="${e.id}">${esc(e.n)}</button>`).join("")}</div>
+    <div class="linha-nivel" style="margin-top:14px"><span>Nível</span><div class="nivel"><button data-fn="-1">${ic("menos")}</button><input id="fNivel" type="number" inputmode="numeric" min="1" max="100" value="${esc(b.nivel)}"><button data-fn="1">${ic("mais")}</button></div></div>
+    <div class="linha-btns" style="margin-top:14px"><button class="btn" id="fOk">Ver diagnóstico</button></div>`, (c) => {
+    let et = b.etapa || DG.etapaPorNivel(b.nivel);
+    $$("[data-e]", c).forEach((bt) => bt.addEventListener("click", () => { et = bt.dataset.e; $$("[data-e]", c).forEach((x) => x.classList.toggle("on", x === bt)); }));
+    $$("[data-fn]", c).forEach((bt) => bt.addEventListener("click", () => { const i = $("#fNivel", c); i.value = Math.max(1, Math.min(100, (+i.value || 1) + +bt.dataset.fn)); }));
+    $("#fOk", c).addEventListener("click", () => { b.etapa = et; b.nivel = Math.max(1, Math.min(100, +$("#fNivel", c).value || b.nivel)); salvar(b); fecharFolha(); render(); });
+  });
+}
+function folhaSintomas(b) {
+  const sel = new Set(b.sintomas || []);
+  abrirFolha(`<h2>O que está acontecendo?</h2><div class="chips grande">${DG.SINTOMAS.map((x) => `<button class="chip-op ${sel.has(x.id) ? "on" : ""}" data-s="${x.id}">${esc(x.n)}</button>`).join("")}</div>
+    <div class="linha-btns" style="margin-top:14px"><button class="btn" id="sOk">Ver diagnóstico</button></div>`, (c) => {
+    $$("[data-s]", c).forEach((bt) => bt.addEventListener("click", () => {
+      const id = bt.dataset.s;
+      if (sel.has(id)) sel.delete(id); else { if (id === "melhorar") sel.clear(); else sel.delete("melhorar"); sel.add(id); }
+      $$("[data-s]", c).forEach((x) => x.classList.toggle("on", sel.has(x.dataset.s)));
+    }));
+    $("#sOk", c).addEventListener("click", () => { b.sintomas = [...sel]; salvar(b); fecharFolha(); render(); });
+  });
 }
 
 /* ================= MENU / AÇÕES ================= */
@@ -685,7 +798,7 @@ function menu() {
   const b = r.v === "b" ? ST.builds[r.a] : null;
   const itens = b ? [
     ["jogo", "bussola", "Levar para o jogo (Build Planner)"],
-    ["fotoAtualizar", "foto", "Atualizar pela foto"],
+    ["fotoAtualizar", "foto", "Atualizar diagnóstico (prints)"],
     ["renomear", "codigo", "Renomear"],
     ["duplicar", "mais", "Duplicar"],
     ["apagar", "x", "Apagar build", "perigo"]
@@ -700,7 +813,7 @@ function menu() {
 function acao(nome, el) {
   const r = rota();
   const b = r.v === "b" ? ST.builds[r.a] : null;
-  if (nome !== "pob" && nome !== "sortear") fecharFolhaSeMenu();
+  if (!["pob", "sortear", "etapa", "sintomas"].includes(nome)) fecharFolhaSeMenu();
   switch (nome) {
     case "sortear": { const x = normalizar(M.aleatoria()); x.nome = semEmoji(x.nome); x.nivel = 1; calcularPlano(x); salvar(x); ir("#/b/" + x.id); toast("Build sorteada: " + x.nome); break; }
     case "pob": return folhaPob();
@@ -708,7 +821,9 @@ function acao(nome, el) {
     case "nivel": if (b) folhaNivel(b); break;
     case "duplicar": if (b) { const x = normalizar(JSON.parse(JSON.stringify(b))); x.id = M.novaBuild().id; x.nome = b.nome + " (cópia)"; x.criado = Date.now(); salvar(x); ir("#/b/" + x.id); } break;
     case "apagar": if (b) apagarBuild(b.id); break;
-    case "fotoAtualizar": if (b) ir("#/foto/" + b.id); break;
+    case "fotoAtualizar": if (b) ir("#/diag/" + b.id); break;
+    case "etapa": if (b) folhaEtapa(b); break;
+    case "sintomas": if (b) folhaSintomas(b); break;
     case "jogo": if (b) folhaBuildPlanner(b); break;
     case "trocarSkill": if (b) {
       const rk = b.asc ? M.rankSkillsPorAsc(b.asc).map((x) => x.s) : J.skills;
@@ -802,13 +917,14 @@ document.addEventListener("click", (e) => {
   if (!t) return;
   if (t.hasAttribute("data-fechar")) { fecharFolha(); return; }
   if (t.dataset.ir) { e.preventDefault(); fecharFolhaSeMenu(); ir(t.dataset.ir); return; }
-  if (t.dataset.criar) { const b = novaDe(t.dataset.criar, t.dataset.asc); modoArv = "main"; ir("#/b/" + b.id); toast("Caminho calculado para " + b.nome); return; }
+  if (t.dataset.criar) { const b = novaDe(t.dataset.criar, t.dataset.asc); modoArv = "main"; ir("#/b/" + b.id + "/arvore"); toast("Build criada — caminho calculado na árvore"); return; }
   if (t.dataset.nivel) {
     const r = rota(); const b = ST.builds[r.a]; if (!b) return;
     b.nivel = Math.max(1, Math.min(100, (b.nivel || 1) + +t.dataset.nivel));
     salvarDepois(b);
     const sp = $("[data-acao=nivel]"); if (sp) sp.textContent = "Nível " + b.nivel;
     if (arvView) atualizarArvore(b, false);
+    else if (rota().c === "diag" || !rota().c) { const y = window.scrollY; render(); window.scrollTo(0, y); }
     return;
   }
   if (t.dataset.acao) acao(t.dataset.acao, t);
@@ -822,7 +938,7 @@ $("#voltarBtn").addEventListener("click", () => { if (history.length > 1) histor
 $("#desfazerBtn").addEventListener("click", () => { const f = undoFn; fecharDesfazer(); if (f) f(); });
 $("#arquivoFoto").addEventListener("change", (e) => {
   const fs = Array.from(e.target.files || []).slice(0, 6);
-  if (fs.length) lerFotos(fs, e.target.dataset.alvo || "");
+  if (fs.length) lerFotosDiag(fs);
 });
 $("#arquivoBackup").addEventListener("change", async (e) => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
