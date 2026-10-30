@@ -11,6 +11,7 @@ EHP e DPS. O gerador junta tudo por ETAPA do jogo (pelo nível dos personagens) 
 poe2-builds/kb/ref.js (KB_REF), que o diagnóstico usa como "o que funciona".
 
 Uso:  python3 -I poe2-builds-src/gerar_ref.py [--skills 60] [--liga forbiddenrites]
+      python3 -I poe2-builds-src/gerar_ref.py --so-combos   (só kb/combos.js: arma × ascendência e skill × ascendência)
 Faz ~1 pedido por segundo (educado com o site). ~10 min para 60 skills.
 Fonte: https://poe.ninja/poe2/builds — dados agregados, citados no app.
 """
@@ -247,10 +248,41 @@ def resumo_stats(ps):
     return o
 
 
+def principais_do_jogo():
+    with open(os.path.join(APP, 'kb', 'jogo.js'), encoding='utf-8') as f:
+        t = f.read()
+    J = json.loads(t[t.index('window.KB_JOGO=') + len('window.KB_JOGO='):].rstrip().rstrip(';'))
+    ruim = {'persistent', 'curse', 'mark', 'herald', 'aura', 'buff', 'warcry', 'meta', 'trigger', 'banner'}
+    return {x['n'] for x in J['skills'] if x['t'] in ('Attack', 'Spell', 'Minion') and not (set(x['tg']) & ruim) and not x.get('sp')}
+
+
+def combos(sv):
+    """Quantos jogadores de cada ascendência usam cada modo de arma e cada skill principal (liga atual)."""
+    versao, overview = sv['version'], sv['snapshotName']
+    principais = principais_do_jogo()
+    g = busca(versao, overview)
+    out = {}
+    for asc, n in g['dims'].get('class', []):
+        r = busca(versao, overview, **{'class': asc})
+        out[asc] = {'n': r['total'],
+                    'arma': [[m, c] for m, c in r['dims'].get('weaponmode', []) if c > 0],
+                    'sk': [[x, c] for x, c in r['dims'].get('skills', []) if c > 0 and x in principais]}
+        print(f'  {asc}: {r["total"]}', flush=True)
+    obj = {'fonte': f'poe.ninja — {sv["name"]}', 'liga': sv['name'], 'versao': versao, 'gerado': datetime.date.today().isoformat(),
+           'total': g['total'], 'asc': out}
+    p = os.path.join(APP, 'kb', 'combos.js')
+    js = json.dumps(obj, ensure_ascii=False, separators=(',', ':'))
+    with open(p, 'w', encoding='utf-8') as f:
+        f.write('/* GERADO por poe2-builds-src/gerar_ref.py --so-combos a partir do poe.ninja — não editar à mão. */\n')
+        f.write('window.KB_COMBOS=' + js + ';\n')
+    print(f'kb/combos.js: {len(js) // 1024} KB', flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--skills', type=int, default=60)
     ap.add_argument('--liga', default='')
+    ap.add_argument('--so-combos', action='store_true')
     a = ap.parse_args()
 
     idx = json.loads(subprocess.run(['curl', '-sS', '-f', '-m', '60', 'https://poe.ninja/poe2/api/data/index-state'], capture_output=True, check=True).stdout)
@@ -258,6 +290,9 @@ def main():
     sv = next((s for s in snaps if s['url'] == a.liga), None) if a.liga else None
     if not sv:   # a liga de desafio mais nova (não HC/SSF), que é a primeira da lista
         sv = next(s for s in snaps if not re.search(r'hc|ssf|standard|hardcore', s['url']))
+    if a.so_combos:
+        combos(sv)
+        return
     versao, overview = sv['version'], sv['snapshotName']
     usar = {'hour-3', 'hour-6', 'hour-12', 'hour-18', 'day-1', 'day-2', 'day-3', 'day-5', 'week-1', 'week-2', 'week-4'}
     momentos = [''] + [m for m in sv['timeMachineLabels'] if m in usar]

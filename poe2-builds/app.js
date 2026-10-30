@@ -279,7 +279,12 @@ function vNova(v, r) {
 function vNovaSkill(v, asc) {
   const cl = CLASSE_DE[asc];
   if (!cl) return ir("#/nova");
-  const rank = M.rankSkillsPorAsc(asc).filter((x) => x.s.gid && !/Ascendancy|Triggered/.test(x.s.gid));
+  const CB = (window.KB_COMBOS || { asc: {} }).asc[asc];
+  const usoSk = new Map(CB ? CB.sk : []);
+  let rank = M.rankSkillsPorAsc(asc).filter((x) => x.s.gid && !/Ascendancy|Triggered/.test(x.s.gid));
+  /* com dados do poe.ninja: primeiro o que os jogadores dessa ascendência realmente usam */
+  if (CB) rank = rank.slice().sort((a, b) => (usoSk.get(b.s.n) || 0) - (usoSk.get(a.s.n) || 0) || b.score - a.score);
+  const selo = (n) => { const c = usoSk.get(n); return c ? `<span class="selo verde">${Math.round(100 * c / CB.n)}% usam</span>` : ""; };
   const top = rank.slice(0, 8);
   const resumo = (C.ascendencias[asc] || {}).resumo || "";
   v.innerHTML = `
@@ -287,7 +292,8 @@ function vNovaSkill(v, asc) {
     ${resumo ? `<p class="sub small">${esc(M.preencher(resumo))}</p>` : ""}
     <div class="passo-tit"><span class="num">2</span><h1>Escolha a skill principal</h1></div>
     <div class="secao">Combinam com ${esc(asc)}</div>
-    ${top.map((x) => `<button class="skill-op" data-criar="${esc(x.s.n)}" data-asc="${esc(asc)}">${imgGema(x.s.n)}<span class="info"><span class="n">${esc(x.s.n)}</span><br><span class="t">${esc(resumoSkill(x.s))}</span></span>${metaSelo(x.s.n, asc)}</button>`).join("")}
+    ${CB ? `<p class="small muted">Ordenado pelo que os ${esc(fmtN(CB.n))} jogadores de ${esc(asc)} usam na liga atual (poe.ninja).</p>` : ""}
+    ${top.map((x) => `<button class="skill-op" data-criar="${esc(x.s.n)}" data-asc="${esc(asc)}">${imgGema(x.s.n)}<span class="info"><span class="n">${esc(x.s.n)}</span><br><span class="t">${esc(resumoSkill(x.s))}</span></span>${selo(x.s.n) || metaSelo(x.s.n, asc)}</button>`).join("")}
     <div class="secao">Todas</div>
     <div class="busca-box">${ic("busca")}<input id="buscaSkill" type="search" placeholder="Buscar skill…" autocomplete="off"></div>
     <div id="listaSkill"></div>`;
@@ -302,13 +308,16 @@ function vNovaSkill(v, asc) {
 function vNovaAsc(v, skill) {
   const s = M.SK.get(skill);
   if (!s) return ir("#/nova/skill");
-  const rank = M.rankAscPorSkill(s);
-  const top = new Set(rank.slice(0, 3).map((x) => x.asc));
+  const CBA = (window.KB_COMBOS || { asc: {} }).asc;
+  const qt = (asc) => { const c = CBA[asc]; const x = c && c.sk.find(([n]) => n === s.n); return x ? x[1] : 0; };
+  let rank = M.rankAscPorSkill(s);
+  if (Object.keys(CBA).length) rank = rank.slice().sort((a, b) => qt(b.asc) - qt(a.asc) || b.score - a.score);
+  const top = new Set(rank.slice(0, 3).filter((x) => !Object.keys(CBA).length || qt(x.asc) > 0).map((x) => x.asc));
   v.innerHTML = `
     <div class="heroi">${imgGema(s.n, "g")}<div class="info"><div class="nome" style="color:var(--gema)">${esc(s.n)}</div><div class="det">${esc(resumoSkill(s))}</div></div></div>
     <div class="passo-tit"><span class="num">2</span><h1>Escolha a ascendência</h1></div>
-    <p class="sub small">As com brilho combinam mais com ${esc(s.n)}.</p>
-    <div class="grade-asc">${rank.map((x) => `<button class="asc-op ${top.has(x.asc) ? "on" : ""}" data-criar="${esc(s.n)}" data-asc="${esc(x.asc)}">${imgAsc(x.asc, 92)}<span class="n">${esc(x.asc)}</span><span class="c">${esc(x.classe)}</span></button>`).join("")}</div>`;
+    <p class="sub small">As com brilho são as que mais jogadores usam com ${esc(s.n)} na liga atual (poe.ninja).</p>
+    <div class="grade-asc">${rank.map((x) => `<button class="asc-op ${top.has(x.asc) ? "on" : ""}" data-criar="${esc(s.n)}" data-asc="${esc(x.asc)}">${imgAsc(x.asc, 92)}<span class="n">${esc(x.asc)}</span><span class="c">${qt(x.asc) ? esc(fmtN(qt(x.asc))) + " jogadores" : esc(x.classe)}</span></button>`).join("")}</div>`;
 }
 
 /* ================= DIAGNÓSTICO: fluxo (etapa → sintomas → prints/conferir) ================= */

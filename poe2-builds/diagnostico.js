@@ -19,6 +19,7 @@
   "use strict";
   const J = window.KB_JOGO, Mo = window.Motor, REF = window.KB_REF || { skills: {}, geral: {}, etapas: [] };
   const RUN = window.KB_RUNAS || { runas: [], charms: [] };
+  const CMB = window.KB_COMBOS || { asc: {} };
   const T = window.KB_TREE, CAM = window.Caminho;
   const K = J.consts;
   const RES_MAX = K.resMax || 75;
@@ -138,6 +139,23 @@
     const a = s.lv[de - 1][1], b = s.lv[para - 1][1];
     if (!a || !b) return null;
     return (b / a - 1) * 100;
+  }
+  /* arma do app → modo de arma do poe.ninja ("Bow / Quiver", "Mace / Shield", "Two Handed Mace"…) */
+  const NINJA_ARMA = { "One Hand Mace": "Mace", "Two Hand Mace": "Two Handed Mace", "One Hand Sword": "Sword", "Two Hand Sword": "Two Handed Sword",
+    "One Hand Axe": "Axe", "Two Hand Axe": "Two Handed Axe" };
+  function modoArma(b) {
+    if (!b.arma) return "";
+    const a = NINJA_ARMA[b.arma] || b.arma;
+    const o = b.offhand ? (NINJA_ARMA[b.offhand] || b.offhand) : "";
+    return o ? a + " / " + o : a;
+  }
+  /* quantos jogadores daquela ascendência usam a arma/skill (liga atual) */
+  function uso(asc, tipo, nome) {
+    const c = CMB.asc && CMB.asc[asc];
+    if (!c) return null;
+    const lst = tipo === "arma" ? c.arma : c.sk;
+    const x = lst.find(([n]) => n === nome);
+    return { n: x ? x[1] : 0, de: c.n, pct: x ? 100 * x[1] / c.n : 0, top: lst.slice(0, 3) };
   }
   const famDe = (n) => { const x = Mo.SU.get(n); return x ? x.fam : n.replace(/\s+(I{1,3}|IV|V)$/, ""); };
 
@@ -320,6 +338,27 @@
       else bons.push(`DPS (${fmt(st.dps)}) dentro do normal para a etapa`);
     }
 
+    /* ---------- 7b. combinação rara (arma × ascendência, skill × ascendência) ---------- */
+    if (b.asc && CMB.asc && CMB.asc[b.asc]) {
+      const ma = modoArma(b);
+      const ua = ma ? uso(b.asc, "arma", ma) : null;
+      if (ua && ua.de >= 200 && ua.n < 20 && ua.pct < 1) {
+        add({ id: "combo-arma", area: "dano", sev: 34 * fatorSint(ctx, "dano"), tit: `${b.asc} com ${ma}: combinação rara`,
+          num: `${fmt(ua.n)} de ${fmt(ua.de)} jogadores`,
+          pq: `Na liga atual quase ninguém com ${b.asc} usa ${ma}. Não é proibido, mas é pouco testado — se a build está difícil, compare com o que a maioria usa.`,
+          passos: [`O que os ${b.asc} usam: ` + ua.top.map(([n, c]) => `${n} (${Math.round(100 * c / ua.de)}%)`).join(", ") + "."],
+          fonte: `${CMB.fonte || "poe.ninja"} — ${fmt(ua.de)} personagens ${b.asc}.` });
+      }
+      const us = s ? uso(b.asc, "sk", s.n) : null;
+      if (us && us.de >= 200 && us.n < 20 && us.pct < 1) {
+        add({ id: "combo-skill", area: "dano", sev: 30 * fatorSint(ctx, "dano"), tit: `${s.n} é rara em ${b.asc}`,
+          num: `${fmt(us.n)} de ${fmt(us.de)} jogadores`,
+          pq: `Poucos ${b.asc} jogam com ${s.n}: a ascendência provavelmente não ajuda essa skill. Funciona, mas você está sem referência de quem já testou.`,
+          passos: [`As skills mais usadas por ${b.asc}: ` + us.top.map(([n, c]) => `${n} (${Math.round(100 * c / us.de)}%)`).join(", ") + "."],
+          fonte: `${CMB.fonte || "poe.ninja"}.` });
+      } else if (us && us.n >= 20) bons.push(`${s.n} + ${b.asc}: ${fmt(us.n)} jogadores usam`);
+    }
+
     /* ---------- 8. arma / regras do motor ---------- */
     let an = null;
     try { an = Mo.analisar(b); } catch (e) { an = null; }
@@ -361,5 +400,5 @@
     return { etapa: E, sintomas: [...ctx.sintomas], problemas: lista, bons, faltam, ref, refGeral: rg, analise: an };
   }
 
-  window.Diag = { ETAPAS, ETAPA, SINTOMAS, etapaPorNivel, diagnosticar, refDe, nivelGema, ganhoDano, nosPerto };
+  window.Diag = { ETAPAS, ETAPA, SINTOMAS, etapaPorNivel, diagnosticar, refDe, nivelGema, ganhoDano, nosPerto, uso, modoArma };
 })();

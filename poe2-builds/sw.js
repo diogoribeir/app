@@ -26,6 +26,7 @@ var ASSETS = [
   "./kb/tree.js",
   "./kb/ref.js",
   "./kb/runas.js",
+  "./kb/combos.js",
   "./kb/nos.js",
   "./img/tree/skills.webp",
   "./img/tree/skills-off.webp",

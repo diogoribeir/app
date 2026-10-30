@@ -384,6 +384,13 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   (protobuf; decodificado sem schema) + `…/builds/dictionary/<hash>` (formato "NDIC": cabeçalho de 44 bytes, (K−1)
   pares u32, N comprimentos u8, strings). Baixa com **curl** (o Python-urllib leva 403), 1 pedido/s — ~1 h para 60
   skills. Skill sem referência → o diagnóstico usa só as regras do jogo (e avisa).
+- **Combinações reais (`kb/combos.js` = `KB_COMBOS`, `gerar_ref.py --so-combos`, ~2 min):** para cada ascendência,
+  quantos jogadores usam cada **modo de arma** (`"Bow / Quiver"`, `"Mace / Shield"`… — 45 modos no poe.ninja) e cada
+  **skill principal**. Levantamento de out/2026 (Forbidden Rites, 124 mil personagens): arma × ascendência = 1.035
+  possíveis → 699 com ≥1 jogador → **179 viáveis** (≥20 jogadores e ≥1% da ascendência); skill principal × ascendência =
+  4.623 possíveis → 3.302 com ≥1 → **538 viáveis** (≥20 e ≥2%). Usado em: "Montar do zero" (skills/ascendências
+  ordenadas pelo uso real, com "N jogadores"/"X% usam") e no diagnóstico (alerta de **combinação rara**: <20
+  jogadores e <1% da ascendência; `Diag.uso()`, `Diag.modoArma()` converte `b.arma`/`b.offhand` para o nome do ninja).
 - **Árvore passiva (`arvore.js`, canvas):** dados e artes da **exportação OFICIAL da GGG**
   (`github.com/grindinggear/poe2-skilltree-export`: posições, ligações retas/arcos, sprites `skills*.webp`/`frame.webp`,
   retratos `background-<classe>.webp`). Um dedo arrasta, pinça dá zoom, duplo toque aproxima, toque abre o nó.
