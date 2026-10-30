@@ -48,8 +48,24 @@
     }
     return prev[n];
   }
-  /* procura nomes do jogo dentro de uma linha lida */
+  /* o OCR costuma trocar o "I" dos tiers de suporte (Retreat I, Pin II) por ] | ! 1 ou l colado:
+     testa variantes da linha e fica com a que casa mais nomes */
+  function variantes(linha) {
+    const v1 = String(linha).replace(/[\]|!]/g, "I").replace(/([a-z])(I{1,3})(?=\s|$)/g, "$1 $2")
+      .replace(/(^|\s)[Il1]{3}(?=\s|$)/g, "$1III").replace(/(^|\s)[Il1]{2}(?=\s|$)/g, "$1II").replace(/(^|\s)[l1](?=\s|$)/g, "$1I");
+    const v2 = v1.replace(/([a-z]{2,})[l1](?=\s|$)/g, "$1 I").replace(/([a-z]{2,})[l1]{2}(?=\s|$)/g, "$1 II");
+    return [...new Set([String(linha), v1, v2])];
+  }
   function casarLinha(linha) {
+    let melhor = [], ms = -1;
+    for (const v of variantes(linha)) {
+      const r = casarUma(v);
+      const sc = r.reduce((a, e) => a + e.k.length, 0);
+      if (sc > ms) { ms = sc; melhor = r; }
+    }
+    return melhor;
+  }
+  function casarUma(linha) {
     const D = dicionario();
     const ws = norm(linha).split(" ").filter(Boolean);
     const achados = [];
@@ -104,22 +120,34 @@
 
   function interpretar(linhas) {
     const r = { asc: "", classe: "", nivel: 0, grupos: [], soltos: [], unicos: [], stats: {}, linhas };
-    let atual = null;
+    let atual = null, desde = 99;
     for (const linhaBruta of linhas) {
       const linha = String(linhaBruta || "").trim();
       if (!linha) continue;
-      const lv = linha.match(/\b(?:level|lvl|lv|n[ií]vel)\s*[:.]?\s*(\d{1,3})\b/i);
-      if (lv && !r.nivel && +lv[1] >= 1 && +lv[1] <= 100) r.nivel = +lv[1];
       const limpa = linha.replace(/^[^A-Za-z]+/, "");
       for (const [k, rx] of STATS) { const m = limpa.match(rx); if (m && r.stats[k] == null) r.stats[k] = numero(m[1]); }
-      for (const e of casarLinha(linha)) {
+      const achados = casarLinha(linha);
+      const temClasse = achados.some((e) => e.tipo === "asc" || e.tipo === "classe");
+      const skillAqui = achados.filter((e) => e.tipo === "skill").pop();
+      /* "Level N": nível da gema (perto de uma skill, até 21) ou do personagem (junto da classe) */
+      const lv = linha.match(/\b(?:level|lvl|lv|n[ií]vel)\s*[:.]?\s*(\d{1,3})\b/i);
+      if (lv) {
+        const n = +lv[1];
+        if (temClasse) { if (n >= 1 && n <= 100) r.nivel = n; }
+        else if (n <= 21 && (skillAqui || (atual && desde <= 2))) {
+          const g = skillAqui ? r.grupos.find((x) => x.skill === skillAqui.n) : atual;
+          if (g && !g.nv) g.nv = n; else if (!g && skillAqui) r.grupos.push({ skill: skillAqui.n, sup: [], nv: n });
+        } else if (!r.nivel && n >= 1 && n <= 100) r.nivel = n;
+      }
+      desde++;
+      for (const e of achados) {
         if (e.tipo === "asc") { if (!r.asc) r.asc = e.n; }
         else if (e.tipo === "classe") { if (!r.classe) r.classe = e.n; }
         else if (e.tipo === "unico") { if (!r.unicos.includes(e.n)) r.unicos.push(e.n); }
         else if (e.tipo === "skill") {
           let g = r.grupos.find((x) => x.skill === e.n);
           if (!g) { g = { skill: e.n, sup: [] }; r.grupos.push(g); }
-          atual = g;
+          atual = g; desde = 0;
         } else if (e.tipo === "sup") {
           const alvo = atual;
           if (alvo) { if (!alvo.sup.includes(e.n) && alvo.sup.length < 5) alvo.sup.push(e.n); }

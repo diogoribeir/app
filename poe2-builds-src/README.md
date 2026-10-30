@@ -12,6 +12,8 @@ O app `poe2-builds/` usa uma biblioteca de dados em `poe2-builds/kb/`. Ela tem d
 | `kb/nos.js` → `window.KB_NOS` | **gerado** (`gerar_kb.py`) | id → stringId de todos os nós (só para exportar ao Build Planner) |
 | `kb/tree.js` → `window.KB_TREE` | **gerado** (`gerar_assets.py`) | árvore passiva oficial da GGG: nós (posição, tipo, stats, sprite), ligações (retas e arcos), classes/ascendências |
 | `kb/gemas.js` → `window.KB_GEMAS` | **gerado** (`gerar_assets.py`) | ícone de cada gema + suportes recomendados pelo próprio jogo (RePoE) |
+| `kb/runas.js` → `window.KB_RUNAS` | **gerado** (`gerar_assets.py`) | runas/soul cores de resistência e vida (nível, onde vai, valor) e charms (contra o que ativam, nível) |
+| `kb/ref.js` → `window.KB_REF` | **gerado** (`gerar_ref.py`) | referência real por skill e etapa (poe.ninja): suportes, buffs, ascendências, únicos e quartis de vida/ES/EHP/DPS |
 | `img/tree`, `img/asc`, `img/gem` | **gerado** (`gerar_assets.py`) | sprites da árvore, retratos das classes/ascendências (384px) e ícones das gemas (64px) |
 
 ## Atualizar num patch novo (a cada ~4 meses)
@@ -41,7 +43,13 @@ O app `poe2-builds/` usa uma biblioteca de dados em `poe2-builds/kb/`. Ela tem d
    e reescreve `kb/tree.js`, `kb/gemas.js` e `img/`. Classe/ascendência nova aparece sozinha (retrato vem do
    `background-<classe>.webp`). Depois confira o caminho de algumas builds (`Caminho.calcular`) e, se a árvore mudou
    muito, revise os pesos em `poe2-builds/caminho.js` e suba `VERSAO_CAMINHO` no `app.js`.
-6. Testar no Chromium (390px, claro/escuro, Firebase bloqueado) e **subir a versão `CACHE` em `poe2-builds/sw.js`**.
+6. Referências do poe.ninja (rodar também alguns dias depois do início de cada liga):
+   ```bash
+   python3 -I poe2-builds-src/gerar_ref.py --skills 60
+   ```
+   Usa as "fotos no tempo" da liga (3 h, 6 h, 1 dia…) para ter referência de quem estava na campanha e no endgame;
+   1 pedido por segundo, ~1 h. Grava `kb/ref.js`.
+7. Testar no Chromium (390px, claro/escuro, Firebase bloqueado) e **subir a versão `CACHE` em `poe2-builds/sw.js`**.
 
 ## Como o gerador classifica os suportes
 

@@ -354,11 +354,55 @@ def gemas(cache):
     return out
 
 
+# ---------------------------------------------------------------- runas e charms (para o "como resolver")
+GATILHO_CHARM = {'Freeze': 'congelamento', 'Bleed': 'sangramento', 'Poison': 'veneno', 'Ignite': 'queimadura (ignite)',
+                 'Shock': 'choque', 'Stun': 'atordoamento (stun)', 'Slow': 'lentidão', 'Curse': 'maldição',
+                 'FireDamage': 'dano de fogo', 'ColdDamage': 'dano de gelo', 'LightningDamage': 'dano de raio',
+                 'ChaosDamage': 'dano de caos', 'RareUniqueKill': 'matar raro/único'}
+
+
+def runas(cache):
+    caf = os.environ.get('SSL_CERT_FILE') or ('/root/.ccr/ca-bundle.crt' if os.path.exists('/root/.ccr/ca-bundle.crt') else None)
+    ctx = ssl.create_default_context(cafile=caf) if caf else ssl.create_default_context()
+    pa, pb = os.path.join(cache, 'augments.json'), os.path.join(cache, 'base_items.min.json')
+    if not (baixar(REPOE + 'augments.json', pa, ctx) and baixar(REPOE + 'base_items.min.json', pb, ctx)):
+        raise SystemExit('não consegui baixar augments/base_items do RePoE')
+    aug, bi = ler_json(pa), ler_json(pb)
+    nome = lambda k: (bi.get(k) or {}).get('name') or k.rsplit('/', 1)[-1]
+    alvo = [('fogo', r'to Fire Resistance$'), ('frio', r'to Cold Resistance$'), ('raio', r'to Lightning Resistance$'),
+            ('caos', r'to Chaos Resistance$'), ('todas', r'to all Elemental Resistances$'), ('vida', r'to maximum Life$')]
+    out = []
+    for k, v in aug.items():
+        for cat, c in v.get('categories', {}).items():
+            txt = [limpa_stat(t) for t in c.get('stat_text', [])]
+            if len(txt) != 1 or cat not in ('Armour', 'Body Armour', 'Boots', 'Gloves', 'Helmet'):
+                continue
+            for tipo, rx in alvo:
+                m = re.match(r'^\+(\d+)%? ' + rx, txt[0])
+                if m:
+                    out.append({'n': nome(k), 'nv': v.get('required_level') or 0, 'onde': cat, 'tipo': tipo, 'val': int(m.group(1)), 'txt': txt[0]})
+    out.sort(key=lambda r: (r['tipo'], r['nv'], -r['val']))
+    charms = []
+    for k, v in bi.items():
+        if v.get('item_class') != 'UtilityFlask' or v.get('release_state') != 'released':
+            continue
+        imp = (v.get('implicits') or [''])[0]
+        m = re.match(r'CharmImplicitUseOn(\w+?)\d*$', imp)
+        if m and m.group(1) in GATILHO_CHARM:
+            charms.append({'n': v.get('name'), 'nv': v.get('drop_level') or 0, 'contra': m.group(1), 'pt': GATILHO_CHARM[m.group(1)]})
+    charms.sort(key=lambda c: c['nv'])
+    print(f'runas: {len(out)} · charms: {len(charms)}')
+    return {'runas': out, 'charms': charms}
+
+
 def main():
     if len(sys.argv) < 3:
         print(__doc__)
         sys.exit(1)
     ggg, cache = sys.argv[1], sys.argv[2]
+    escrever_js('runas.js', 'KB_RUNAS', runas(cache), 'RePoE PoE2 (augments + base_items)')
+    if '--so-runas' in sys.argv:
+        return
     tree, classes, _ = arvore(ggg)
     escrever_js('tree.js', 'KB_TREE', tree, 'poe2-skilltree-export (GGG)')
     imagens_arvore(ggg, classes)

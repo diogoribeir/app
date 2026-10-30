@@ -3,7 +3,7 @@
    - Imagens (img/: árvore, ascendências, ícones das gemas): guardadas na 1ª vez que aparecem.
    - Outra origem (Firebase, pobb.in, jsDelivr do leitor de fotos) NUNCA passa por aqui.
    Ao mudar QUALQUER arquivo do app ou da kb/, subir a versão do CACHE. */
-var CACHE = "poe2-builds-v4";
+var CACHE = "poe2-builds-v5";
 var IMG = "poe2-builds-img-v1";
 var ASSETS = [
   "./",
@@ -12,6 +12,7 @@ var ASSETS = [
   "./app.js",
   "./motor.js",
   "./caminho.js",
+  "./diagnostico.js",
   "./arvore.js",
   "./foto.js",
   "./pob.js",
@@ -23,6 +24,8 @@ var ASSETS = [
   "./kb/meta.js",
   "./kb/gemas.js",
   "./kb/tree.js",
+  "./kb/ref.js",
+  "./kb/runas.js",
   "./kb/nos.js",
   "./img/tree/skills.webp",
   "./img/tree/skills-off.webp",

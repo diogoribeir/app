@@ -314,6 +314,37 @@ def vetores_suporte(stats_vals, statmap, desc, fx):
 
 
 # ------------------------------------------------------------------ gems + skills
+def niveis_skill(ge):
+    """[[nível de personagem exigido, índice de dano], …] para os níveis 1..20 da gema.
+    Índice de dano: ataque = baseMultiplier; feitiço/dano base = soma de mín+máx dos stats
+    *_base_*_damage do 1º statSet. 0 quando o dano não depende do nível (ou não deu para ler)."""
+    lv = ge.get('levels') or {}
+    if not isinstance(lv, dict) or not lv:
+        return None
+    ss = ge.get('statSets') or {}
+    ss1 = ss.get(1) if isinstance(ss, dict) else (ss[0] if isinstance(ss, list) and ss else {})
+    ss1 = ss1 or {}
+    st = ss1.get('stats') or []
+    if isinstance(st, dict):
+        st = [st[k] for k in sorted(st)]
+    idx = [i for i, x in enumerate(st) if isinstance(x, str) and re.search(r'(minimum|maximum)_base_.*damage', x)]
+    slv = ss1.get('levels') or {}
+    out = []
+    for n in range(1, 21):
+        L = lv.get(n)
+        if not isinstance(L, dict):
+            break
+        req = L.get('levelRequirement', 0) or 0
+        d = 0.0
+        if isinstance(L.get('baseMultiplier'), (int, float)):
+            d = float(L['baseMultiplier'])
+        elif idx and isinstance(slv, dict) and isinstance(slv.get(n), dict):
+            vals = slv[n]
+            d = float(sum(vals.get(i + 1, 0) for i in idx if isinstance(vals.get(i + 1, 0), (int, float))))
+        out.append([int(req), round(d, 3)])
+    return out if len(out) >= 2 else None
+
+
 def gems_e_skills(pob):
     G = parse_return_table(ler(f'{pob}/src/Data/Gems.lua'))
     skills = {}
@@ -413,6 +444,9 @@ def gems_e_skills(pob):
             mst = lista_tipos(ge.get('minionSkillTypes'))
             if mst:
                 sk['mst'] = mst
+            nivs = niveis_skill(ge)
+            if nivs:
+                sk['lv'] = nivs
             if lv1.get('spiritReservationFlat'):
                 sk['sp'] = lv1['spiritReservationFlat']
             if lv1.get('storedUses') or lv1.get('cooldown'):
