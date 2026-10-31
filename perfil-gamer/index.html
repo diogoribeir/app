@@ -229,6 +229,8 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
 .grunrow .runano{flex:0 0 60px;margin-top:0;text-align:center;padding-left:4px;padding-right:4px}
 .grunrow .runenc{flex:0 0 auto;width:auto;margin-top:0;padding:8px 4px;font-size:.76rem}
 .grunrow .pbtn{width:30px;height:30px;flex:0 0 auto}
+.grunrow.aberta .rlbl{background:#F5B700;color:#141A26}
+.runhint{margin-top:8px;padding:8px 10px;border-radius:9px;background:var(--surface2);font-size:.74rem;line-height:1.35;color:var(--ink)}
 
 /* ---------- estatísticas ---------- */
 h2{font-size:.78rem;margin:20px 4px 9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -967,7 +969,7 @@ function statusOpts(sel){
       <option value="P" ${sel==="P"?"selected":""}>⏸️ Pausado</option>`;
 }
 function gedRuns(g){
-  return (g.runs||[]).map((r,i)=>`<div class="grunrow">
+  return (g.runs||[]).map((r,i)=>`<div class="grunrow${r.enc==="#"||r.enc==="P"?" aberta":""}">
       <span class="rlbl">W${i+2}</span>
       <input class="runh" type="number" min="0" step="0.5" inputmode="decimal" data-runh="${i}" value="${r.horas??0}" />
       <span class="hh">h</span>
@@ -975,6 +977,14 @@ function gedRuns(g){
       <select class="runenc" data-runenc="${i}" aria-label="Status W${i+2}">${statusOpts(r.enc||"S")}</select>
       <button type="button" class="pbtn del" data-grundel="${i}" title="Remover">✕</button>
     </div>`).join("");
+}
+// o select "Status W1" só mexe na 1ª jogatina: se uma W2+ segue jogando/pausada, o jogo continua
+// em "Jogando agora" mesmo marcando o W1 como dropado — avisa onde mudar (ex.: Dragon's Dogma 2, out/2026)
+function runHint(g){
+  const ab = (g.runs||[]).map((r,i)=>({e:r.enc, w:i+2})).filter(x=>x.e==="#"||x.e==="P");
+  if (!ab.length) return "";
+  const lst = ab.map(x=>`W${x.w} ${x.e==="#"?"🔄 jogando":"⏸️ pausada"}`).join(" · ");
+  return `<div class="runhint">⚠️ ${lst} — por isso o jogo segue ${ab.some(x=>x.e==="#")?"em “Jogando agora”":"em aberto"}. Mude o status ${ab.length>1?"delas":"dela"} em “Outras jogatinas” abaixo.</div>`;
 }
 function gameEditor(g){
   const iv = x => (x==null||x==="N/A") ? "" : x;
@@ -990,6 +1000,7 @@ function gameEditor(g){
       <label class="el">Veredicto<select data-f="v">
         ${VOPTS.map(v=>`<option ${g.v===v||(!ORD.includes(g.v)&&v==="N/A")?"selected":""}>${v==="N/A"?"— sem —":v}</option>`).join("")}</select></label>
     </div>
+    ${runHint(g)}
     <label class="el">Gêneros (1º = principal)<input data-f="genres" type="text" value="${esc(g.genres||"")}" /></label>
     ${temStatus(g,"N")?`<label class="el">Motivo do drop<textarea data-f="motivo">${esc(g.motivo||"")}</textarea></label>`:""}
     <div class="el" style="margin-top:12px">Outras jogatinas (horas · ano · status)
