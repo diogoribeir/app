@@ -37,7 +37,8 @@ O app `poe2-builds/` usa uma biblioteca de dados em `poe2-builds/kb/`. Ela tem d
 5. Árvore, artes e ícones (exportação oficial da GGG + RePoE), rodar DEPOIS do passo 3 (lê `kb/jogo.js`):
    ```bash
    GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 https://github.com/grindinggear/poe2-skilltree-export /caminho/ggg
-   python3 -I poe2-builds-src/gerar_assets.py /caminho/ggg /caminho/repoe-cache
+   pip install zstandard   # só para corrigir retratos repetidos pela GGG (ex.: Warbringer)
+   python3 -I poe2-builds-src/gerar_assets.py /caminho/ggg /caminho/repoe-cache --pob2 /caminho/pob2
    ```
    Baixa `skill_gems.json` e os ícones de `repoe-fork.github.io/poe2/` para a pasta de cache (só na 1ª vez; ~3 min)
    e reescreve `kb/tree.js`, `kb/gemas.js` e `img/`. Classe/ascendência nova aparece sozinha (retrato vem do
