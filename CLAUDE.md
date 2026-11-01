@@ -159,6 +159,9 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   drop, lista de motivos, "faltam Xh" do Plano · **`statusJogo`** → o texto do card e os contadores de
   zerados/dropados. O ▶️ "estou jogando" do Plano **abre uma jogatina nova** (`{horas:0, enc:"#"}`) em vez
   de sobrescrever `g.enc`. (Não há campo Observação.)
+  ⚠️ O select **"Status W1"** do editor só muda a 1ª jogatina: se uma W2+ segue `"#"`/`"P"`, o jogo continua
+  em "Jogando agora". O editor mostra o aviso `runHint(g)` (`.runhint`) e destaca o rótulo da jogatina aberta
+  (`.grunrow.aberta`) — o Diogo marcou o DD2 como dropado no W1 e o W2 seguia jogando (out/2026).
   - ⏸️ **Pausado (`"P"`, out/2026):** 4º status de jogatina. `statusJogo` = jogando > **pausado** > zerado >
     dropado; `emAberto(g)` = jogando **ou** pausado (ainda tem horas no Plano: `pfaltaH`, `pitemPendente`,
     `pjogadasAtual`, `jogadoEmAndamento`). Pausado **não** aparece em "Jogando agora". Mandar um item do
