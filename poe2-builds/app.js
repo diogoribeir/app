@@ -47,7 +47,10 @@ function resumoSkill(s) {
   s.tg.filter((t) => TAG_PT[t]).slice(0, 2).forEach((t) => p.push(TAG_PT[t]));
   return [...new Set(p)].filter(Boolean).join(" · ");
 }
+/* nota da skill = posição no uso real do topo da liga (poe.ninja); sem dado, cai no meta curado */
 function metaSelo(skill, asc) {
+  const t = window.Diag && window.Diag.tierDe(skill, "endgame");
+  if (t) return `<span class="selo tier tier-${esc(t.tier)}" title="${esc(t.pct.toFixed(1))}% dos personagens do topo">${esc(t.tier)} · #${esc(t.pos)}</span>`;
   const m = META.builds.find((x) => x.skill === skill && (!asc || x.asc.includes(asc)));
   return m ? `<span class="selo">Meta ${esc(m.tier)}</span>` : "";
 }
@@ -211,6 +214,7 @@ function render() {
   window.scrollTo(0, 0);
   if (r.v === "nova") return vNova(vista, r);
   if (r.v === "diag") return vDiag(vista, r);
+  if (r.v === "ranking") return vRanking(vista, r);
   if (r.v === "foto") { location.replace("#/diag" + (r.a ? "/" + encodeURIComponent(r.a) : "")); return; }
   if (r.v === "b" && ST.builds[r.a]) return vBuild(vista, ST.builds[r.a], r.c || "diag");
   return vInicio(vista);
@@ -227,7 +231,7 @@ function vInicio(v) {
         <button class="btn grande" data-ir="#/diag">${ic("alvo")} Diagnosticar minha build</button>
         <button class="btn grande fant" data-ir="#/nova">${ic("mais")} Montar uma build do zero</button>
       </div>
-      <button class="link" data-acao="pob">Tenho um código do Path of Building</button>
+      <div class="linha-links"><button class="link" data-ir="#/ranking">Ranking das skills (meta)</button><button class="link" data-acao="pob">Tenho um código do PoB</button></div>
     </section>
     ${lista.length ? `<div class="secao">Minhas builds</div>` : ""}
     ${lista.map((b) => {
@@ -243,6 +247,61 @@ function vInicio(v) {
       </div>`;
     }).join("")}
     <p class="rodape">Exile Compass é um projeto de fã, sem relação com a Grinding Gear Games. Path of Exile é marca da Grinding Gear Games. Árvore e artes: exportação oficial da GGG; dados: Path of Building 2, RePoE e poe.ninja.</p>`;
+}
+
+/* ================= RANKING DAS SKILLS ================= */
+function vRanking(v, r) {
+  const modo = r.a === "campanha" ? "campanha" : "endgame";
+  const R = DG.ranking(modo), O = DG.ranking(modo === "endgame" ? "campanha" : "endgame");
+  const CB = window.KB_COMBOS || {};
+  const p = (CB.pop || {})[modo] || {};
+  const filtro = r.c || "";
+  v.innerHTML = `
+    <h1>Ranking das skills</h1>
+    <div class="seg" role="tablist">
+      <button class="${modo === "endgame" ? "on" : ""}" data-ir="#/ranking/endgame/${esc(filtro)}">Endgame</button>
+      <button class="${modo === "campanha" ? "on" : ""}" data-ir="#/ranking/campanha/${esc(filtro)}">Campanha</button>
+    </div>
+    <p class="small muted">${modo === "endgame"
+      ? `Nota pelo uso real: % dos ${fmtN(R.total)} personagens do topo da liga ${esc(CB.liga || "")} que usam a skill como skill principal (poe.ninja).`
+      : `Nota pelo uso na campanha: % dos ${fmtN(R.total)} personagens do topo com 3 h de liga (níveis ${esc((p.faixa || []).join("–"))}) que têm a gema equipada (poe.ninja).`}
+      <b>S</b> = 1º–8º · <b>A</b> = 9º–25º · <b>B</b> = 26º–60º · <b>C</b> = 61º–110º · <b>D</b> = o resto. Popularidade entre quem está indo bem — não é opinião, mas também não mede tudo: skill nova ou difícil pode ser forte e pouco usada.</p>
+    <div class="chips" style="margin:8px 0">${[["", "Todas"], ["Attack", "Ataque"], ["Spell", "Feitiço"], ["Minion", "Minion"]].map(([k, t]) => `<button class="chip-op mini ${filtro === k ? "on" : ""}" data-ir="#/ranking/${modo}/${k}">${t}</button>`).join("")}</div>
+    <div class="busca-box">${ic("busca")}<input id="buscaRank" type="search" placeholder="Buscar skill…" autocomplete="off"></div>
+    <div id="listaRank"></div>`;
+  const todas = [...R.mapa.entries()].map(([n, x]) => ({ n, x, s: M.SK.get(n) })).filter((o) => o.s && (!filtro || o.s.t === filtro));
+  const desenhar = () => {
+    const q = M.norm($("#buscaRank").value);
+    const lst = todas.filter((o) => !q || M.norm(o.n + " " + resumoSkill(o.s)).includes(q));
+    $("#listaRank").innerHTML = lst.map((o) => {
+      const outro = O.mapa.get(o.n);
+      return `<button class="rank-l" data-rank="${esc(o.n)}"><span class="pos">${o.x.pos}</span>${imgGema(o.n)}
+        <span class="info"><span class="n">${esc(o.n)}</span><span class="t">${esc(resumoSkill(o.s))}</span>
+        <span class="t">${o.x.pct >= 0.1 ? esc(o.x.pct.toFixed(1).replace(".", ",")) + "%" : "<0,1%"} · ${modo === "endgame" ? "campanha" : "endgame"}: ${outro ? esc(outro.tier) + " #" + outro.pos : "—"}</span></span>
+        <span class="selo tier tier-${esc(o.x.tier)}">${esc(o.x.tier)}</span></button>`;
+    }).join("") || `<p class="vazio-txt">Nada encontrado.</p>`;
+    $$("[data-rank]", v).forEach((bt) => bt.addEventListener("click", () => folhaRank(bt.dataset.rank)));
+  };
+  $("#buscaRank").addEventListener("input", debounce(desenhar, 120));
+  desenhar();
+}
+function folhaRank(nome) {
+  const s = M.SK.get(nome);
+  const e = DG.tierDe(nome, "endgame"), c = DG.tierDe(nome, "campanha");
+  const CBA = (window.KB_COMBOS || {}).asc || {};
+  const ascs = Object.entries(CBA).map(([a, x]) => { const y = x.sk.find(([n]) => n === nome); return [a, y ? y[1] : 0]; }).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  const ref = (window.KB_REF || {}).skills && window.KB_REF.skills[nome];
+  const st = ref && ref.etapas && (ref.etapas.m3 || ref.etapas.m4 || {}).st;
+  abrirFolha(`<div class="skill-top">${imgGema(nome, "g")}<div><div class="n">${esc(nome)}</div><div class="small muted">${esc(resumoSkill(s))}</div></div></div>
+    <div class="ref-num" style="margin-top:12px">
+      <div><b>${e ? esc(e.tier) + " · #" + e.pos : "—"}</b><span>endgame${e ? " · " + esc(e.pct.toFixed(1).replace(".", ",")) + "%" : ""}</span></div>
+      <div><b>${c ? esc(c.tier) + " · #" + c.pos : "—"}</b><span>campanha${c ? " · " + esc(c.pct.toFixed(1).replace(".", ",")) + "%" : ""}</span></div>
+      ${st && st.dps ? `<div><b>${fmtN(st.dps[1])}</b><span>DPS típico (mapas altos)</span></div>` : ""}
+    </div>
+    ${ascs.length ? `<div class="tag2">Quem mais joga com ela</div><div class="ref-lista">${ascs.map(([a, n]) => { const t = CBA[a].n; return barraRef(a + " · " + fmtN(n), Math.round(100 * n / t), null); }).join("")}</div><p class="small muted">% = parte dos jogadores daquela ascendência que usam ${esc(nome)}.</p>` : ""}
+    <p class="small" style="color:var(--txt2)">${esc(s ? s.d : "")}</p>
+    <div class="linha-btns" style="margin-top:10px"><button class="btn" data-ir="#/nova/s/${encodeURIComponent(nome)}">Montar com essa skill</button>
+      <a class="btn fant" href="${esc(((window.KB_REF || {}).url || "https://poe.ninja/poe2/builds") + "?skills=" + encodeURIComponent(nome))}" target="_blank" rel="noopener">poe.ninja</a></div>`);
 }
 
 /* ================= NOVA BUILD ================= */
@@ -753,6 +812,7 @@ function abaDiag(el, b) {
     ${r.bons.length ? `<div class="secao">O que já está bom</div><div class="chips">${r.bons.map((x) => `<span class="chip okc">${ic("ok")} ${esc(x)}</span>`).join("")}</div>` : ""}
     ${ref && ref.dims ? `<div class="secao">Quem joga ${esc(P.s.n)} — ${esc(etqDims ? etqDims.n : E.n)}</div>
       <div class="cartao refc">
+        ${(() => { const te = DG.tierDe(P.s.n, "endgame"), tc = DG.tierDe(P.s.n, "campanha"); return te || tc ? `<div class="chips" style="margin-bottom:8px">${te ? `<span class="chip">Nota no endgame ${metaSelo(P.s.n)} </span>` : ""}${tc ? `<span class="chip">Campanha <span class="selo tier tier-${esc(tc.tier)}">${esc(tc.tier)} · #${tc.pos}</span></span>` : ""}<button class="link" data-ir="#/ranking">ver ranking</button></div>` : ""; })()}
         <p class="small muted" style="margin-top:0">${esc(fmtN(ref.dims.n))} personagens no topo da liga com ${esc(momento(ref.dims.m))} (${esc((window.KB_REF || {}).fonte || "poe.ninja")}). É referência do que funciona, não regra.</p>
         ${ref.st && (ref.st.vida || ref.st.pool) ? `<div class="ref-num">${ref.st.vida ? `<div><b>${fmtN(ref.st.vida[1])}</b><span>vida típica</span></div>` : ""}${ref.st.es ? `<div><b>${fmtN(ref.st.es[1])}</b><span>ES típico</span></div>` : ""}${ref.st.dps ? `<div><b>${fmtN(ref.st.dps[1])}</b><span>DPS típico</span></div>` : ""}</div>` : ""}
         <div class="tag2">Suportes ligados à skill</div>

@@ -400,5 +400,20 @@
     return { etapa: E, sintomas: [...ctx.sintomas], problemas: lista, bons, faltam, ref, refGeral: rg, analise: an };
   }
 
-  window.Diag = { ETAPAS, ETAPA, SINTOMAS, etapaPorNivel, diagnosticar, refDe, nivelGema, ganhoDano, nosPerto, uso, modoArma };
+  /* ---------------- ranking objetivo das skills (uso real no topo da liga) ----------------
+     nota pela posição: S = 1º–8º · A = 9º–25º · B = 26º–60º · C = 61º–110º · D = o resto (com ≥1 jogador) */
+  const CORTES = [[8, "S"], [25, "A"], [60, "B"], [110, "C"], [Infinity, "D"]];
+  const _rank = {};
+  function ranking(modo) {
+    modo = modo || "endgame";
+    if (_rank[modo]) return _rank[modo];
+    const p = CMB.pop && CMB.pop[modo];
+    const m = new Map();
+    if (p) p.sk.forEach(([n, c], i) => m.set(n, { pos: i + 1, n: c, pct: 100 * c / p.total, tier: CORTES.find(([lim]) => i + 1 <= lim)[1] }));
+    _rank[modo] = { mapa: m, total: p ? p.total : 0, qtd: p ? p.sk.length : 0, m: p ? p.m : "" };
+    return _rank[modo];
+  }
+  const tierDe = (skill, modo) => ranking(modo).mapa.get(skill) || null;
+
+  window.Diag = { ETAPAS, ETAPA, SINTOMAS, etapaPorNivel, diagnosticar, refDe, nivelGema, ganhoDano, nosPerto, uso, modoArma, ranking, tierDe, CORTES };
 })();

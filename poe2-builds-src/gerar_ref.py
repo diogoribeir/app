@@ -268,8 +268,20 @@ def combos(sv):
                     'arma': [[m, c] for m, c in r['dims'].get('weaponmode', []) if c > 0],
                     'sk': [[x, c] for x, c in r['dims'].get('skills', []) if c > 0 and x in principais]}
         print(f'  {asc}: {r["total"]}', flush=True)
+    # popularidade de cada skill principal: agora (endgame) e com 3 h de liga (campanha, níveis ~1–45)
+    pop = {}
+    for chave, m in (('endgame', ''), ('campanha', 'hour-3')):
+        if m and m not in sv['timeMachineLabels']:
+            continue
+        r = g if not m else busca(versao, overview, timemachine=m)
+        # no endgame vale a skill principal ("skills"); na campanha muita gente ainda não tem skill principal
+        # calculada, então conta quem tem a gema equipada ("allskills")
+        dim = 'skills' if not m else 'allskills'
+        pop[chave] = {'m': m or 'atual', 'dim': dim, 'total': r['total'], 'faixa': r['faixa'],
+                      'sk': [[x, c] for x, c in r['dims'].get(dim, []) if c > 0 and x in principais]}
+        print(f'  popularidade {chave}: {r["total"]} personagens, {len(pop[chave]["sk"])} skills', flush=True)
     obj = {'fonte': f'poe.ninja — {sv["name"]}', 'liga': sv['name'], 'versao': versao, 'gerado': datetime.date.today().isoformat(),
-           'total': g['total'], 'asc': out}
+           'total': g['total'], 'asc': out, 'pop': pop}
     p = os.path.join(APP, 'kb', 'combos.js')
     js = json.dumps(obj, ensure_ascii=False, separators=(',', ':'))
     with open(p, 'w', encoding='utf-8') as f:

@@ -394,6 +394,14 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   4.623 possíveis → 3.302 com ≥1 → **538 viáveis** (≥20 e ≥2%). Usado em: "Montar do zero" (skills/ascendências
   ordenadas pelo uso real, com "N jogadores"/"X% usam") e no diagnóstico (alerta de **combinação rara**: <20
   jogadores e <1% da ascendência; `Diag.uso()`, `Diag.modoArma()` converte `b.arma`/`b.offhand` para o nome do ninja).
+- **Ranking/nota das skills (`#/ranking`, nov/2026):** nota **objetiva** pela posição no uso real (`KB_COMBOS.pop`):
+  **endgame** = % dos personagens do topo da liga com a skill como principal (dim `skills`, foto atual); **campanha** =
+  % dos personagens com 3 h de liga (níveis ~1–45) que têm a gema equipada (dim `allskills` — no começo muita gente
+  ainda não tem skill principal calculada). Cortes: **S** 1º–8º · **A** 9º–25º · **B** 26º–60º · **C** 61º–110º · **D** resto
+  (`Diag.ranking(modo)`, `Diag.tierDe(skill, modo)`, `Diag.CORTES`). A tela explica que é popularidade entre quem está
+  indo bem (não opinião, mas não mede tudo). O selo `metaSelo()` (listas de skill do "Montar do zero" e seletores) mostra
+  "S · #2" com esse dado; sem dado cai no meta curado (`meta.js`). O detalhe de uma skill (`folhaRank`) mostra notas,
+  DPS típico (se houver em `ref.js`) e as ascendências que mais usam a skill.
 - **Árvore passiva (`arvore.js`, canvas):** dados e artes da **exportação OFICIAL da GGG**
   (`github.com/grindinggear/poe2-skilltree-export`: posições, ligações retas/arcos, sprites `skills*.webp`/`frame.webp`,
   retratos `background-<classe>.webp`). Um dedo arrasta, pinça dá zoom, duplo toque aproxima, toque abre o nó.
@@ -459,14 +467,18 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   (3) **referências** `python3 -I poe2-builds-src/gerar_ref.py --skills 60` (~1 h; pega a liga de desafio mais nova
   do poe.ninja — **rodar de novo uns dias depois de cada liga começar**, quando as fotos de 3 h/6 h/1 dia já existem);
   (4) revisar `conceitos.js`/`meta.js`; (5) conferir o diagnóstico de 3–4 builds e se a classe nova (Duelist) aparece;
-  (6) **subir `CACHE` no `sw.js`**. Detalhes em `poe2-builds-src/README.md`. Agente:
+  (6) **subir `CACHE` no `sw.js`** (e `IMG` se alguma imagem mudou). Detalhes em `poe2-builds-src/README.md`. Agente:
   `.claude/agents/poe2-builds.md`. ⚠️ Rodar o Lua do PoB2 é bloqueado no ambiente do Claude (por isso o parser próprio).
 - **Sincronização:** Realtime Database via REST (Receita 1), nó **`planos/poe2-builds-dt2026`**: **uma chave por
   build** (`builds/<id>`, inclui `plano`) + lápides `apagadas/<id>` + `_at`. Ao abrir: puxa e mescla por `atualizado`;
   offline vai pro outbox (`forja:outbox`). localStorage = `forja:builds`.
 - **Edição/teste:** ao mexer em QUALQUER arquivo do app ou da `kb/`, **subir `CACHE` no `sw.js`** (`"poe2-builds-vN"`;
-  v4 = Exile Compass, v5 = diagnóstico). O SW pré-carrega app + kb + sprites da árvore; retratos e ícones de gema (`img/asc`,
-  `img/gem`) vão para o cache `poe2-builds-img-v1` na 1ª vez que aparecem. Testes com Playwright **bloqueando o
+  v4 = Exile Compass, v5 = diagnóstico, v6 = ranking). O SW pré-carrega app + kb + sprites da árvore; retratos e ícones de gema (`img/asc`,
+  `img/gem`) vão para o cache `IMG` (`poe2-builds-img-vN`, hoje v2) na 1ª vez que aparecem — **ao trocar uma imagem, subir `IMG`**,
+  senão o celular segue com a antiga. ⚠️ A exportação da GGG repete a arte do **Warrior** no lugar da **Warbringer**:
+  `gerar_assets.py --pob2 <pob2>` detecta retrato igual ao da classe base e refaz a partir da textura
+  `ascendancy-background_1500_1500_BC7.dds.zst` do PoB2 (texture array BC7 + zstd; índice do `ddsCoords` começa em 1;
+  precisa do módulo Python `zstandard`). Testes com Playwright **bloqueando o
   Firebase** (`route(/firebaseio/, abort)`) para não sujar os dados reais; OCR testado com print sintético gerado no
   Chromium (o navegador de teste precisa do proxy do ambiente para baixar o Tesseract).
 

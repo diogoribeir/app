@@ -326,3 +326,17 @@ details.prob > div { padding: 2px 14px 14px; }
 .ref-num b { display: block; color: var(--ouro2); font-size: 18px; }
 .ref-num span { font-size: 11px; color: var(--txt3); }
 .build-card .det.fraq { color: #ffb3a8; }
+
+/* ---------- ranking ---------- */
+.selo.tier { min-width: 30px; text-align: center; }
+.tier-S { background: linear-gradient(#f0cd76, #c9963a); color: #1a1408; border-color: var(--ouro-esc); }
+.tier-A { background: #1d2c1a; color: #b8f0a8; border-color: #3e6a32; }
+.tier-B { background: #16222e; color: #9ccaff; border-color: #2e4a66; }
+.tier-C { background: #222; color: #c9c0b0; border-color: #444; }
+.tier-D { background: #171512; color: #8a7f6c; border-color: #332c22; }
+.rank-l { display: flex; align-items: center; gap: 10px; width: 100%; border: 1px solid var(--borda); background: var(--bg2); border-radius: 12px; padding: 8px 10px; margin: 6px 0; cursor: pointer; text-align: left; color: var(--txt); }
+.rank-l .pos { width: 28px; text-align: center; font-weight: 800; color: var(--txt3); font-size: 13px; flex: none; }
+.rank-l .info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rank-l .n { font-weight: 700; color: var(--gema); }
+.rank-l .t { font-size: 12px; color: var(--txt3); }
+.linha-links { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }

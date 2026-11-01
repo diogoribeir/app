@@ -14,7 +14,9 @@ Fontes (só dados e imagens, nada é executado):
 
 Uso:
   git clone --depth 1 https://github.com/grindinggear/poe2-skilltree-export <scratch>/ggg
-  python3 -I poe2-builds-src/gerar_assets.py <scratch>/ggg <scratch>/repoe-cache
+  python3 -I poe2-builds-src/gerar_assets.py <scratch>/ggg <scratch>/repoe-cache [--pob2 <scratch>/pob2]
+Com --pob2 (e o módulo zstandard instalado), retratos que a exportação da GGG repete com a arte da
+classe base (em out/2026: Warbringer) são refeitos a partir da textura de ascendências do PoB2.
 A pasta de cache guarda o skill_gems.json e os ícones baixados (não baixa de novo).
 Requer Pillow (PIL) com suporte a WebP. Rodar DEPOIS do gerar_kb.py (lê kb/jogo.js).
 """
@@ -275,6 +277,52 @@ def imagens_arvore(ggg, classes):
     print('img/tree e img/asc: ok')
 
 
+def corrigir_retratos(classes, pob2):
+    """A exportação da GGG às vezes repete a arte da classe base no lugar de uma ascendência.
+    Detecta (imagem quase igual à da classe) e refaz a partir de ascendency-background do PoB2
+    (DDS BC7 em texture array, comprimido com zstd; índices do ddsCoords começam em 1)."""
+    from PIL import ImageChops
+    dst = os.path.join(APP, 'img', 'asc')
+    dup = []
+    for c in classes:
+        base = Image.open(os.path.join(dst, slug(c['n']) + '.webp')).convert('RGB').resize((64, 64))
+        for a in c['asc']:
+            f = os.path.join(dst, slug(a['name']) + '.webp')
+            im = Image.open(f).convert('RGB').resize((64, 64))
+            dif = sum(sum(px) for px in ImageChops.difference(base, im).getdata()) / (64 * 64 * 3)
+            if dif < 6:
+                dup.append(a['name'])
+    if not dup:
+        return
+    if not pob2:
+        print(f'AVISO: retratos repetidos com a classe base: {dup} — rode com --pob2 para corrigir')
+        return
+    import struct
+    import zstandard
+    t = ler_json(os.path.join(pob2, 'src', 'TreeData', '0_5', 'tree.json'))
+    nome = next(k for k in t['ddsCoords'] if k.startswith('ascendancy-background_1500'))
+    coords = t['ddsCoords'][nome]
+    with open(os.path.join(pob2, 'src', 'TreeData', '0_5', nome), 'rb') as f:
+        raw = zstandard.ZstdDecompressor().stream_reader(f).read()
+    h = struct.unpack('<31I', raw[4:128])
+    alt, larg, mips = h[2], h[3], max(1, h[6])
+    off = 148 if raw[84:88] == b'DX10' else 128
+    tam = lambda w, hh: max(1, (w + 3) // 4) * max(1, (hh + 3) // 4) * 16
+    camada, w, hh = 0, larg, alt
+    for _ in range(mips):
+        camada += tam(w, hh)
+        w, hh = max(1, w // 2), max(1, hh // 2)
+    for n in dup:
+        idx = coords.get('Classes' + n)
+        if not idx:
+            print(f'AVISO: {n} não está na textura do PoB2')
+            continue
+        ini = off + (idx - 1) * camada
+        im = Image.frombytes('RGBA', (larg, alt), raw[ini:ini + tam(larg, alt)], 'bcn', 7)
+        im.resize((384, 384), Image.LANCZOS).save(os.path.join(dst, slug(n) + '.webp'), 'WEBP', quality=78)
+        print(f'retrato corrigido pelo PoB2: {n}')
+
+
 # ---------------------------------------------------------------- gemas
 def baixar(url, destino, ctx):
     if os.path.exists(destino) and os.path.getsize(destino) > 0:
@@ -406,6 +454,8 @@ def main():
     tree, classes, _ = arvore(ggg)
     escrever_js('tree.js', 'KB_TREE', tree, 'poe2-skilltree-export (GGG)')
     imagens_arvore(ggg, classes)
+    corrigir_retratos([{'n': c['n'], 'asc': [a for a in c['raw']['ascendancies'] if a.get('name')]} for c in classes],
+                      sys.argv[sys.argv.index('--pob2') + 1] if '--pob2' in sys.argv else None)
     g = gemas(cache)
     escrever_js('gemas.js', 'KB_GEMAS', g, 'RePoE PoE2 (ícones e suportes recomendados)')
 
