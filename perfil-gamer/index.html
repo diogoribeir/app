@@ -1223,7 +1223,7 @@ function viewStats(){
   const topRows = topSorted.map((g,i)=>
     `<div class="rowline"><span class="pos num">${i+1}</span>
       <span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
-      <span class="nm">${esc(g.nome)}</span>${temStatus(g,"N")?'<span class="droptag" title="dropado">❌</span>':""}<span class="hv num">${totalHoras(g)}h</span></div>`).join("")
+      <span class="nm">${esc(g.nome)}</span>${statusJogo(g)==="N"?'<span class="droptag" title="dropado">❌</span>':""}<span class="hv num">${totalHoras(g)}h</span></div>`).join("")
     || '<p class="lead" style="margin:6px 2px">Nenhum jogo com esse filtro.</p>';
   const topChips = `<div class="frow" style="margin-bottom:8px">
     <button type="button" class="fchip ${statVer===""?"on":""}" data-statver="">Todos</button>
