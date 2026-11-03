@@ -141,7 +141,8 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   3 abas: 🎮 Jogos (busca sempre visível + painel de filtros **recolhível** `⚙ Filtros` — recolhido por
   padrão p/ dar espaço à lista no celular; quando recolhido mostra a ordenação atual e os filtros ativos
   como chips; veredicto/status/**ano de lançamento**/ordenação dentro do painel; **ordem padrão = 🏆 Veredicto,
-  e dentro de cada veredicto mais horas primeiro** — `ordem = "veredicto"`, nov/2026) ·
+  e dentro de cada veredicto mais horas primeiro** — `ordem = "veredicto"`, nov/2026; **MMO (FFXIV) vai pro fim do
+  seu veredicto**, `ehMMO(g)` = "MMO" no gênero/nome — as 1.500h dele não se comparam) ·
   📊 Estatísticas (distribuição, tempo total jogado, top horas com filtro por veredicto, por gênero,
   motivos de drop) · 🗓 Plano 2026.
 - **PWA:** instalável (manifest + `sw.js` network-first) e abre offline; ícones `icon-192/512.png`
