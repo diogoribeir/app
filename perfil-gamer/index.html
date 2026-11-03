@@ -1038,13 +1038,15 @@ function gameCard(g){
     ${open ? gameEditor(g) : ""}
   </div>`;
 }
+function ehMMO(g){ return /\bMMO/i.test(`${g.genres||""} ${g.nome||""}`) ? 1 : 0; }
 function viewJogos(){
   let lst = J.slice();
   if (busca) { const b = busca.toLowerCase(); lst = lst.filter(g=>g.nome.toLowerCase().includes(b)||(g.genres||"").toLowerCase().includes(b)); }
   lst = aplicarFiltros(lst);
   const ords = {
     horas:(a,b)=>totalHoras(b)-totalHoras(a),
-    veredicto:(a,b)=>(ORD.indexOf(b.v)-ORD.indexOf(a.v))||(totalHoras(b)-totalHoras(a)),
+    // MMO (FFXIV) vai pro fim do próprio veredicto: as horas de MMO não se comparam às de um jogo normal
+    veredicto:(a,b)=>(ORD.indexOf(b.v)-ORD.indexOf(a.v))||(ehMMO(a)-ehMMO(b))||(totalHoras(b)-totalHoras(a)),
     ano:(a,b)=>((b.ano||0)-(a.ano||0))||(totalHoras(b)-totalHoras(a)),
     nome:(a,b)=>a.nome.localeCompare(b.nome,"pt")
   };
