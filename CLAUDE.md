@@ -140,7 +140,8 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
 - **O que faz:** biblioteca de jogos PS4/PS5 com veredictos estilo ACG (Masterpiece → Muito Ruim),
   3 abas: 🎮 Jogos (busca sempre visível + painel de filtros **recolhível** `⚙ Filtros` — recolhido por
   padrão p/ dar espaço à lista no celular; quando recolhido mostra a ordenação atual e os filtros ativos
-  como chips; veredicto/status/**ano de lançamento**/ordenação dentro do painel) ·
+  como chips; veredicto/status/**ano de lançamento**/ordenação dentro do painel; **ordem padrão = 🏆 Veredicto,
+  e dentro de cada veredicto mais horas primeiro** — `ordem = "veredicto"`, nov/2026) ·
   📊 Estatísticas (distribuição, tempo total jogado, top horas com filtro por veredicto, por gênero,
   motivos de drop) · 🗓 Plano 2026.
 - **PWA:** instalável (manifest + `sw.js` network-first) e abre offline; ícones `icon-192/512.png`
