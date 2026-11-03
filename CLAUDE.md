@@ -155,9 +155,10 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   ausente numa run = `"S"`), `temStatus(g,e)` (alguma jogatina nesse status) e `statusJogo(g)`
   (status principal, prioridade **jogando > zerado > dropado**).
   Onde cada um vale: **`temStatus`** → seção "Jogando agora" (qualquer jogatina em andamento destaca o
-  jogo), filtro de status (dropado acha o jogo mesmo se só o W1 foi dropado), ❌ no Top 10, motivo do
-  drop, lista de motivos, "faltam Xh" do Plano · **`statusJogo`** → o texto do card e os contadores de
-  zerados/dropados. O ▶️ "estou jogando" do Plano **abre uma jogatina nova** (`{horas:0, enc:"#"}`) em vez
+  jogo), filtro de status (dropado acha o jogo mesmo se só o W1 foi dropado), motivo do
+  drop, lista de motivos, "faltam Xh" do Plano · **`statusJogo`** → o texto do card, os contadores de
+  zerados/dropados e o **❌ do "Horas por jogo"** (nov/2026: o Crimson Desert zerado ganhava ❌ só porque a DLC,
+  jogatina W3, foi dropada — o ❌ é por jogo, não por tentativa). O ▶️ "estou jogando" do Plano **abre uma jogatina nova** (`{horas:0, enc:"#"}`) em vez
   de sobrescrever `g.enc`. (Não há campo Observação.)
   ⚠️ O select **"Status W1"** do editor só muda a 1ª jogatina: se uma W2+ segue `"#"`/`"P"`, o jogo continua
   em "Jogando agora". O editor mostra o aviso `runHint(g)` (`.runhint`) e destaca o rótulo da jogatina aberta
