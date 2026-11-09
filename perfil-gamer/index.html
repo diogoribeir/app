@@ -230,6 +230,10 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:10p
 .grunrow .runenc{flex:0 0 auto;width:auto;margin-top:0;padding:8px 4px;font-size:.76rem}
 .grunrow .pbtn{width:30px;height:30px;flex:0 0 auto}
 .grunrow.aberta .rlbl{background:#F5B700;color:#141A26}
+.grunrow button.rlbl{border:0;font-family:inherit;cursor:pointer}
+.grunrow.dlc .rlbl{background:#8B5CF6;color:#fff}
+.addrow{display:flex;gap:6px;margin-top:6px}
+.addrow .cbtn{flex:1}
 .runhint{margin-top:8px;padding:8px 10px;border-radius:9px;background:var(--surface2);font-size:.74rem;line-height:1.35;color:var(--ink)}
 
 /* ---------- estatísticas ---------- */
@@ -933,7 +937,12 @@ function runHoras(g){ return [g.horas||0, ...((g.runs||[]).map(r=>(r&&r.horas)||
 function nRuns(g){ return 1 + ((g.runs||[]).length); }
 function totalHoras(g){ return runHoras(g).reduce((s,h)=>s+h,0); }
 // status de cada jogatina: W1 = g.enc · W2+ = r.enc (padrão: zerado)
-function runStatus(g){ return [g.enc, ...((g.runs||[]).map(r=>(r&&r.enc)||"S"))]; }
+// DLC (nov/2026): uma entrada de g.runs marcada com r.dlc é a DLC do jogo — fica no mesmo card, com as horas
+// separadas, e soma no total. Só pesa no status enquanto está em aberto (jogando/pausada); terminada ou largada
+// vira "D" aqui (neutra): não mexe em zerado/dropado, % de drop, seção Drops nem filtros. Mantém o índice das runs.
+function runStatus(g){ return [g.enc, ...((g.runs||[]).map(r=>{ const e=(r&&r.enc)||"S"; return (r&&r.dlc&&e!=="#"&&e!=="P") ? "D" : e; }))]; }
+// rótulos: W1, W2… contam só as jogatinas do jogo base; a da DLC aparece como "DLC"
+function runLabels(g){ let w=1; return ["W1", ...((g.runs||[]).map(r=>(r&&r.dlc) ? "DLC" : "W"+(++w)))]; }
 // o jogo tem alguma jogatina nesse status? (ex.: dropou o W1 mas está jogando o W2)
 function temStatus(g,e){ return runStatus(g).includes(e); }
 // status principal do jogo: jogando > pausado > zerado > dropado
@@ -941,8 +950,19 @@ function statusJogo(g){ return temStatus(g,"#") ? "#" : temStatus(g,"P") ? "P" :
 // jogatina em aberto (jogando ou pausada) — ainda tem horas a cumprir no Plano
 function emAberto(g){ return temStatus(g,"#") || temStatus(g,"P"); }
 const STATUS_ICON = {"S":"✅","N":"❌","#":"🔄","P":"⏸️"};
-function runsResumo(g){ const st=runStatus(g);
-  return runHoras(g).map((h,i)=>`W${i+1} ${STATUS_ICON[st[i]]||""}${h}h`).join(" · "); }
+// [{lb, h, e, dlc}] por jogatina, com o status gravado (o ícone da DLC mostra ✅/❌ de verdade)
+function runsInfo(g){ const lb=runLabels(g), h=runHoras(g);
+  return [{lb:lb[0], h:h[0], e:g.enc, dlc:false},
+          ...(g.runs||[]).map((r,i)=>({lb:lb[i+1], h:h[i+1], e:(r&&r.enc)||"S", dlc:!!(r&&r.dlc)}))]; }
+function nBase(g){ return runsInfo(g).filter(x=>!x.dlc).length; }
+function temDLC(g){ return (g.runs||[]).some(r=>r&&r.dlc); }
+function runsResumo(g){ return runsInfo(g).filter(x=>!x.dlc).map(x=>`${x.lb} ${STATUS_ICON[x.e]||""}${x.h}h`).join(" · "); }
+function dlcResumo(g){ return runsInfo(g).filter(x=>x.dlc).map(x=>`DLC ${STATUS_ICON[x.e]||""}${x.h}h`).join(" · "); }
+// meta do card/hero: 🔁 W1 · W2 (só se jogou o base mais de uma vez) + 🧩 DLC
+function resumoJogatinas(g){
+  if (horasOcultas(g)) return "";
+  return `${nBase(g)>1?`<span class="num">🔁 ${runsResumo(g)}</span>`:""}${temDLC(g)?`<span class="num">🧩 ${dlcResumo(g)}</span>`:""}`;
+}
 // horas do jogo p/ o resumo do filtro: se o filtro "🎮 Joguei no ano" estiver ativo,
 // soma só as jogatinas jogadas naquele(s) ano(s) (W1 = g.anoJog · W2+ = run.anoJog); senão, soma tudo
 function horasNoFiltro(g){
@@ -969,21 +989,23 @@ function statusOpts(sel){
       <option value="P" ${sel==="P"?"selected":""}>⏸️ Pausado</option>`;
 }
 function gedRuns(g){
-  return (g.runs||[]).map((r,i)=>`<div class="grunrow${r.enc==="#"||r.enc==="P"?" aberta":""}">
-      <span class="rlbl">W${i+2}</span>
+  const lb = runLabels(g);
+  return (g.runs||[]).map((r,i)=>`<div class="grunrow${r.enc==="#"||r.enc==="P"?" aberta":""}${r.dlc?" dlc":""}">
+      <button type="button" class="rlbl" data-rundlc="${i}" title="${r.dlc?"Desmarcar DLC":"Marcar como DLC"}">${lb[i+1]}</button>
       <input class="runh" type="number" min="0" step="0.5" inputmode="decimal" data-runh="${i}" value="${r.horas??0}" />
       <span class="hh">h</span>
-      <input class="runano" type="number" min="1990" max="2100" step="1" inputmode="numeric" data-runano="${i}" value="${r.anoJog??""}" placeholder="ano" aria-label="Ano W${i+2}" />
-      <select class="runenc" data-runenc="${i}" aria-label="Status W${i+2}">${statusOpts(r.enc||"S")}</select>
+      <input class="runano" type="number" min="1990" max="2100" step="1" inputmode="numeric" data-runano="${i}" value="${r.anoJog??""}" placeholder="ano" aria-label="Ano ${lb[i+1]}" />
+      <select class="runenc" data-runenc="${i}" aria-label="Status ${lb[i+1]}">${statusOpts(r.enc||"S")}</select>
       <button type="button" class="pbtn del" data-grundel="${i}" title="Remover">✕</button>
     </div>`).join("");
 }
 // o select "Status W1" só mexe na 1ª jogatina: se uma W2+ segue jogando/pausada, o jogo continua
 // em "Jogando agora" mesmo marcando o W1 como dropado — avisa onde mudar (ex.: Dragon's Dogma 2, out/2026)
 function runHint(g){
-  const ab = (g.runs||[]).map((r,i)=>({e:r.enc, w:i+2})).filter(x=>x.e==="#"||x.e==="P");
+  const lb = runLabels(g);
+  const ab = (g.runs||[]).map((r,i)=>({e:r.enc, w:lb[i+1]})).filter(x=>x.e==="#"||x.e==="P");
   if (!ab.length) return "";
-  const lst = ab.map(x=>`W${x.w} ${x.e==="#"?"🔄 jogando":"⏸️ pausada"}`).join(" · ");
+  const lst = ab.map(x=>`${x.w} ${x.e==="#"?"🔄 jogando":"⏸️ pausada"}`).join(" · ");
   return `<div class="runhint">⚠️ ${lst} — por isso o jogo segue ${ab.some(x=>x.e==="#")?"em “Jogando agora”":"em aberto"}. Mude o status ${ab.length>1?"delas":"dela"} em “Outras jogatinas” abaixo.</div>`;
 }
 function gameEditor(g){
@@ -1002,10 +1024,13 @@ function gameEditor(g){
     </div>
     ${runHint(g)}
     <label class="el">Gêneros (1º = principal)<input data-f="genres" type="text" value="${esc(g.genres||"")}" /></label>
-    ${temStatus(g,"N")?`<label class="el">Motivo do drop<textarea data-f="motivo">${esc(g.motivo||"")}</textarea></label>`:""}
-    <div class="el" style="margin-top:12px">Outras jogatinas (horas · ano · status)
+    ${temStatus(g,"N")||temDLC(g)?`<label class="el">${temStatus(g,"N")?"Motivo do drop":"Comentário da DLC"}<textarea data-f="motivo">${esc(g.motivo||"")}</textarea></label>`:""}
+    <div class="el" style="margin-top:12px">Outras jogatinas e DLC (horas · ano · status)
       <div class="gruns">${gedRuns(g)}</div>
-      <button type="button" class="cbtn" data-addrun="${g.id}" style="width:100%;margin-top:6px">➕ Adicionar jogatina (NG+/rejogar)</button>
+      <div class="addrow">
+        <button type="button" class="cbtn" data-addrun="${g.id}" title="Rejogar / NG+">➕ Jogatina</button>
+        <button type="button" class="cbtn" data-adddlc="${g.id}" title="Horas da DLC, separadas no mesmo card">➕ DLC</button>
+      </div>
     </div>
     <details class="internal-fields"><summary>análise interna (opcional) — H · G · D · FF</summary>
       <div class="mrow4">
@@ -1023,7 +1048,7 @@ function gameEditor(g){
 }
 function gameCard(g){
   const c = VC[g.v];
-  const th = totalHoras(g), multi = nRuns(g)>1, open = openGame===g.id;
+  const th = totalHoras(g), open = openGame===g.id;
   return `<div class="game${open?" open":""}" data-gid="${g.id}" style="--vc:${c?c[0]:"var(--line)"};--vs:${c?c[1]:"var(--surface2)"}">
     <div class="gsum" data-cardtoggle="${g.id}">
       <div class="grow"><div class="gname">${esc(g.nome)}</div>${vpill(g.v)}</div>
@@ -1032,7 +1057,7 @@ function gameCard(g){
         <span>${statusTxt(statusJogo(g))}</span>
         <span>${esc((g.genres||"").split(",")[0].trim())}</span>
         ${g.ano?`<span class="num">📅 ${g.ano}</span>`:""}
-        ${multi&&!horasOcultas(g)?`<span class="num">🔁 ${runsResumo(g)}</span>`:""}
+        ${resumoJogatinas(g)}
       </div>
     </div>
     ${open ? gameEditor(g) : ""}
@@ -1059,7 +1084,7 @@ function viewJogos(){
         <span class="hicon">🕹️</span>
         <div class="hbody">
           <div class="hname">${esc(g.nome)}</div>
-          <div class="hmeta num">${horasOcultas(g)?"":`⏱ ${totalHoras(g)}h`}${nRuns(g)>1?` · ${runsResumo(g)}`:""}</div>
+          <div class="hmeta num">${horasOcultas(g)?"":`⏱ ${totalHoras(g)}h`}${!horasOcultas(g)&&nBase(g)>1?` · ${runsResumo(g)}`:""}${!horasOcultas(g)&&temDLC(g)?` · 🧩 ${dlcResumo(g)}`:""}</div>
         </div>
         <span class="hgo">›</span>
       </div>`;
@@ -1700,9 +1725,16 @@ document.addEventListener("click", e=>{
   const hh = e.target.closest("[data-editar-hero]");
   if (hh){ openGame = Number(hh.dataset.editarHero); render();
     const el=document.querySelector(`.game[data-gid="${openGame}"]`); if (el) el.scrollIntoView({block:"center",behavior:"smooth"}); return; }
+  const ad = e.target.closest("[data-adddlc]");
+  if (ad){ const g=J.find(x=>x.id===Number(ad.dataset.adddlc)); if (g){ (g.runs=g.runs||[]).push({horas:0, enc:"#", dlc:true}); saveJogosQuiet(); render();
+    const ins=document.querySelectorAll(`.game[data-gid="${g.id}"] .runh`); if(ins.length) ins[ins.length-1].focus(); } return; }
   const ar = e.target.closest("[data-addrun]");
   if (ar){ const g=J.find(x=>x.id===Number(ar.dataset.addrun)); if (g){ (g.runs=g.runs||[]).push({horas:0, enc:"#"}); saveJogosQuiet(); render();
     const ins=document.querySelectorAll(`.game[data-gid="${g.id}"] .runh`); if(ins.length) ins[ins.length-1].focus(); } return; }
+  const dl = e.target.closest("[data-rundlc]");
+  if (dl){ const card=dl.closest(".game"); const g=card && J.find(x=>x.id===Number(card.dataset.gid));
+    const r = g && g.runs && g.runs[Number(dl.dataset.rundlc)];
+    if (r){ if (r.dlc) delete r.dlc; else r.dlc = true; saveJogosQuiet(); render(); } return; }
   const gd = e.target.closest("[data-grundel]");
   if (gd){ const card=gd.closest(".game"); const g=J.find(x=>x.id===Number(card.dataset.gid));
     if (g && g.runs){ g.runs.splice(Number(gd.dataset.grundel),1); if(!g.runs.length) delete g.runs; saveJogosQuiet(); render(); } return; }
