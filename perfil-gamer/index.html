@@ -893,7 +893,8 @@ const LEGADO_ANO = 2020;   // anos < 2020 agrupam num único chip "Legado (<2020
 // um ano casa a seleção se estiver escolhido, ou se for legado (<2020) e o chip "lt" estiver ativo
 function anoCasa(sel, y){ return y!=null && (sel.has(String(y)) || (sel.has("lt") && y<LEGADO_ANO)); }
 function aplicarFiltros(lst){
-  if (fStatus.size) lst = lst.filter(g=>runStatus(g).some(e=>fStatus.has(e)));
+  // "Dropados" = resultado final do jogo (nunca zerado e nada em andamento); os outros chips seguem por jogatina
+  if (fStatus.size) lst = lst.filter(g=>[...fStatus].some(s=> s==="N" ? statusJogo(g)==="N" : temStatus(g,s)));
   if (fVer.size) lst = lst.filter(g=>fVer.has(g.v));
   if (fAno.size) lst = lst.filter(g=>anoCasa(fAno, g.ano));
   if (fAnoJog.size) lst = lst.filter(g=>anosDoJogo(g).some(y=>anoCasa(fAnoJog, y)));
@@ -1260,7 +1261,9 @@ function viewStats(){
     ${[["","Geral"],["S","Zerados"],["N","Dropados"]].map(([k,l])=>
       `<button type="button" class="fchip ${statStatus===k?"on":""}" data-statstatus="${k}">${l}</button>`).join("")}
   </div>`;
-  const dropsLst = J.filter(g=>temStatus(g,"N")).sort((a,b)=>totalHoras(b)-totalHoras(a));
+  // drop só conta se o jogo nunca foi zerado (nov/2026): quem largou uma jogatina e zerou outra (AC Shadows, DD2)
+  // fica fora — o ❌ continua só na jogatina, no card
+  const dropsLst = J.filter(g=>statusJogo(g)==="N").sort((a,b)=>totalHoras(b)-totalHoras(a));
   const drops = dropsLst.map(g=>`<div class="droprow">
     <div class="dhead"><span class="dot" style="background:${VC[g.v]?VC[g.v][0]:"var(--line)"}"></span>
       <span class="dnm">${esc(g.nome)}</span><span class="dhv num">${totalHoras(g)}h</span></div>

@@ -157,9 +157,11 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   ausente numa run = `"S"`), `temStatus(g,e)` (alguma jogatina nesse status) e `statusJogo(g)`
   (status principal, prioridade **jogando > zerado > dropado**).
   Onde cada um vale: **`temStatus`** → seção "Jogando agora" (qualquer jogatina em andamento destaca o
-  jogo), filtro de status (dropado acha o jogo mesmo se só o W1 foi dropado), motivo do
-  drop, lista de motivos, "faltam Xh" do Plano · **`statusJogo`** → o texto do card, os contadores de
-  zerados/dropados e o **❌ do "Horas por jogo"** (nov/2026: o Crimson Desert zerado ganhava ❌ só porque a DLC,
+  jogo), chips Zerados/Jogando/Pausados do filtro, campo "Motivo do drop" do editor, "faltam Xh" do Plano ·
+  **`statusJogo`** → o texto do card, os contadores de zerados/dropados, o **❌ do "Horas por jogo"**, a
+  **seção Drops** e o chip **Dropados** do filtro. ⚠️ **Regra do Diogo (nov/2026): dropado só conta se o jogo
+  NUNCA foi zerado** — quem largou uma jogatina e zerou outra (AC Shadows, Dragon's Dogma 2) conta como zerado
+  em todo resultado final; o ❌ fica só na jogatina, no card (nov/2026: o Crimson Desert zerado ganhava ❌ só porque a DLC,
   jogatina W3, foi dropada — o ❌ é por jogo, não por tentativa). O ▶️ "estou jogando" do Plano **abre uma jogatina nova** (`{horas:0, enc:"#"}`) em vez
   de sobrescrever `g.enc`. (Não há campo Observação.)
   - 🧩 **DLC (nov/2026):** uma entrada de `g.runs` com **`r.dlc: true`** é a DLC do jogo — **mesmo card, horas
