@@ -162,6 +162,14 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   zerados/dropados e o **❌ do "Horas por jogo"** (nov/2026: o Crimson Desert zerado ganhava ❌ só porque a DLC,
   jogatina W3, foi dropada — o ❌ é por jogo, não por tentativa). O ▶️ "estou jogando" do Plano **abre uma jogatina nova** (`{horas:0, enc:"#"}`) em vez
   de sobrescrever `g.enc`. (Não há campo Observação.)
+  - 🧩 **DLC (nov/2026):** uma entrada de `g.runs` com **`r.dlc: true`** é a DLC do jogo — **mesmo card, horas
+    separadas** (somam no total do jogo), editor com botões **➕ Jogatina / ➕ DLC** (o rótulo da linha, W2/W3/DLC, é um
+    botão que liga/desliga a DLC). O card mostra a DLC à parte: `🔁 W1 ✅136h · W2 ✅93h` + `🧩 DLC ❌15h`
+    (`runsInfo`/`nBase`/`runsResumo` só do jogo base/`dlcResumo`/`resumoJogatinas`; `runLabels` numera W só no base).
+    No `runStatus` a DLC só pesa **em aberto** (jogando/pausada → "Jogando agora"); terminada ou largada vira **`"D"`
+    (neutra)** → **DLC largada não é drop**: fica fora do % de drop/zerados, da seção Drops, do ❌ e do filtro
+    Dropado (o Diogo achou injusto contar como drop). Comentário da DLC = o mesmo campo `motivo` (rótulo "Comentário
+    da DLC" quando o jogo base não tem drop). Dados: Crimson Desert (DLC 15h ❌) e Dragon's Dogma 2 (W3 ✅16h + DLC 5h ❌).
   ⚠️ O select **"Status W1"** do editor só muda a 1ª jogatina: se uma W2+ segue `"#"`/`"P"`, o jogo continua
   em "Jogando agora". O editor mostra o aviso `runHint(g)` (`.runhint`) e destaca o rótulo da jogatina aberta
   (`.grunrow.aberta`) — o Diogo marcou o DD2 como dropado no W1 e o W2 seguia jogando (out/2026).

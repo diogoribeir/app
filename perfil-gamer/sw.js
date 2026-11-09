@@ -1,5 +1,5 @@
 /* Perfil — service worker (network-first, cai pro cache offline) */
-const CACHE = "perfil-gamer-v47";
+const CACHE = "perfil-gamer-v48";
 const ASSETS = ["./", "./index.html", "./dados.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
