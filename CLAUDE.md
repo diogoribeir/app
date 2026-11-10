@@ -144,9 +144,10 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   e dentro de cada veredicto mais horas primeiro** — `ordem = "veredicto"`, nov/2026; **MMO (FFXIV) vai pro fim do
   seu veredicto**, `ehMMO(g)` = "MMO" no gênero/nome — as 1.500h dele não se comparam) ·
   📊 Estatísticas (distribuição, tempo total jogado, top horas com filtro por veredicto, por gênero,
-  motivos de drop) · 🗓 Plano 2026.
+  motivos de drop) · 🗓 Plano (a aba se chamava "Plano 2026" até nov/2026; o plano vai até dez/2027).
 - **PWA:** instalável (manifest + `sw.js` network-first) e abre offline; ícones `icon-192/512.png`
-  gerados por canvas. Menu **⋯** no cabeçalho = backup exportar/importar (`.json` com jogos + plano).
+  gerados por canvas. Menu **⋯** no cabeçalho = backup exportar/importar (`.json` com jogos + plano — desde
+  nov/2026 o plano vai inteiro: itens, semanas ajustadas, legado por mês e a rotina em fases; antes só os itens).
 - **Jogatinas (playthroughs):** cada jogo pode ter mais de uma jogatina (rejogar/NG+) — guarda-se as
   **horas**, o **ano jogado** e o **status** de cada uma: a 1ª é o campo `horas`/`anoJog`/`enc` base e as
   demais ficam em `g.runs[]` (`{horas, anoJog, enc}`). **O veredicto é único por jogo; o status é por
@@ -195,13 +196,85 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   motivo, jogatinas W2+, análise interna, Excluir) — salva ao sair de cada campo, sem abrir janela.
   A aba 🗓 **Plano** é editável: cada jogo planejado tem **nome + estimativa de horas + data
   (calendário) + ano**; a fila fica **ordenada por data**.
-  - 📅 **Filtro por ano + Geral + rollover (set/2026):** o Plano tinha jogos de 2026 e 2027 misturados na
-    mesma fila e num único "disponível" até dez/2027. Agora tem **chips no topo** (`.anochip`, estado
-    `planoAno`, handler `data-pano`): **Geral** (`planoAno="geral"` → tudo junto, como era antes) + um chip
-    por ano. Num ano, a aba mostra **só aquele ano**: horas **disponíveis** dele (`horasDisponiveisAno(ano)`
-    = semanas cuja segunda cai no ano), **falta na fila** e **fila** só dos itens do ano, e o painel ⚙️ só
-    com os meses do ano; no **Geral** volta tudo (`horasDisponiveis()`, todas as semanas/itens). `anoFoco()`
-    = `planoAno` (`"geral"` ou nº) ou o ano atual `ANO_HOJE`. A aba **abre sempre no Geral** (`planoAno = "geral"` inicial, out/2026).
+  - 🧭 **Plano redesenhado (nov/2026)** — o Diogo disse que a aba era funcional mas não gostava dela. Problemas
+    achados: as três visões se contradiziam (Geral "sobra 1h", 2026 "faltam 51h", 2027 "sobram 52h"), o painel de
+    horas tinha 3 níveis + um paredão de texto, e cada linha da fila tinha 4 botões (nomes cortados). A ideia dele:
+    **"saber se a capacidade de horas que tenho cabe nos jogos até dez/2027"**, com semanas que mudam (até abril
+    fica em casa qua/qui à noite e joga mais; de sex a ter está com a noiva e joga bem menos). Ordem da tela: chips
+    de ano → **cartão do veredito** → **fila** (botão `＋ Jogo` no título) → 📥 backlog → **⚙️ Minhas horas** →
+    **📅 Mês a mês**.
+    - **Capacidade = ROTINA em fases** (`ROT`, `fases()`): `[{ate:"AAAA-MM-DD"|null, h: horas/semana, fortes:[getDay…]}]`,
+      em ordem, a última sempre aberta (`ate:null` = até `PLANO_FIM`). Cada fase tem as **horas por semana** e os
+      **dias fortes** (chips seg…dom): um dia forte recebe `PESO_FORTE` (5×) as horas de um dia comum —
+      `horasDoDia(iso)` = `h × peso/Σpesos` da `faseDoDia(iso)`. Isso só muda a divisão DENTRO da semana (semana em
+      curso e semana que cruza duas fases); a semana cheia soma `h`. Edição: `editarFases(fn)` (parte de
+      `fasesVivas()`; `normFases` ordena, tira data repetida e garante a fase aberta; `saveRotina()`). **➕ Nova
+      fase** divide a fase que cobre daqui a 4 semanas (nasce igual → nada muda até editar); fase vencida some da tela.
+      ⚠️ **Nó próprio na nuvem: `rotina`** (+ `localStorage` `perfil-gamer:rotina`) — NÃO fica dentro do
+      `plano2026`, porque uma versão antiga do app aberta em outro aparelho regrava o `plano2026` inteiro e apagaria
+      o campo. **Legado:** enquanto o Diogo não editar uma fase, `ROT` é `null` e as fases são **derivadas** de
+      `padraoSemana` + `HM` (`rotinaDoLegado()`: meses seguidos com o mesmo valor viram uma fase; as fases até
+      `FORTES_ATE` = 31/mar/2027 nascem com qua/qui fortes, as outras sem dia forte) e **nada é gravado sozinho**.
+      `padraoSemana`/`HM` continuam lidos e regravados no `plano2026` (não têm mais tela); se o nó `rotina` sumir, o
+      app volta a derivar deles. As constantes `PESO_DIA`/`PERIODOS` saíram.
+    - **Semanas diferentes da rotina** = `HS` (`{ "<segunda>": nº }`, como antes; input `data-wk`, ↺ `data-wkreset`):
+      o número da semana vence a rotina. A lista mostra as **6 próximas semanas** + as que têm ajuste; **➕ outra
+      semana** é um campo de data (`#wkAddDate`) que cria o ajuste da semana daquele dia. A dica de cada fase avisa
+      quantas semanas dela têm ajuste próprio — ali mexer na fase não muda nada (em nov/2026 TODAS as semanas até
+      o fim do ano tinham ajuste).
+    - **Semana em curso = estimado − jogado** (`capSemana(w, ctx)`, `ctx = {wkAtual, jog: jogadoSemana()}`): o
+      estimado é o ajuste da semana ou, sem ajuste, a rotina dos dias que faltam (dia que passou não conta); dele
+      sai o que já foi jogado na semana. ⚠️ **É de propósito** — numa 1ª versão do redesenho isso foi trocado por
+      um `min(...)` "pra não descontar duas vezes" e o Diogo mandou voltar: *"estimo 10h na semana; se apliquei 5h,
+      só tenho mais 5h; se joguei 12h, são 2h a mais que consegui e isso tem que aparecer"*. Então: jogou mais que
+      o estimado (`orcSemana(w)` = ajuste ou rotina da semana cheia) → a semana zera e o cartão/linha da semana
+      mostram **"+Xh além do esperado"** (verde); a fila caiu mais do que a semana, então a sobra do plano cresce
+      essas horas. O cartão mostra "Esta semana: 10h · joguei 5h · restam 5h" + **onde** as horas entraram
+      ("Phantom Blade Zero +3h · FF Resonance +2h") + botão **ajustar** (abre o ⚙️).
+    - **Marco da semana por jogo** (`SB` em `plano2026.semBase` = `{wk, base, tot:{"g<id>": horas}, ab:{"g<id>":1},
+      ex}`; `ensureSemBase()`, `jogadoSemanaPorJogo()`, `jogadoSemana()`): no começo da semana o marco fotografa as
+      horas totais de CADA jogo (`tot`) e vai marcando quem esteve em jogo nela (`ab`: jogando/pausado em algum
+      momento). Jogado na semana de um jogo = horas de agora − horas do marco, só pra quem está em `ab` (ou em
+      aberto agora); jogo criado depois do marco parte do zero. Consequências: **zerar/dropar no meio da semana não
+      apaga o que foi jogado**, **reabrir um jogo antigo não conta as horas velhas**, e registrar jogo antigo já
+      finalizado não conta. (Até nov/2026 o marco era só `base` = soma das jogatinas em aberto: zerar um jogo fazia
+      as horas dele sumirem da semana e reabrir um dropado contava as horas antigas.) `base` segue gravado p/
+      versões antigas do app; marco sem `tot` (formato antigo) é convertido na 1ª abertura e o que já tinha sido
+      jogado na semana vai pra `ex` ("outros" na tela). As chaves são `"g<id>"` porque chave só numérica o Firebase
+      devolve como lista. O `ensureSemBase()` roda no fim do `boot()` e no começo de cada `render()` (só depois de
+      `bootOk` e com `cloudOK`): reancora se a semana virou com o app aberto e grava (`savePlano(true)`) quando muda.
+      O que não for usado na semana se perde quando ela vira.
+    - **Veredito = simulação dia a dia** (`simularPlano()`): cada dia (`diasPlano()`) gasta a capacidade dele no que
+      já está disponível pra jogar — item em andamento ou com data vencida: já; com data futura: na data; sem data:
+      1º/jan do ano dele (`pdisp`). O total que fica esperando **não depende da ordem** em que os jogos são jogados;
+      hora de um dia sem nada disponível vira sobra (não volta). Devolve os totais + o retrato por mês/ano
+      `{ini, cap, chega, livre, fim}` + `frente` (quanto havia na fila quando cada item chegou). **Geral:** cabe se
+      nada fica esperando em `PLANO_FIM`; "no limite" (âmbar) se sobra < `FOLGA_MIN` (10h). **Ano:** `ini` (o que
+      vem do ano anterior) + `chega` (a fila do ano) contra `cap`; se não cabe e não é o último ano, o cartão diz
+      **"Xh rolam pra <ano+1>"** (âmbar, não é erro) — e o ano seguinte já soma esse resto, então Geral/2026/2027
+      contam a mesma história. Os totais não são mais arredondados semana a semana (só na tela): mudam ~1h em
+      relação à versão antiga.
+    - **Fila:** linha `.pit` com a data (o ano em letra pequena quando não é o atual), o nome inteiro (sem cortar),
+      as horas e uma **barra de progresso** nos iniciados. **Tocar na linha abre** (`planoOpen` = índice em `P`) as
+      ações com rótulo: ▶️ Estou jogando / ▶️ Retomar · 🎮 Ver na biblioteca (`data-pabrir` → abre o card na aba
+      Jogos; limpa os filtros de lá se esconderem o card) · ✏️ Editar · 📥 Backlog / ↩️ Voltar pra fila · 🗑 Excluir
+      (**com confirmação**). Item em andamento/pausado tem o campo **"Horas jogadas"** + **+1h**
+      (`data-phoras`/`data-pmais` → `setJogadasAtual(g, v)` grava na MESMA jogatina que o `pjogadasAtual` lê) — é o
+      "coloco as horas e ele vai descontando" sem sair do Plano. Item com data futura mostra "quando chegar, ainda
+      vai ter ~Xh de outros jogos na frente". O modal ✏️ só foca o nome ao ADICIONAR (ao editar, o foco abria o
+      teclado e as sugestões por cima dos outros campos).
+    - **📅 Mês a mês** (`details.mmbox`, estado `mmOpen`): por mês, o que tenho · o que entra (pela data dos jogos) ·
+      quanto fica esperando no fim do mês (barra). É onde dá pra ver as semanas que mudam e quando a fila aperta.
+    - Os campos do Plano salvam com `savePlano(true)` (quieto: só atualiza a etiqueta de sincronização) +
+      `renderManterFoco()` (redesenha no tick seguinte e devolve o foco ao campo equivalente) — sair de um campo
+      tocando em outro não perde o foco do segundo.
+    - `ymd(d)` formata a data **local** (antes usava `toISOString()`: num fuso à frente do UTC a chave da semana
+      saía um dia antes — ficou uma chave `2026-09-20`, um domingo, em `horasSemana` da viagem a Paris; inofensiva).
+  - 📅 **Filtro por ano + Geral + rollover (set/2026):** **chips no topo** (`.anochip`, estado `planoAno`, handler
+    `data-pano`): **Geral** (tudo junto) + um chip por ano. Num ano, a fila, a lista de semanas e o mês a mês
+    mostram só aquele ano, e o cartão compara a fila do ano (+ o que vem do ano anterior) com as horas do ano.
+    `anoFoco()` = `planoAno` (`"geral"` ou nº) ou o ano atual `ANO_HOJE`. A aba **abre sempre no Geral**
+    (`planoAno = "geral"` inicial, out/2026).
     - **Ano de cada item:** `anoDoItem(p)` = pela `data`; sem data, pelo campo `p.ano`; senão `ANO_HOJE`.
       ⚠️ **Jogo sem data de lançamento** ainda precisa de um **ano** (não necessariamente 2026): o modal tem
       o campo **Ano** (`#pAno`, preenchido pela data ou à mão) e o `#pSave` grava `p.ano`.
@@ -213,40 +286,9 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       Helpers de módulo: `plinked`/`pjogadasAtual`/`pfaltaH`/`pitemPendente` (o `viewPlano` reusa).
     - Migração única **`migPlanoAno`** carimba `p.ano` nos itens que já existiam (pela data; os 3 sem data
       do lote de 2027 — Lord of the Fallen 2/Kena 2/Tides of Annihilation — viram 2027; o resto, ano atual).
-    - **🎮 Horas jogadas descontam da semana (set/2026):** as horas registradas nas **jogatinas em andamento**
-      (status `"#"`) descontam da **capacidade da semana atual**. Mecânica de **marco por semana** (`SB` =
-      `{wk:"<segunda ISO>", base}`, salvo no `plano2026.semBase`): no começo de cada semana o `ensureSemBase()`
-      (chamado no fim do `boot()`) fotografa o total em andamento (`jogadoEmAndamento()` = soma de `pjogadasAtual`
-      dos jogos `"#"`); `jogadoSemana()` = quanto subiu desde o marco. O `viewPlano` desconta esse valor do
-      **disponível** (só quando a semana atual está no escopo — ano atual ou Geral), limitado à capacidade da
-      própria semana (`descontoSem = min(jogado, defAtual)`). A **semana em curso** no painel ⚙️ mostra
-      "🎮 joguei Xh · restam Yh" (`.wkjog`, linha `.wkatual`) e o card mostra a nota. ⚠️ O que **não for usado**
-      na semana é **perdido** quando ela passa (o marco reancora e o "jogado" zera); registrar um jogo antigo já
-      finalizado **não** conta (só jogatina em andamento).
-    - **⚖️ Peso por dia (`PESO_DIA`, set/2026):** as horas da semana **não** se espalham iguais — `horasDoDia`
-      distribui pelo peso do dia (`[Dom,Seg,Ter,Qua,Qui,Sex,Sáb] = [1,1,1.6,1.6,1.6,1,1]`, ter–qui mais pesado),
-      normalizado por `SOMA_PESO` (semana cheia continua somando `padraoSemana`; só muda a divisão por dia e a
-      semana parcial). `PERIODOS` são absolutos por dia e ignoram o peso. Editável no código (constante).
-      As **horas disponíveis** vão de hoje até
-  **31/dez/2027** (`PLANO_FIM`): cada semana vale um **padrão editável** de horas — `padraoSemana`, que começa em
-  `HORAS_SEMANA` (**7** desde set/2026, o padrão de fábrica p/ o ↺) — com exceções por dia (`PERIODOS`: 21–24/set 10h/dia;
-  sem jogatina 10–19/set) e horizonte `PLANO_FIM`. O painel recolhível **⚙️ Ajustar horas por semana**
-  (`details.wkbox`, estado `wkOpen`) tem **3 níveis**, do mais amplo pro mais específico:
-  **(1) padrão global** `padraoSemana` (`#padSemana`) → vale pra tudo · **(2) mês** `HM`
-  (`{ "AAAA-MM": nº }`, input `data-mes`) → "todas as semanas deste mês valem X" — ao gravar, **apaga os `HS` das
-  semanas daquele mês** (chave = segunda no mês), senão os ajustes soltos antigos venciam o mês; a semana que vira o
-  mês volta pro cálculo dia a dia (cada dia na taxa do seu mês) · **(3) semana solta**
-  `HS` (`{ "<segunda ISO>": nº }`, input `data-wk`) → vence os outros dois. Cada nível tem ↺
-  (`data-padreset`/`data-mesreset`/`data-wkreset`). ⚠️ Os níveis 1 e 2 entram pela **taxa diária** no
-  `horasDoDia(iso)` (`PERIODOS` > `HM[mês]/7` > `padraoSemana/7`), então semana parcial, virada de mês e
-  os `PERIODOS` saem certos de graça; só o `HS` é um valor de semana fechado. Com o horizonte até
-  dez/2027 são ~69 semanas, então as linhas ficam **agrupadas por mês** em `details.mesbox` (chave =
-  mês da segunda; só o mês atual abre no 1º render, estado em `mesOpen`), cada um com o total e um
-  resumo — sem isso viram um paredão de linhas no celular. O total "disponível" recalcula sozinho e o
-  app mostra se a fila cabe (sobra/falta). Cada
-  item tem **▶️ "estou jogando"**, que marca o jogo como *jogando agora*: ele vira o card do topo da aba
-  Jogos e entra na biblioteca; o "falta na fila" desconta as horas já jogadas desse jogo (estimativa −
-  horas). Na aba 📊
+  Cada item tem **▶️ "Estou jogando"** (dentro da linha aberta), que marca o jogo como *jogando agora*: ele vira
+  o card do topo da aba Jogos e entra na biblioteca; a fila desconta as horas já jogadas desse jogo (estimativa −
+  horas da jogatina atual). Na aba 📊
   **Estatísticas**, a seção **"⏱ Horas por jogo"** (id `top`) lista **todos** os jogos do filtro (não só top 10),
   ordenados por horas, com **❌** nos dropados. Dois filtros: **veredicto** (chips `data-statver`, estado `statVer`)
   e **status** (chips `data-statstatus`, estado `statStatus`: `""` geral · `"S"` zerados · `"N"` dropados, via
@@ -259,23 +301,21 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   (`name`/`short_name`), `apple-mobile-web-app-title` e o card da `home/index.html`. ⚠️ **A pasta, a URL
   (`/app/perfil-gamer/`) e o nó do Firebase (`planos/perfil-gamer-dt2026`) continuam com o nome antigo** —
   renomear quebraria o link salvo no celular e a sincronização; só mexer nisso se o Diogo pedir.
-- **Dia que passou não conta:** a semana em curso vale só de **hoje em diante**. `semanasPlano()` soma
-  `horasDoDia` de `w.de` (= hoje, na semana atual; a segunda, nas futuras) até `w.ate`, e devolve
-  `def` (horas), `dias` e `parcial`. `horasDaSemana(w)` = ajuste manual (`HS`) ou `def`; `horasDisponiveis()`
-  soma isso. O rótulo da linha usa `w.de`→`w.ate`, então **bate com o valor do input** (ex.: numa quarta,
-  "9–13/set · resto da semana · 5d"), e o ajuste manual dessa semana também vale para os dias restantes.
-  ⚠️ Não rotular a linha com a semana cheia (segunda→domingo): o Diogo leu isso como "está contando um dia
-  que já passou". Como a soma é por dia via `horasDoDia`, os `PERIODOS` continuam valendo.
-- **Backlog do Plano (`p.backlog`):** cada item da fila tem **📥** para mandar pro backlog e **↩️** para
-  voltar — um toque, sem confirmação, e o item continua guardado com data/estimativa. Item no backlog
-  **não entra no `somaEst`** (some do "falta na fila" e da barra), sai da fila principal e aparece numa
-  seção recolhível `details.bkbox` embaixo ("📥 Backlog · N jogos · fora da conta", estado `bkOpen`),
-  com o texto "não conta no planejamento" e sem o ▶️. A flag é `delete`ada ao voltar (não fica `false`
-  sujando a nuvem). Renderização: helper `pItem({p,i})` desenha os dois casos; `ativos`/`naBacklog`
-  saem do mesmo `fila` já ordenado por data. ⚠️ `bkOpen` começa **aberto**: com ele fechado o Diogo
-  achou que um jogo tinha sumido do plano (o 📥 fica ao lado do ✏️ e é fácil tocar sem querer).
-  ⚠️ O `#pSave` remonta o item do zero — **tem que copiar o `backlog` do `prev`**, senão editar um jogo
-  do backlog o devolve pra fila sozinho (era um bug).
+- **Dia que passou não conta:** a semana em curso vale só de **hoje em diante** — `semanasPlano()` devolve, por
+  semana, `cheia` (a rotina de segunda a domingo) e `dias`/`resto` (só os dias que ainda contam); numa semana SEM
+  ajuste o estimado é `resto` (com ajuste, o número digitado vale pros dias que faltam) — a conta está em
+  `capSemana` (acima). Na lista de semanas, a linha da semana em curso mostra o período inteiro e, embaixo,
+  "restam Xh até domingo". ⚠️ Em set/2026 o Diogo leu um rótulo de semana cheia, sem esse aviso, como "está contando
+  um dia que já passou" — manter sempre o "restam" explícito na semana em curso.
+- **Backlog do Plano (`p.backlog`):** com a linha aberta, **📥 Backlog** manda o item pro backlog e **↩️ Voltar pra
+  fila** traz de volta — sem confirmação, e o item continua guardado com data/estimativa. Item no backlog **não
+  entra na simulação** (some da fila e do veredito) e aparece na seção recolhível `details.bkbox`
+  ("📥 Backlog · N jogos · fora da conta", estado `bkOpen`), sem o ▶️. A flag é `delete`ada ao voltar (não fica
+  `false` sujando a nuvem). Renderização: `pItem({p,i})` desenha os dois casos; `ativos`/`naBacklog` saem da mesma
+  `lista` já ordenada por data. ⚠️ `bkOpen` começa **aberto**: com ele fechado o Diogo achou que um jogo tinha
+  sumido do plano (na época o 📥 ficava ao lado do ✏️ e era fácil tocar sem querer — hoje as ações ficam dentro da
+  linha aberta). ⚠️ O `#pSave` remonta o item do zero — **tem que copiar o `backlog` do `prev`**, senão editar um
+  jogo do backlog o devolve pra fila sozinho (era um bug).
 - **Migração única `migPlanoAdd2027`:** 6 jogos que o Diogo pediu pra somar ao Plano (set/2026) — Fable
   23/02/27 50h · Exodus 07/04/27 30h · Final Fantasy VII Revelations 08/04/27 80h · Lord of the Fallen 2,
   Kena 2 e Tides of Annihilation sem data (35h/15h/40h). Entrou como migração porque **a nuvem é a fonte
@@ -288,9 +328,17 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   e grava o marcador `migPadrao7=true` na nuvem; se o Diogo já tiver escolhido outro valor, não mexe.
 - **Sincronização:** Realtime Database via REST, nó **`planos/perfil-gamer-dt2026`** — a nuvem é a
   fonte da verdade; `perfil-gamer/dados.js` é só a carga inicial (seed). localStorage = cópia offline;
-  recarrega ao voltar se houver gravação mais nova (mesma receita 1 do paris-planner). O **Plano 2026**
-  (jogos planejados + padrão global + ajustes de horas por semana) sincroniza no mesmo nó, chave
-  `plano2026` (`{itens, horasSemana, padraoSemana}`); `window.PLANO` do `dados.js` é só o seed inicial.
+  recarrega ao voltar se houver gravação mais nova (mesma receita 1 do paris-planner).
+  **Gravação pendente (nov/2026):** toda gravação passa por `gravarNuvem(chave, valor)` (`jogos`/`plano`/`rotina`),
+  que marca a chave em `localStorage` `perfil-gamer:pendente` e só desmarca quando o PUT dá certo (`r.ok`). No
+  `boot()`, chave pendente **sobe a cópia do aparelho** em vez de baixar a da nuvem; `conferirNuvem()` (ao voltar
+  pro app e no evento `online`) reenvia o que ficou pendente. Se a nuvem mudou em outro aparelho depois da última
+  vez que este a viu (`_at` > `perfil-gamer:at` + 1,5s), o app **pergunta** qual versão vale. Antes não havia
+  marca: editar sem internet e reabrir o app fazia a cópia da nuvem passar por cima e a edição sumia. A etiqueta
+  do cabeçalho mostra "sincronizado ✓" · "enviando…" · "offline · a enviar" · "offline". O **Plano**
+  sincroniza no mesmo nó: chave `plano2026` (`{itens, horasSemana, horasMes, padraoSemana, semBase}` — jogos
+  planejados, semanas ajustadas, o legado por mês/padrão e o marco da semana) e chave **`rotina`** (as fases da
+  rotina, nov/2026); `window.PLANO` do `dados.js` é só o seed inicial.
 - **Ano de lançamento (`g.ano`):** cada jogo tem o ano oficial de lançamento (pesquisado na web, ago/2026)
   — usado no filtro/ordenação "📅 Lançamento" e exibido no card. Fica na coluna **Ano** do xlsx; o
   `dados.js` traz o campo no seed. Como a nuvem é a fonte da verdade,
