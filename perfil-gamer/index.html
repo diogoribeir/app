@@ -405,7 +405,8 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
   font-size:.66rem;font-weight:800;padding:8px 0;border-radius:8px;cursor:pointer}
 .diachip.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .diachip:active{transform:scale(.95)}
-.fasedica{font-size:.66rem;color:var(--muted);font-weight:600;margin-top:6px}
+.fasedica{font-size:.66rem;color:var(--muted);font-weight:600;margin-top:6px;line-height:1.4}
+.fasedica b{color:var(--accent);font-weight:800}
 .wkadd{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.74rem;font-weight:700;color:var(--muted)}
 .wkadd input{flex:1;min-width:0;padding:8px 6px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);
   color:var(--ink);font:inherit;font-size:.8rem;font-weight:700}
@@ -1575,10 +1576,13 @@ function viewPlano(){
 
   // ---- ⚙️ minhas horas: a rotina em fases + as semanas que fogem dela ----
   const FV = fasesVivas();
+  const ajNaFase = new Map();   // semanas com ajuste próprio dentro de cada fase (nelas a rotina não vale)
+  semanas.forEach(w=>{ if (HS[w.key]!=null){ const f = faseDoDia(w.key); ajNaFase.set(f, (ajNaFase.get(f)||0)+1); } });
   const faseRows = FV.map((f,i)=>{
-    const nF = f.fortes.length, s = 7 + nF*(PESO_FORTE-1);
-    const dica = (nF>0 && nF<7) ? `≈ ${fmtH(f.h*PESO_FORTE/s)} em cada dia marcado · ${fmtH(f.h/s)} nos outros`
-                               : `≈ ${fmtH(f.h/7)} por dia`;
+    const nF = f.fortes.length, s = 7 + nF*(PESO_FORTE-1), nAjF = ajNaFase.get(f)||0;
+    const dica = ((nF>0 && nF<7) ? `≈ ${fmtH(f.h*PESO_FORTE/s)} em cada dia marcado · ${fmtH(f.h/s)} nos outros`
+                                 : `≈ ${fmtH(f.h/7)} por dia`)
+               + (nAjF ? ` · <b>${nAjF} semana${nAjF>1?"s":""} com ajuste próprio</b>` : "");
     return `<div class="fase">
       <div class="fasetop">
         ${f.ate ? `<span class="faselbl">até</span><input class="faseate" type="date" data-fase-ate="${i}" value="${f.ate}" min="${hojeIso}" max="${PLANO_FIM}" aria-label="Fim da fase" />`
@@ -1597,7 +1601,7 @@ function viewPlano(){
   const wkLista = semanas.filter(w=> noAno(w) && (proximas.has(w.key) || HS[w.key]!=null));
   const wkRow = w => {
     const on = HS[w.key]!=null, ehAtual = w.key===ctx.wkAtual;
-    const extra = ehAtual ? `<small class="wkpar">esta semana${ctx.jog>0?` · joguei ${fmtH(ctx.jog)}`:""} · restam ${fmtH(capSemana(w, ctx))}</small>` : "";
+    const extra = ehAtual ? `<small class="wkpar">esta semana${ctx.jog>0?` · joguei ${fmtH(ctx.jog)}`:""} · restam ${fmtH(capSemana(w, ctx))} até domingo</small>` : "";
     return `<div class="wkrow${ehAtual?" wkatual":""}">
       <span class="wklbl">${fmtSemanaKey(w.key)}${extra}</span>
       <input class="wkinp${on?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-wk="${w.key}" value="${on ? HS[w.key] : Math.round(w.cheia*10)/10}" />
@@ -1940,17 +1944,21 @@ document.addEventListener("click", e=>{
   if (wr){ delete HS[wr.dataset.wkreset]; savePlano(true); render(); return; }
   if (e.target.closest("[data-wkabrir]")){ wkOpen = true; render();
     const el = document.querySelector("details.wkbox"); if (el) el.scrollIntoView({block:"start",behavior:"smooth"}); return; }
-  // rotina em fases: dia forte liga/desliga · remover fase · nova fase (entra antes da última, que é a aberta)
+  // rotina em fases: dia forte liga/desliga · remover fase · nova fase
   const fd = e.target.closest("[data-fase-dia]");
   if (fd){ const [i,d] = fd.dataset.faseDia.split(":").map(Number);
     editarFases(F=>{ const f=F[i]; if (!f) return; const k=f.fortes.indexOf(d); if (k>=0) f.fortes.splice(k,1); else f.fortes.push(d); }); return; }
   const fx = e.target.closest("[data-fase-del]");
   if (fx){ editarFases(F=>{ const i=Number(fx.dataset.faseDel); if (F[i] && F[i].ate) F.splice(i,1); }); return; }
   if (e.target.closest("#btnFaseAdd")){ editarFases(F=>{
-      const ult = F[F.length-1], dat = F.filter(f=>f.ate);
-      const nd = new Date((dat.length ? dat[dat.length-1].ate : ymd(hojeD()))+"T00:00:00"); nd.setMonth(nd.getMonth()+3);
+      // divide a fase que cobre daqui a 4 semanas: a nova nasce igual a ela, então nada muda até o Diogo editar
       const lim = new Date(PLANO_FIM+"T00:00:00"); lim.setDate(lim.getDate()-1);
-      F.splice(F.length-1, 0, { ate: ymd(nd > lim ? lim : nd), h: ult.h, fortes:[...ult.fortes] });
+      const d = hojeD(); d.setDate(d.getDate()+28);
+      while (d < lim && F.some(f=>f.ate===ymd(d))) d.setDate(d.getDate()+1);
+      const iso = ymd(d > lim ? lim : d);
+      if (F.some(f=>f.ate===iso)) return;
+      const base = F.find(f=>!f.ate || iso <= f.ate) || F[F.length-1];
+      F.push({ ate: iso, h: base.h, fortes:[...base.fortes] });
     }); return; }
   const pa = e.target.closest("[data-pano]");
   if (pa){ const v=pa.dataset.pano; planoAno = (v==="geral") ? "geral" : Number(v); planoOpen = null; render(); return; }
