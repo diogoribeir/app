@@ -222,13 +222,28 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       semana** é um campo de data (`#wkAddDate`) que cria o ajuste da semana daquele dia. A dica de cada fase avisa
       quantas semanas dela têm ajuste próprio — ali mexer na fase não muda nada (em nov/2026 TODAS as semanas até
       o fim do ano tinham ajuste).
-    - **Semana em curso** (`capSemana(w, ctx)`, `ctx = {wkAtual, jog: jogadoSemana()}`): com ajuste, o número é o
-      **orçamento da semana** e restam `ajuste − jogado`; sem ajuste, restam `min(rotina dos dias que faltam,
-      rotina da semana − jogado)` — dia que passou não conta **e** hora jogada desconta, sem descontar duas vezes
-      (a versão antiga tirava os dias passados e também as horas jogadas neles). O marco `SB`/`ensureSemBase()`/
-      `jogadoSemana()` é o de set/2026 (`plano2026.semBase`: fotografa as horas das jogatinas em aberto no começo
-      da semana; registrar jogo antigo já finalizado não conta); o que não for usado na semana se perde quando ela
-      vira. O cartão mostra "Esta semana: Xh · joguei Yh · restam Zh" + botão **ajustar** (abre o ⚙️).
+    - **Semana em curso = estimado − jogado** (`capSemana(w, ctx)`, `ctx = {wkAtual, jog: jogadoSemana()}`): o
+      estimado é o ajuste da semana ou, sem ajuste, a rotina dos dias que faltam (dia que passou não conta); dele
+      sai o que já foi jogado na semana. ⚠️ **É de propósito** — numa 1ª versão do redesenho isso foi trocado por
+      um `min(...)` "pra não descontar duas vezes" e o Diogo mandou voltar: *"estimo 10h na semana; se apliquei 5h,
+      só tenho mais 5h; se joguei 12h, são 2h a mais que consegui e isso tem que aparecer"*. Então: jogou mais que
+      o estimado (`orcSemana(w)` = ajuste ou rotina da semana cheia) → a semana zera e o cartão/linha da semana
+      mostram **"+Xh além do esperado"** (verde); a fila caiu mais do que a semana, então a sobra do plano cresce
+      essas horas. O cartão mostra "Esta semana: 10h · joguei 5h · restam 5h" + **onde** as horas entraram
+      ("Phantom Blade Zero +3h · FF Resonance +2h") + botão **ajustar** (abre o ⚙️).
+    - **Marco da semana por jogo** (`SB` em `plano2026.semBase` = `{wk, base, tot:{"g<id>": horas}, ab:{"g<id>":1},
+      ex}`; `ensureSemBase()`, `jogadoSemanaPorJogo()`, `jogadoSemana()`): no começo da semana o marco fotografa as
+      horas totais de CADA jogo (`tot`) e vai marcando quem esteve em jogo nela (`ab`: jogando/pausado em algum
+      momento). Jogado na semana de um jogo = horas de agora − horas do marco, só pra quem está em `ab` (ou em
+      aberto agora); jogo criado depois do marco parte do zero. Consequências: **zerar/dropar no meio da semana não
+      apaga o que foi jogado**, **reabrir um jogo antigo não conta as horas velhas**, e registrar jogo antigo já
+      finalizado não conta. (Até nov/2026 o marco era só `base` = soma das jogatinas em aberto: zerar um jogo fazia
+      as horas dele sumirem da semana e reabrir um dropado contava as horas antigas.) `base` segue gravado p/
+      versões antigas do app; marco sem `tot` (formato antigo) é convertido na 1ª abertura e o que já tinha sido
+      jogado na semana vai pra `ex` ("outros" na tela). As chaves são `"g<id>"` porque chave só numérica o Firebase
+      devolve como lista. O `ensureSemBase()` roda no fim do `boot()` e no começo de cada `render()` (só depois de
+      `bootOk` e com `cloudOK`): reancora se a semana virou com o app aberto e grava (`savePlano(true)`) quando muda.
+      O que não for usado na semana se perde quando ela vira.
     - **Veredito = simulação dia a dia** (`simularPlano()`): cada dia (`diasPlano()`) gasta a capacidade dele no que
       já está disponível pra jogar — item em andamento ou com data vencida: já; com data futura: na data; sem data:
       1º/jan do ano dele (`pdisp`). O total que fica esperando **não depende da ordem** em que os jogos são jogados;
@@ -287,7 +302,8 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   (`/app/perfil-gamer/`) e o nó do Firebase (`planos/perfil-gamer-dt2026`) continuam com o nome antigo** —
   renomear quebraria o link salvo no celular e a sincronização; só mexer nisso se o Diogo pedir.
 - **Dia que passou não conta:** a semana em curso vale só de **hoje em diante** — `semanasPlano()` devolve, por
-  semana, `cheia` (a rotina de segunda a domingo) e `dias`/`resto` (só os dias que ainda contam); a conta está em
+  semana, `cheia` (a rotina de segunda a domingo) e `dias`/`resto` (só os dias que ainda contam); numa semana SEM
+  ajuste o estimado é `resto` (com ajuste, o número digitado vale pros dias que faltam) — a conta está em
   `capSemana` (acima). Na lista de semanas, a linha da semana em curso mostra o período inteiro e, embaixo,
   "restam Xh até domingo". ⚠️ Em set/2026 o Diogo leu um rótulo de semana cheia, sem esse aviso, como "está contando
   um dia que já passou" — manter sempre o "restam" explícito na semana em curso.
@@ -312,7 +328,14 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   e grava o marcador `migPadrao7=true` na nuvem; se o Diogo já tiver escolhido outro valor, não mexe.
 - **Sincronização:** Realtime Database via REST, nó **`planos/perfil-gamer-dt2026`** — a nuvem é a
   fonte da verdade; `perfil-gamer/dados.js` é só a carga inicial (seed). localStorage = cópia offline;
-  recarrega ao voltar se houver gravação mais nova (mesma receita 1 do paris-planner). O **Plano**
+  recarrega ao voltar se houver gravação mais nova (mesma receita 1 do paris-planner).
+  **Gravação pendente (nov/2026):** toda gravação passa por `gravarNuvem(chave, valor)` (`jogos`/`plano`/`rotina`),
+  que marca a chave em `localStorage` `perfil-gamer:pendente` e só desmarca quando o PUT dá certo (`r.ok`). No
+  `boot()`, chave pendente **sobe a cópia do aparelho** em vez de baixar a da nuvem; `conferirNuvem()` (ao voltar
+  pro app e no evento `online`) reenvia o que ficou pendente. Se a nuvem mudou em outro aparelho depois da última
+  vez que este a viu (`_at` > `perfil-gamer:at` + 1,5s), o app **pergunta** qual versão vale. Antes não havia
+  marca: editar sem internet e reabrir o app fazia a cópia da nuvem passar por cima e a edição sumia. A etiqueta
+  do cabeçalho mostra "sincronizado ✓" · "enviando…" · "offline · a enviar" · "offline". O **Plano**
   sincroniza no mesmo nó: chave `plano2026` (`{itens, horasSemana, horasMes, padraoSemana, semBase}` — jogos
   planejados, semanas ajustadas, o legado por mês/padrão e o marco da semana) e chave **`rotina`** (as fases da
   rotina, nov/2026); `window.PLANO` do `dados.js` é só o seed inicial.

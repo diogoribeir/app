@@ -360,6 +360,8 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
   font-size:.76rem;color:var(--muted);font-weight:600;line-height:1.4}
 .vsem>span{flex:1;min-width:0}
 .vsem b{color:var(--ink);font-weight:800}
+.vsem b.vplus{color:var(--mb)}
+.vsemjog{display:block;font-size:.68rem;font-weight:600;margin-top:3px}
 .vlink{flex:0 0 auto;border:1px solid var(--line);background:var(--surface2);color:var(--accent);font:inherit;
   font-size:.7rem;font-weight:800;padding:7px 11px;border-radius:9px;cursor:pointer}
 .vlink:active{transform:scale(.96)}
@@ -600,21 +602,36 @@ let J = window.JOGOS || [];
 let cloudOK = false;
 let syncStamp = 0;
 
+// Gravação que não chegou na nuvem (sem internet) fica marcada neste aparelho e é reenviada na próxima abertura ou
+// quando a internet volta. Antes não havia marca: ao reabrir, a cópia da nuvem passava por cima e a edição sumia.
+const LS_PEND = "perfil-gamer:pendente";   // {jogos:1, plano:1, rotina:1} — o que ainda falta enviar
+const LS_STAMP = "perfil-gamer:at";        // último carimbo (_at) que este aparelho viu ou gravou
+const ARQ = { jogos:"jogos", plano:"plano2026", rotina:"rotina" };
+const _seq = { jogos:0, plano:0, rotina:0 };
+function pendentes(){ try { return JSON.parse(localStorage.getItem(LS_PEND) || "{}") || {}; } catch(e){ return {}; } }
+function setPendente(chave, on){
+  const pd = pendentes(); if (on) pd[chave] = 1; else delete pd[chave];
+  try { Object.keys(pd).length ? localStorage.setItem(LS_PEND, JSON.stringify(pd)) : localStorage.removeItem(LS_PEND); } catch(e){}
+}
+function guardarStamp(){ try { localStorage.setItem(LS_STAMP, String(syncStamp)); } catch(e){} }
+// grava uma chave do nó. A promise sempre resolve; cloudOK diz se deu certo
+function gravarNuvem(chave, valor){
+  const n = ++_seq[chave]; setPendente(chave, true);
+  return fetch(`${SYNC_URL}/${ARQ[chave]}.json`, { method:"PUT", body: JSON.stringify(valor) })
+    .then(r=>{ if (!r.ok) throw new Error("HTTP " + r.status);
+      if (_seq[chave] === n) setPendente(chave, false);     // só desmarca se não saiu outra gravação depois desta
+      cloudOK = true; syncStamp = Date.now(); guardarStamp();
+      fetch(`${SYNC_URL}/_at.json`, { method:"PUT", body: JSON.stringify(syncStamp) }).catch(()=>{}); })
+    .catch(()=>{ cloudOK = false; });
+}
 function saveJogos(){
   try { localStorage.setItem(LS_KEY, JSON.stringify(J)); } catch(e){}
-  fetch(`${SYNC_URL}/jogos.json`, { method:"PUT", body: JSON.stringify(J) })
-    .then(()=>{ cloudOK = true; syncStamp = Date.now();
-      fetch(`${SYNC_URL}/_at.json`, { method:"PUT", body: JSON.stringify(syncStamp) }).catch(()=>{});
-      render(); })
-    .catch(()=>{ cloudOK = false; render(); });
+  gravarNuvem("jogos", J).then(()=>render());
 }
 // salva sem re-renderizar (edição inline do card — não perde foco enquanto digita)
 function saveJogosQuiet(){
   try { localStorage.setItem(LS_KEY, JSON.stringify(J)); } catch(e){}
-  fetch(`${SYNC_URL}/jogos.json`, { method:"PUT", body: JSON.stringify(J) })
-    .then(()=>{ cloudOK = true; syncStamp = Date.now();
-      fetch(`${SYNC_URL}/_at.json`, { method:"PUT", body: JSON.stringify(syncStamp) }).catch(()=>{}); })
-    .catch(()=>{ cloudOK = false; });
+  gravarNuvem("jogos", J).then(()=>setSyncTag());
 }
 // edição inline: commit dos campos do card ao sair de cada campo
 document.addEventListener("change", e=>{
@@ -745,17 +762,17 @@ function semanasPlano(){
 function ctxSemana(){ return { wkAtual: ymd(segunda(new Date())), jog: jogadoSemana() }; }
 // orçamento de uma semana inteira: o ajuste dela (se houver) ou a rotina
 function orcSemana(w){ return HS[w.key] != null ? (Number(HS[w.key])||0) : w.cheia; }
-// horas que AINDA contam numa semana. Futura: a rotina (ou o ajuste). Em curso: com ajuste, é o orçamento da semana
-// menos o que já joguei nela; sem ajuste, só os dias que faltam — sem passar do que resta do orçamento
-// (antes descontava duas vezes: tirava os dias que passaram E as horas jogadas neles)
+// horas que AINDA contam numa semana. Futura: a rotina (ou o ajuste). Em curso: o que foi estimado pra ela — o ajuste
+// ou, sem ajuste, a rotina dos dias que faltam (dia que passou não conta) — MENOS o que já joguei na semana.
+// É de propósito (o Diogo confirmou em nov/2026): estimei 10h e joguei 5h → restam 5h; joguei 12h → não resta nada,
+// e as 2h a mais aparecem como "além do esperado" (a fila caiu 12h, então o plano ganha essas 2h).
 function capSemana(w, ctx){
   const aj = HS[w.key] != null ? (Number(HS[w.key])||0) : null;
   if (w.key !== ctx.wkAtual){
     if (aj == null) return w.resto;
     return w.cheia > 0 ? aj * w.resto / w.cheia : aj * w.dias.length / 7;
   }
-  if (aj != null) return Math.max(aj - ctx.jog, 0);
-  return Math.max(Math.min(w.resto, w.cheia - ctx.jog), 0);
+  return Math.max((aj != null ? aj : w.resto) - ctx.jog, 0);
 }
 // capacidade de cada dia, de hoje até o horizonte: as horas da semana repartidas pelos dias no peso da rotina
 function diasPlano(){
@@ -834,22 +851,50 @@ function pfaltaH(p){ const est=estH(p.est); const g=plinked(p);
 // item ainda tem trabalho a fazer (não começou, ou está jogando; zerado/dropado = concluído)
 function pitemPendente(p){ const g=plinked(p); if (!g) return true;
   if (emAberto(g)) return true; const s=statusJogo(g); return s!=="S" && s!=="N"; }
-// --- horas jogadas na SEMANA ATUAL descontam da capacidade da semana ---
-// soma as horas das jogatinas EM ANDAMENTO (status "#") de toda a biblioteca; o marco (SB) guarda
-// esse total no começo da semana, então "jogado na semana" = quanto subiu desde então (registrar um
-// jogo antigo já finalizado não conta, só jogatina em andamento).
+// --- horas jogadas na SEMANA ATUAL: quanto cada jogo ganhou desde o começo da semana (desconta da semana) ---
+// O marco (SB, em plano2026.semBase) fotografa no começo da semana as horas totais de CADA jogo (`tot`) e vai
+// marcando quem esteve em jogo nela (`ab`: jogando ou pausado em algum momento). Jogado na semana de um jogo =
+// horas de agora − horas do marco, só pra quem esteve em jogo. Assim: zerar/dropar no meio da semana não apaga o que
+// foi jogado, reabrir um jogo antigo não conta as horas velhas, e registrar jogo antigo já finalizado não conta.
+// (Até nov/2026 o marco era só `base` = total das jogatinas em aberto: zerar um jogo fazia as horas dele sumirem da
+// semana e reabrir um dropado contava as horas antigas.) `base` segue gravado p/ versões antigas do app; `ex` = o que
+// já tinha sido jogado na semana quando o marco passou a ser por jogo (não dá pra saber em qual).
 function jogadoEmAndamento(){ return J.reduce((s,g)=> s + (emAberto(g) ? pjogadasAtual(g) : 0), 0); }
-let SB = null;   // marco da semana { wk:"<segunda ISO>", base: horas em andamento no início da semana }
-function jogadoSemana(){
-  const wk = ymd(segunda(new Date()));
-  if (!SB || SB.wk !== wk) return 0;
-  return Math.max(jogadoEmAndamento() - SB.base, 0);
+let SB = null;   // { wk:"<segunda>", base, tot:{"g<id>": horas}, ab:{"g<id>":1}, ex }
+const gk = g => "g" + g.id;                 // chave com letra: só números o Firebase devolve como lista
+function semanaAtualKey(){ return ymd(segunda(new Date())); }
+// [{g, h}] das horas que cada jogo ganhou nesta semana, do maior pro menor
+function jogadoSemanaPorJogo(){
+  if (!SB || SB.wk !== semanaAtualKey() || !SB.tot) return [];
+  const out = [];
+  J.forEach(g=>{
+    if (!g || g.id == null) return;
+    const k = gk(g);
+    if (!(SB.ab && SB.ab[k]) && !emAberto(g)) return;            // não esteve em jogo nesta semana
+    const d = totalHoras(g) - (SB.tot[k] != null ? (Number(SB.tot[k])||0) : 0);   // criado depois do marco: parte do zero
+    if (d > 0.001) out.push({ g, h: d });
+  });
+  return out.sort((a,b)=> b.h - a.h);
 }
-// (re)ancora o marco quando a semana vira; devolve true se mudou (aí é preciso savePlano)
+function jogadoSemana(){
+  if (!SB || SB.wk !== semanaAtualKey()) return 0;
+  if (!SB.tot) return Math.max(jogadoEmAndamento() - (Number(SB.base)||0), 0);    // marco ainda no formato antigo
+  return jogadoSemanaPorJogo().reduce((s,x)=> s + x.h, 0) + (Number(SB.ex)||0);
+}
+// mantém o marco em dia: reancora quando a semana vira, converte o marco antigo e marca quem entrou em jogo.
+// Devolve true se mudou (aí é preciso savePlano)
 function ensureSemBase(){
-  const wk = ymd(segunda(new Date()));
-  if (!SB || SB.wk !== wk){ SB = { wk, base: jogadoEmAndamento() }; return true; }
-  return false;
+  const wk = semanaAtualKey(); let mudou = false;
+  const fotos = ()=>{ const t = {}; J.forEach(g=>{ if (g && g.id != null) t[gk(g)] = totalHoras(g); }); return t; };
+  if (!SB || SB.wk !== wk){ SB = { wk, base: jogadoEmAndamento(), tot: fotos(), ab: {} }; mudou = true; }
+  else if (!SB.tot){
+    const ja = Math.max(jogadoEmAndamento() - (Number(SB.base)||0), 0);
+    SB = { wk, base: Number(SB.base)||0, tot: fotos(), ab: {} }; if (ja > 0) SB.ex = ja;
+    mudou = true;
+  }
+  if (!SB.ab) SB.ab = {};                   // o Firebase não guarda objeto vazio
+  J.forEach(g=>{ if (g && g.id != null && emAberto(g) && !SB.ab[gk(g)]){ SB.ab[gk(g)] = 1; mudou = true; } });
+  return mudou;
 }
 // ano em que o item aparece na fila: se ficou pra trás e ainda não terminou, ROLA pro ano atual (ex.: sobrou de 2026 → 2027)
 function anoFila(p){ const a=anoDoItem(p); return (a<ANO_HOJE && pitemPendente(p)) ? ANO_HOJE : a; }
@@ -880,28 +925,21 @@ function fmtSemanaKey(key){
 }
 function setSyncTag(){
   const st = $("#syncTag"); if (!st) return;
-  st.textContent = cloudOK ? "sincronizado ✓" : "offline";
-  st.className = "synctag" + (cloudOK ? "" : " off");
+  const falta = Object.keys(pendentes()).length > 0;       // tem gravação a caminho ou esperando internet
+  st.textContent = cloudOK ? (falta ? "enviando…" : "sincronizado ✓") : (falta ? "offline · a enviar" : "offline");
+  st.className = "synctag" + (cloudOK && !falta ? "" : " off");
 }
 // quiet = não redesenha quando a nuvem responde (edição de campo do Plano: redesenhar ali tiraria o foco do campo seguinte)
 function savePlano(quiet){
   const payload = { itens: P, horasSemana: HS, horasMes: HM, padraoSemana, semBase: SB };
   try { localStorage.setItem(LS_PLANO, JSON.stringify(payload)); } catch(e){}
-  fetch(`${SYNC_URL}/plano2026.json`, { method:"PUT", body: JSON.stringify(payload) })
-    .then(()=>{ cloudOK = true; syncStamp = Date.now();
-      fetch(`${SYNC_URL}/_at.json`, { method:"PUT", body: JSON.stringify(syncStamp) }).catch(()=>{});
-      quiet ? setSyncTag() : render(); })
-    .catch(()=>{ cloudOK = false; quiet ? setSyncTag() : render(); });
+  gravarNuvem("plano", payload).then(()=>{ quiet ? setSyncTag() : render(); });
 }
 // a rotina (fases) fica num nó próprio: uma versão antiga do app, aberta em outro aparelho, regrava o plano2026
 // inteiro e apagaria um campo novo que morasse ali dentro
 function saveRotina(){
   try { ROT ? localStorage.setItem(LS_ROT, JSON.stringify(ROT)) : localStorage.removeItem(LS_ROT); } catch(e){}
-  fetch(`${SYNC_URL}/rotina.json`, { method:"PUT", body: JSON.stringify(ROT) })
-    .then(()=>{ cloudOK = true; syncStamp = Date.now();
-      fetch(`${SYNC_URL}/_at.json`, { method:"PUT", body: JSON.stringify(syncStamp) }).catch(()=>{});
-      setSyncTag(); })
-    .catch(()=>{ cloudOK = false; setSyncTag(); });
+  gravarNuvem("rotina", ROT).then(()=>setSyncTag());
 }
 // edita as fases da rotina: parte das que ainda valem (as derivadas do modelo antigo passam a ser as salvas), aplica e grava
 function editarFases(fn){
@@ -921,12 +959,27 @@ async function boot(){
   try { const raw = localStorage.getItem(LS_ROT); if (raw) ROT = normFases(JSON.parse(raw)); } catch(e){}
   _fasesLeg = null;
   render();  // 1ª pintura com a cópia do aparelho (evita "piscar" o seed antigo)
+  // gravações que ficaram por enviar (sem internet): a cópia deste aparelho é a mais nova e é ela que sobe —
+  // a não ser que a nuvem tenha mudado depois em outro aparelho; aí o Diogo escolhe qual vale
+  let pd = pendentes();
+  if (Object.keys(pd).length){
+    try {
+      const r = await fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" });
+      const at = r.ok ? await r.json() : null;
+      let visto = 0; try { visto = Number(localStorage.getItem(LS_STAMP)) || 0; } catch(e){}
+      if (typeof at === "number" && at > visto + 1500 &&
+          !confirm("Este aparelho tem alterações que não chegaram na nuvem (estava sem internet), e a nuvem mudou depois disso em outro aparelho.\n\nOK = enviar as alterações deste aparelho\nCancelar = descartar e ficar com as da nuvem")){
+        Object.keys(pd).forEach(k=>setPendente(k, false)); pd = {};
+      }
+    } catch(e){}
+  }
   try {
     const r = await fetch(`${SYNC_URL}/jogos.json`, { cache:"no-store" });
     if (r.ok) {
-      const v = await r.json();
-      if (Array.isArray(v) && v.length) { J = v; cloudOK = true; try{localStorage.setItem(LS_KEY, JSON.stringify(J));}catch(e){} }
-      else { cloudOK = true; saveJogos(); }
+      const v = await r.json(); cloudOK = true;
+      if (pd.jogos) saveJogosQuiet();                          // sobe a cópia deste aparelho
+      else if (Array.isArray(v) && v.length) { J = v; try{localStorage.setItem(LS_KEY, JSON.stringify(J));}catch(e){} }
+      else saveJogos();
     }
   } catch(e){ cloudOK = false; }
   // migração: veredicto antigo "Medíocre" → "Mediano" + backfill do ano de lançamento (do seed)
@@ -957,20 +1010,25 @@ async function boot(){
     const r = await fetch(`${SYNC_URL}/plano2026.json`, { cache:"no-store" });
     if (r.ok) {
       const v = await r.json();
-      if (v && Array.isArray(v.itens)) P = v.itens;
-      else if (P.length === 0 && Array.isArray(window.PLANO)) { P = window.PLANO.slice(); savePlano(); }
-      if (v && v.horasSemana && typeof v.horasSemana==="object") HS = v.horasSemana;
-      if (v && v.horasMes && typeof v.horasMes==="object") HM = v.horasMes;
-      if (v && Number.isFinite(v.padraoSemana)) padraoSemana = v.padraoSemana;
-      if (v && v.semBase && typeof v.semBase==="object") SB = v.semBase;
+      if (pd.plano) savePlano(true);                           // sobe a cópia deste aparelho
+      else {
+        if (v && Array.isArray(v.itens)) P = v.itens;
+        else if (P.length === 0 && Array.isArray(window.PLANO)) { P = window.PLANO.slice(); savePlano(); }
+        if (v && v.horasSemana && typeof v.horasSemana==="object") HS = v.horasSemana;
+        if (v && v.horasMes && typeof v.horasMes==="object") HM = v.horasMes;
+        if (v && Number.isFinite(v.padraoSemana)) padraoSemana = v.padraoSemana;
+        if (v && v.semBase && typeof v.semBase==="object") SB = v.semBase;
+      }
     }
   } catch(e){}
   _fasesLeg = null;   // o legado (padrão/mês) acabou de chegar da nuvem → refaz as fases derivadas
   // rotina em fases (nó próprio); sem nada salvo, o app deriva as fases do legado e não grava nada sozinho
   try {
     const r = await fetch(`${SYNC_URL}/rotina.json`, { cache:"no-store" });
-    if (r.ok){ ROT = normFases(await r.json());
-      try { ROT ? localStorage.setItem(LS_ROT, JSON.stringify(ROT)) : localStorage.removeItem(LS_ROT); } catch(e){} }
+    if (r.ok){ const v = await r.json();
+      if (pd.rotina) saveRotina();                             // sobe a cópia deste aparelho
+      else { ROT = normFases(v);
+        try { ROT ? localStorage.setItem(LS_ROT, JSON.stringify(ROT)) : localStorage.removeItem(LS_ROT); } catch(e){} } }
   } catch(e){}
   if (P.length === 0 && Array.isArray(window.PLANO)) P = window.PLANO.slice();
   // migração: itens antigos ({lanc,status}) → garante campo data
@@ -1047,16 +1105,29 @@ async function boot(){
     } catch(e){}
   }
   try { const r = await fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" });
-    const v = await r.json(); if (typeof v === "number") syncStamp = v; } catch(e){}
-  // ancora o marco da semana (com o J já final): virou a semana → rebaseia e o "jogado" zera
-  if (ensureSemBase() && cloudOK) savePlano();
+    const v = await r.json(); if (typeof v === "number") syncStamp = Math.max(syncStamp, v); } catch(e){}
+  if (cloudOK) guardarStamp();
+  // marco da semana (com o J já final): virou a semana → reancora e o "jogado" zera; também marca quem está em jogo
+  bootOk = true;
+  if (ensureSemBase() && cloudOK) savePlano(true);
   render();
 }
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) return;
+let bootOk = false;   // a nuvem já foi lida (antes disso o marco da semana não é mexido: os dados podem estar velhos)
+// ao voltar pro app, ou quando a internet volta: se a nuvem mudou em outro aparelho, recarrega; senão, reenvia o que
+// ficou pendente
+function conferirNuvem(){
+  if (!bootOk) return;
   fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" }).then(r=>r.json())
-    .then(v=>{ if (typeof v === "number" && v > syncStamp + 1500) location.reload(); }).catch(()=>{});
-});
+    .then(v=>{
+      if (typeof v === "number" && v > syncStamp + 1500){ location.reload(); return; }
+      const pd = pendentes();
+      if (pd.jogos) saveJogosQuiet();
+      if (pd.plano) savePlano(true);
+      if (pd.rotina) saveRotina();
+    }).catch(()=>{});
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) conferirNuvem(); });
+window.addEventListener("online", conferirNuvem);
 
 /* ---------- estado da UI ---------- */
 const TABS = [["jogos","Jogos","🎮"],["stats","Estatísticas","📊"],["plano","Plano","🗓"]];
@@ -1510,11 +1581,19 @@ function viewPlano(){
     : `<b>${R(fila)}h</b> na fila · tenho <b>${R(cap)}h</b> até ${fimTxt}`;
   const dem = fila + entra, pct = cap > 0 ? Math.min(dem/cap*100, 100) : (dem > 0 ? 100 : 0);
   const ocioso = (!cabe && sobra > 0.5) ? `<div class="vnota">${R(sobra)}h ficam sem uso antes de os jogos chegarem (nada disponível pra jogar nesses dias).</div>` : "";
-  // a semana em curso: orçamento, o que já joguei e o que ainda conta
+  // a semana em curso: o estimado, o que já joguei (e em quê) e o que resta — ou quanto passei do estimado
   const semAtual = semanas.find(w=>w.key===ctx.wkAtual);
-  const semLinha = (semAtual && (geral || ano===ANO_HOJE)) ? `<div class="vsem">
-      <span>Esta semana: <b>${fmtH(orcSemana(semAtual))}</b>${ctx.jog>0?` · joguei <b>${fmtH(ctx.jog)}</b>`:""} · restam <b>${fmtH(capSemana(semAtual, ctx))}</b></span>
-      <button type="button" class="vlink" data-wkabrir="1">ajustar</button></div>` : "";
+  let semLinha = "";
+  if (semAtual && (geral || ano===ANO_HOJE)){
+    const orc = orcSemana(semAtual), plus = ctx.jog - orc;
+    const onde = jogadoSemanaPorJogo().map(x=>`${esc(x.g.nome)} +${fmtH(x.h)}`);
+    if (SB && Number(SB.ex) > 0) onde.push(`outros +${fmtH(SB.ex)}`);
+    semLinha = `<div class="vsem">
+      <span>Esta semana: <b>${fmtH(orc)}</b>${ctx.jog>0?` · joguei <b>${fmtH(ctx.jog)}</b>`:""} · ${plus > 0.05
+        ? `<b class="vplus">+${fmtH(plus)} além do esperado</b>` : `restam <b>${fmtH(capSemana(semAtual, ctx))}</b>`}${
+        onde.length ? `<small class="vsemjog">${onde.join(" · ")}</small>` : ""}</span>
+      <button type="button" class="vlink" data-wkabrir="1">ajustar</button></div>`;
+  }
 
   // ---- fila do escopo, por data (sem data vai pro fim); a linha abre ao toque e mostra as ações ----
   const lista = P.map((p,i)=>({p,i})).filter(x=>doAno(x.p)).sort((a,b)=>{
@@ -1601,7 +1680,9 @@ function viewPlano(){
   const wkLista = semanas.filter(w=> noAno(w) && (proximas.has(w.key) || HS[w.key]!=null));
   const wkRow = w => {
     const on = HS[w.key]!=null, ehAtual = w.key===ctx.wkAtual;
-    const extra = ehAtual ? `<small class="wkpar">esta semana${ctx.jog>0?` · joguei ${fmtH(ctx.jog)}`:""} · restam ${fmtH(capSemana(w, ctx))} até domingo</small>` : "";
+    const plusW = ehAtual ? ctx.jog - orcSemana(w) : 0;
+    const extra = ehAtual ? `<small class="wkpar">esta semana${ctx.jog>0?` · joguei ${fmtH(ctx.jog)}`:""} · ${plusW > 0.05
+      ? `+${fmtH(plusW)} além do esperado` : `restam ${fmtH(capSemana(w, ctx))} até domingo`}</small>` : "";
     return `<div class="wkrow${ehAtual?" wkatual":""}">
       <span class="wklbl">${fmtSemanaKey(w.key)}${extra}</span>
       <input class="wkinp${on?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-wk="${w.key}" value="${on ? HS[w.key] : Math.round(w.cheia*10)/10}" />
@@ -1668,6 +1749,7 @@ function viewPlano(){
 const VIEWS = {jogos:viewJogos, stats:viewStats, plano:viewPlano};
 let _lastTab = null;
 function render(){
+  if (bootOk && cloudOK && ensureSemBase()) savePlano(true);
   $("#tabbar").innerHTML = TABS.map(([id,l,ic])=>
     `<button type="button" data-tab="${id}" class="${id===tab?'on':''}"><span class="ic">${ic}</span><span>${l}</span></button>`).join("");
   $("#content").innerHTML = VIEWS[tab]();
