@@ -237,7 +237,11 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       jogo** (os jogos em jogo/pausados + quem ganhou horas na semana; campo `data-semjog` = horas DESTA semana naquele
       jogo — gravar X deixa o jogo com marco + X, a diferença entra na jogatina atual via `setJogadasAtual`, igual ao
       "Horas jogadas" da fila; `+1h` = `data-semmais`; helper `semanaJogoH(g)`) + link "Outras semanas e rotina ›"
-      (`data-wkabrir`: abre o ⚙️ já na lista de semanas, `#wkSemanas`). ⚠️ Por quê: até nov/2026 o "ajustar" abria o
+      (`data-wkabrir`: abre o ⚙️ já na lista de semanas, `#wkSemanas`). **Setas ‹ ›** no topo do editor (`data-semnav`,
+      estado `semVer` = segunda da semana mostrada, `null` = a em curso; volta pra em curso ao fechar/reabrir ou se a
+      semana já passou) andam pelas próximas semanas até dez/2027: numa semana futura aparece só o **Quanto vou jogar**
+      + "Chega nesta semana: <jogos da fila com data nela>" — o **Quanto joguei** é só da semana em curso (o app não
+      guarda semana passada). ⚠️ Por quê: até nov/2026 o "ajustar" abria o
       ⚙️ nas **fases da rotina**; a lista de semanas ficava ~1.700px abaixo, e mexer numa fase não muda uma semana que
       tem número próprio (todas até dez/2026 tinham) — o Diogo mexeu na fase, nada mudou, e disse que "não tem como
       arrumar essa semana". Não criou dado novo: usa só `HS` e as horas dos jogos.

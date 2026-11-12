@@ -367,8 +367,12 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
 .vlink:active{transform:scale(.96)}
 /* editor da semana em curso, dentro do cartão (nov/2026) */
 .vsemed{margin-top:10px;padding:10px 12px 8px;border-radius:12px;background:var(--surface2);animation:fadeUp .18s ease}
-.vsemed .wksec{margin:2px 0 7px}
-.vsemed .wksec~.wksec{margin-top:16px}
+.vsemed .wksec{margin:12px 0 7px}
+.vsemnav{display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.vsemqual{flex:1;min-width:0;text-align:center;font-size:.86rem;font-weight:800;color:var(--ink);line-height:1.2}
+.vsemqual small{display:block;font-size:.64rem;color:var(--muted);font-weight:700;margin-top:1px}
+.vstep:disabled{opacity:.3;cursor:default;transform:none}
+.vsemnota b{color:var(--ink);font-weight:800}
 .vsemrow{display:flex;align-items:center;gap:8px}
 .vsemed .wkinp{background:var(--surface)}
 .vstep{flex:0 0 auto;width:40px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);
@@ -1183,6 +1187,7 @@ let planoAno = "geral";    // ano selecionado no Plano (chips 2026/2027) — abr
 let planoOpen = null;      // índice (em P) do item da fila aberto: a linha expande e mostra as ações
 let mmOpen = false;        // painel "📅 mês a mês" (Plano) recolhido por padrão
 let semEdit = false;       // editor da semana em curso, aberto pelo "ajustar" dentro do cartão do Plano
+let semVer = null;         // semana mostrada no editor (chave da segunda); null = a semana em curso
 let statVer = "";        // filtro de veredicto na seção "Horas por jogo" das Estatísticas
 let statStatus = "";     // filtro de status na mesma seção: "" geral · "S" zerados · "N" dropados
 let statDim = "ver";     // dimensão do gráfico "Distribuição": ver | lanc | jogou
@@ -1592,47 +1597,68 @@ function viewStats(){
 /* ---------- aba Plano ---------- */
 // horas com no máximo 1 casa (7h · 2,5h)
 const fmtH = x => (Math.round((Number(x)||0)*10)/10).toLocaleString("pt-BR") + "h";
-// editor da semana em curso, aberto pelo "ajustar" do cartão do Plano. Nov/2026: o "ajustar" abria as fases da
-// rotina, e mexer numa fase não muda uma semana que tem número próprio — o Diogo tentou arrumar a semana e não achou
-// como. Aqui ficam juntos o quanto vou jogar nesta semana (o número dela em HS, com − / + e ↺ pra voltar à rotina) e o
-// quanto joguei em cada jogo nela. Só mexe em dados que já existiam: HS e as horas do jogo (a mesma jogatina do campo
-// "Horas jogadas" da fila, via setJogadasAtual).
-function viewSemEditor(w){
-  const key = w.key, on = HS[key] != null, val = on ? (Number(HS[key])||0) : Math.round(w.cheia);
-  const fz = faseDoDia(ymd(hojeD()));
+// editor da semana, aberto pelo "ajustar" do cartão do Plano. Nov/2026: o "ajustar" abria as fases da rotina, e mexer
+// numa fase não muda uma semana que tem número próprio — o Diogo tentou arrumar a semana e não achou como. Aqui ficam
+// juntos o quanto vou jogar na semana (o número dela em HS, com − / + e ↺ pra voltar à rotina) e, na semana em curso,
+// o quanto joguei em cada jogo nela. As setas ‹ › passam pras próximas semanas (semVer). Só mexe em dados que já
+// existiam: HS e as horas do jogo (a mesma jogatina do campo "Horas jogadas" da fila, via setJogadasAtual).
+function viewSemEditor(semanas, ctx){
+  // semana mostrada: a em curso, ou a escolhida nas setas ‹ › (semVer); semana que já passou volta pra em curso
+  const ixAtual = semanas.findIndex(x=>x.key===ctx.wkAtual);
+  let ix = semanas.findIndex(x=>x.key===(semVer || ctx.wkAtual));
+  if (ix < 0){ semVer = null; ix = ixAtual; }
+  if (ix < 0) return "";
+  const w = semanas[ix], key = w.key, atual = ix === ixAtual;
+  const on = HS[key] != null, val = on ? (Number(HS[key])||0) : Math.round(w.cheia);
+  const qual = atual ? "esta semana" : fmtSemanaKey(key);
+  const rel = atual ? "esta semana" : (ix === ixAtual+1 ? "próxima semana" : "");
+  const fz = faseDoDia(atual ? ymd(hojeD()) : key);
   const fortes = DIAS_SEM.filter(([d])=>fz.fortes.includes(d)).map(([,l])=>l);
   const rot = `${fmtH(w.cheia)} na semana${(fortes.length && fortes.length<7) ? `, mais na ${fortes.join("/")}` : ""}`;
-  const nota = on ? `Vale só pra esta semana. Pela rotina seriam ${rot}.`
-    : `Pela rotina: ${rot}${w.resto < w.cheia-0.05 ? ` (de hoje até domingo, ${fmtH(w.resto)})` : ""}. Mudar aqui vale só pra esta semana.`;
-  let jogos;
-  if (SB && SB.wk === key && SB.tot){
-    // quem conta na semana (mesma regra do jogadoSemanaPorJogo): em jogo agora, ou esteve em jogo e ganhou horas
-    const lista = J.filter(g=> g && g.id != null && ((SB.ab && SB.ab[gk(g)]) || emAberto(g)))
-      .map(g=>({ g, d: semanaJogoH(g) || 0, r: temStatus(g,"#") ? 0 : temStatus(g,"P") ? 1 : 2 }))
-      .filter(x=> x.r < 2 || x.d > 0.001)
-      .sort((a,b)=> a.r-b.r || b.d-a.d || String(a.g.nome).localeCompare(String(b.g.nome)));
-    jogos = lista.length ? lista.map(({g,d,r})=>`<div class="vsjrow">
-        <div class="vsjnm">${r===1?"⏸️ ":""}${esc(g.nome)}<small>${fmtH(totalHoras(g))} no total</small></div>
-        <input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-semjog="${g.id}" value="${Math.round(Math.max(d,0)*10)/10}" aria-label="Horas jogadas nesta semana em ${esc(g.nome)}" />
-        <span class="wkun">h</span>
-        <button type="button" class="pact" data-semmais="${g.id}">+1h</button>
-      </div>`).join("")
-      : `<div class="vsemnota">Nenhum jogo em andamento: marque ▶️ Estou jogando num jogo da fila.</div>`;
-    if (Number(SB.ex) > 0) jogos += `<div class="vsemnota">+ ${fmtH(SB.ex)} jogadas antes de o app separar por jogo.</div>`;
-  } else jogos = `<div class="vsemnota">As horas desta semana aparecem quando o app abrir com internet.</div>`;
+  const nota = on ? `Vale só pra ${qual}. Pela rotina seriam ${rot}.`
+    : `Pela rotina: ${rot}${(atual && w.resto < w.cheia-0.05) ? ` (de hoje até domingo, ${fmtH(w.resto)})` : ""}. Mudar aqui vale só pra ${qual}.`;
+  // jogos do plano que chegam nessa semana (lançamento = semana em que talvez dê pra jogar mais)
+  const dom = new Date(key+"T00:00:00"); dom.setDate(dom.getDate()+6); const fimW = ymd(dom);
+  const chegam = P.filter(p=>!p.backlog && !p.iniciado && p.data && p.data >= key && p.data <= fimW);
+  const chega = chegam.length ? `<div class="vsemnota">Chega nesta semana: ${chegam.map(p=>
+    `<b>${esc(p.jogo)}</b>${estH(p.est) ? ` (${fmtH(estH(p.est))})` : ""}`).join(" · ")}</div>` : "";
+  // horas jogadas: só na semana em curso (o app conta a partir do marco de segunda; semana futura ainda não tem)
+  let jogos = "";
+  if (atual){
+    if (SB && SB.wk === key && SB.tot){
+      // quem conta na semana (mesma regra do jogadoSemanaPorJogo): em jogo agora, ou esteve em jogo e ganhou horas
+      const lista = J.filter(g=> g && g.id != null && ((SB.ab && SB.ab[gk(g)]) || emAberto(g)))
+        .map(g=>({ g, d: semanaJogoH(g) || 0, r: temStatus(g,"#") ? 0 : temStatus(g,"P") ? 1 : 2 }))
+        .filter(x=> x.r < 2 || x.d > 0.001)
+        .sort((a,b)=> a.r-b.r || b.d-a.d || String(a.g.nome).localeCompare(String(b.g.nome)));
+      jogos = lista.length ? lista.map(({g,d,r})=>`<div class="vsjrow">
+          <div class="vsjnm">${r===1?"⏸️ ":""}${esc(g.nome)}<small>${fmtH(totalHoras(g))} no total</small></div>
+          <input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-semjog="${g.id}" value="${Math.round(Math.max(d,0)*10)/10}" aria-label="Horas jogadas nesta semana em ${esc(g.nome)}" />
+          <span class="wkun">h</span>
+          <button type="button" class="pact" data-semmais="${g.id}">+1h</button>
+        </div>`).join("")
+        : `<div class="vsemnota">Nenhum jogo em andamento: marque ▶️ Estou jogando num jogo da fila.</div>`;
+      if (Number(SB.ex) > 0) jogos += `<div class="vsemnota">+ ${fmtH(SB.ex)} jogadas antes de o app separar por jogo.</div>`;
+      jogos += `<div class="vsemnota">Lançar aqui soma nas horas do jogo (as mesmas da fila e da biblioteca).</div>`;
+    } else jogos = `<div class="vsemnota">As horas desta semana aparecem quando o app abrir com internet.</div>`;
+    jogos = `<div class="wksec">Quanto joguei · por jogo</div>${jogos}`;
+  }
   return `<div class="vsemed">
-    <div class="wksec">Quanto vou jogar · ${fmtSemanaKey(key)}</div>
+    <div class="vsemnav">
+      <button type="button" class="vstep" data-semnav="-1" ${ix<=ixAtual?"disabled":""} aria-label="Semana anterior">‹</button>
+      <span class="vsemqual"><b>${fmtSemanaKey(key)}</b>${rel ? `<small>${rel}</small>` : ""}</span>
+      <button type="button" class="vstep" data-semnav="1" ${ix>=semanas.length-1?"disabled":""} aria-label="Semana seguinte">›</button>
+    </div>
+    <div class="wksec">Quanto vou jogar</div>
     <div class="vsemrow">
       <button type="button" class="vstep" data-wkstep="${key}:-1" aria-label="Uma hora a menos">−</button>
-      <input class="wkinp${on?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-wksem="${key}" value="${val}" aria-label="Horas que vou jogar nesta semana" />
+      <input class="wkinp${on?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-wksem="${key}" value="${val}" aria-label="Horas que vou jogar em ${fmtSemanaKey(key)}" />
       <span class="wkun">h</span>
       <button type="button" class="vstep" data-wkstep="${key}:1" aria-label="Uma hora a mais">+</button>
       ${on ? `<button type="button" class="vrot" data-wkreset="${key}">↺ usar a rotina</button>` : ""}
     </div>
     <div class="vsemnota">${nota}</div>
-    <div class="wksec">Quanto joguei · por jogo</div>
-    ${jogos}
-    <div class="vsemnota">Lançar aqui soma nas horas do jogo (as mesmas da fila e da biblioteca).</div>
+    ${chega}${jogos}
     <button type="button" class="vsemfim" data-wkabrir="1">Outras semanas e rotina ›</button>
   </div>`;
 }
@@ -1676,7 +1702,7 @@ function viewPlano(){
         ? `<b class="vplus">+${fmtH(plus)} além do esperado</b>` : `restam <b>${fmtH(capSemana(semAtual, ctx))}</b>`}${
         (onde.length && !semEdit) ? `<small class="vsemjog">${onde.join(" · ")}</small>` : ""}</span>
       <button type="button" class="vlink" data-semedit="1">${semEdit ? "fechar" : "ajustar"}</button></div>`
-      + (semEdit ? viewSemEditor(semAtual) : "");
+      + (semEdit ? viewSemEditor(semanas, ctx) : "");
   }
 
   // ---- fila do escopo, por data (sem data vai pro fim); a linha abre ao toque e mostra as ações ----
@@ -2109,7 +2135,12 @@ document.addEventListener("click", e=>{
   const wr = e.target.closest("[data-wkreset]");
   if (wr){ delete HS[wr.dataset.wkreset]; savePlano(true); render(); return; }
   // editor da semana em curso (cartão do Plano): abre/fecha · − / + no quanto vou jogar · +1h num jogo
-  if (e.target.closest("[data-semedit]")){ semEdit = !semEdit; render(); return; }
+  if (e.target.closest("[data-semedit]")){ semEdit = !semEdit; semVer = null; render(); return; }
+  const snv = e.target.closest("[data-semnav]");
+  if (snv){ const S = semanasPlano(), cur = semanaAtualKey();
+    let ix = S.findIndex(x=>x.key===(semVer || cur)); if (ix < 0) ix = 0;
+    ix = Math.min(Math.max(ix + Number(snv.dataset.semnav), 0), S.length-1);
+    semVer = (S[ix] && S[ix].key !== cur) ? S[ix].key : null; render(); return; }
   const wst = e.target.closest("[data-wkstep]");
   if (wst){ const [k, dd] = wst.dataset.wkstep.split(":"); const w = semanasPlano().find(x=>x.key===k);
     const base = HS[k] != null ? (Number(HS[k])||0) : (w ? Math.round(w.cheia) : 0);
