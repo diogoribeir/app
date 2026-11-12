@@ -230,7 +230,17 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       o estimado (`orcSemana(w)` = ajuste ou rotina da semana cheia) → a semana zera e o cartão/linha da semana
       mostram **"+Xh além do esperado"** (verde); a fila caiu mais do que a semana, então a sobra do plano cresce
       essas horas. O cartão mostra "Esta semana: 10h · joguei 5h · restam 5h" + **onde** as horas entraram
-      ("Phantom Blade Zero +3h · FF Resonance +2h") + botão **ajustar** (abre o ⚙️).
+      ("Phantom Blade Zero +3h · FF Resonance +2h") + botão **ajustar**.
+    - **"ajustar" = editor da semana NO PRÓPRIO CARTÃO** (`viewSemEditor`, estado `semEdit`, nov/2026): **Quanto vou
+      jogar** (o número da semana em `HS`: campo `data-wksem` + − / + `data-wkstep="<segunda>:±1"` + "↺ usar a rotina"
+      quando há ajuste; sem ajuste o campo mostra a rotina arredondada e o + / − criam o ajuste) e **Quanto joguei · por
+      jogo** (os jogos em jogo/pausados + quem ganhou horas na semana; campo `data-semjog` = horas DESTA semana naquele
+      jogo — gravar X deixa o jogo com marco + X, a diferença entra na jogatina atual via `setJogadasAtual`, igual ao
+      "Horas jogadas" da fila; `+1h` = `data-semmais`; helper `semanaJogoH(g)`) + link "Outras semanas e rotina ›"
+      (`data-wkabrir`: abre o ⚙️ já na lista de semanas, `#wkSemanas`). ⚠️ Por quê: até nov/2026 o "ajustar" abria o
+      ⚙️ nas **fases da rotina**; a lista de semanas ficava ~1.700px abaixo, e mexer numa fase não muda uma semana que
+      tem número próprio (todas até dez/2026 tinham) — o Diogo mexeu na fase, nada mudou, e disse que "não tem como
+      arrumar essa semana". Não criou dado novo: usa só `HS` e as horas dos jogos.
     - **Marco da semana por jogo** (`SB` em `plano2026.semBase` = `{wk, base, tot:{"g<id>": horas}, ab:{"g<id>":1},
       ex}`; `ensureSemBase()`, `jogadoSemanaPorJogo()`, `jogadoSemana()`): no começo da semana o marco fotografa as
       horas totais de CADA jogo (`tot`) e vai marcando quem esteve em jogo nela (`ab`: jogando/pausado em algum

@@ -365,6 +365,26 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
 .vlink{flex:0 0 auto;border:1px solid var(--line);background:var(--surface2);color:var(--accent);font:inherit;
   font-size:.7rem;font-weight:800;padding:7px 11px;border-radius:9px;cursor:pointer}
 .vlink:active{transform:scale(.96)}
+/* editor da semana em curso, dentro do cartão (nov/2026) */
+.vsemed{margin-top:10px;padding:10px 12px 8px;border-radius:12px;background:var(--surface2);animation:fadeUp .18s ease}
+.vsemed .wksec{margin:2px 0 7px}
+.vsemed .wksec~.wksec{margin-top:16px}
+.vsemrow{display:flex;align-items:center;gap:8px}
+.vsemed .wkinp{background:var(--surface)}
+.vstep{flex:0 0 auto;width:40px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);
+  color:var(--ink);font:inherit;font-size:1.15rem;font-weight:800;line-height:1;cursor:pointer;padding:0}
+.vstep:active{transform:scale(.93)}
+.vrot{margin-left:auto;flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--accent);font:inherit;
+  font-size:.7rem;font-weight:800;padding:8px 10px;border-radius:9px;cursor:pointer}
+.vrot:active{transform:scale(.96)}
+.vsemnota{font-size:.68rem;color:var(--muted);font-weight:600;line-height:1.45;margin-top:6px}
+.vsjrow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.vsjnm{flex:1;min-width:0;font-size:.78rem;font-weight:700;color:var(--ink);line-height:1.25;overflow-wrap:anywhere}
+.vsjnm small{display:block;font-size:.64rem;color:var(--muted);font-weight:700;margin-top:1px}
+.vsjrow .wkinp{width:56px}
+.vsjrow .pact{flex:0 0 auto;padding:8px 10px;background:var(--surface)}
+.vsemfim{display:block;width:100%;margin-top:8px;border:0;border-top:1px solid var(--line);background:none;color:var(--accent);
+  font:inherit;font-size:.74rem;font-weight:800;text-align:left;padding:10px 0 4px;cursor:pointer}
 .sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 4px 9px}
 .sechead h2{margin:0}
 .secadd{flex:0 0 auto;border:0;border-radius:10px;padding:8px 13px;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer;
@@ -650,14 +670,24 @@ document.addEventListener("change", e=>{
     wkOpen = true; render();
     const inp = document.querySelector(`[data-wk="${key}"]`); if (inp){ inp.focus(); inp.select(); }
     return; }
-  const wk = e.target.closest("[data-wk]");
-  if (wk){ const k=wk.dataset.wk;
+  const wk = e.target.closest("[data-wk],[data-wksem]");     // data-wksem = o mesmo número, no editor do cartão
+  if (wk){ const k = wk.dataset.wk || wk.dataset.wksem;
     const v = wk.value==="" ? null : Math.max(0, Math.round(Number(wk.value)||0));
     if (v==null) delete HS[k]; else HS[k]=v;
     savePlano(true); renderManterFoco(); return; }
   const ph = e.target.closest("[data-phoras]");
   if (ph){ const p=P[Number(ph.dataset.phoras)], g=p && plinked(p);
     if (g){ setJogadasAtual(g, Math.max(0, Number(ph.value)||0)); saveJogosQuiet(); }
+    renderManterFoco(); return; }
+  // editor da semana: "joguei Xh nesta semana" nesse jogo → as horas do jogo passam a ser marco + X
+  // (a diferença entra na jogatina atual, a mesma do "Horas jogadas" da fila)
+  const sj = e.target.closest("[data-semjog]");
+  if (sj){ const g = J.find(x=>x && x.id===Number(sj.dataset.semjog)), d = g ? semanaJogoH(g) : null;
+    if (g && d != null && sj.value !== ""){
+      const x = Math.max(0, Math.round((Number(sj.value)||0)*10)/10), cur = pjogadasAtual(g);
+      const novo = Math.max(0, Math.round((cur + x - d)*10)/10);
+      if (Math.abs(novo - cur) > 0.001){ setJogadasAtual(g, novo); saveJogosQuiet(); }
+    }
     renderManterFoco(); return; }
   const card = e.target.closest(".game"); if (!card) return;
   const g = J.find(x=>x.id===Number(card.dataset.gid)); if (!g) return;
@@ -875,6 +905,13 @@ function jogadoSemanaPorJogo(){
     if (d > 0.001) out.push({ g, h: d });
   });
   return out.sort((a,b)=> b.h - a.h);
+}
+// horas que UM jogo ganhou nesta semana pelo marco (null = ainda não há marco por jogo desta semana).
+// Pode dar negativo se as horas do jogo foram corrigidas pra baixo depois do marco.
+function semanaJogoH(g){
+  if (!SB || SB.wk !== semanaAtualKey() || !SB.tot || !g || g.id == null) return null;
+  const k = gk(g);
+  return totalHoras(g) - (SB.tot[k] != null ? (Number(SB.tot[k])||0) : 0);
 }
 function jogadoSemana(){
   if (!SB || SB.wk !== semanaAtualKey()) return 0;
@@ -1145,6 +1182,7 @@ let bkOpen = true;         // painel "backlog" (Plano) ABERTO por padrão — se
 let planoAno = "geral";    // ano selecionado no Plano (chips 2026/2027) — abre no "Geral"
 let planoOpen = null;      // índice (em P) do item da fila aberto: a linha expande e mostra as ações
 let mmOpen = false;        // painel "📅 mês a mês" (Plano) recolhido por padrão
+let semEdit = false;       // editor da semana em curso, aberto pelo "ajustar" dentro do cartão do Plano
 let statVer = "";        // filtro de veredicto na seção "Horas por jogo" das Estatísticas
 let statStatus = "";     // filtro de status na mesma seção: "" geral · "S" zerados · "N" dropados
 let statDim = "ver";     // dimensão do gráfico "Distribuição": ver | lanc | jogou
@@ -1554,6 +1592,50 @@ function viewStats(){
 /* ---------- aba Plano ---------- */
 // horas com no máximo 1 casa (7h · 2,5h)
 const fmtH = x => (Math.round((Number(x)||0)*10)/10).toLocaleString("pt-BR") + "h";
+// editor da semana em curso, aberto pelo "ajustar" do cartão do Plano. Nov/2026: o "ajustar" abria as fases da
+// rotina, e mexer numa fase não muda uma semana que tem número próprio — o Diogo tentou arrumar a semana e não achou
+// como. Aqui ficam juntos o quanto vou jogar nesta semana (o número dela em HS, com − / + e ↺ pra voltar à rotina) e o
+// quanto joguei em cada jogo nela. Só mexe em dados que já existiam: HS e as horas do jogo (a mesma jogatina do campo
+// "Horas jogadas" da fila, via setJogadasAtual).
+function viewSemEditor(w){
+  const key = w.key, on = HS[key] != null, val = on ? (Number(HS[key])||0) : Math.round(w.cheia);
+  const fz = faseDoDia(ymd(hojeD()));
+  const fortes = DIAS_SEM.filter(([d])=>fz.fortes.includes(d)).map(([,l])=>l);
+  const rot = `${fmtH(w.cheia)} na semana${(fortes.length && fortes.length<7) ? `, mais na ${fortes.join("/")}` : ""}`;
+  const nota = on ? `Vale só pra esta semana. Pela rotina seriam ${rot}.`
+    : `Pela rotina: ${rot}${w.resto < w.cheia-0.05 ? ` (de hoje até domingo, ${fmtH(w.resto)})` : ""}. Mudar aqui vale só pra esta semana.`;
+  let jogos;
+  if (SB && SB.wk === key && SB.tot){
+    // quem conta na semana (mesma regra do jogadoSemanaPorJogo): em jogo agora, ou esteve em jogo e ganhou horas
+    const lista = J.filter(g=> g && g.id != null && ((SB.ab && SB.ab[gk(g)]) || emAberto(g)))
+      .map(g=>({ g, d: semanaJogoH(g) || 0, r: temStatus(g,"#") ? 0 : temStatus(g,"P") ? 1 : 2 }))
+      .filter(x=> x.r < 2 || x.d > 0.001)
+      .sort((a,b)=> a.r-b.r || b.d-a.d || String(a.g.nome).localeCompare(String(b.g.nome)));
+    jogos = lista.length ? lista.map(({g,d,r})=>`<div class="vsjrow">
+        <div class="vsjnm">${r===1?"⏸️ ":""}${esc(g.nome)}<small>${fmtH(totalHoras(g))} no total</small></div>
+        <input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-semjog="${g.id}" value="${Math.round(Math.max(d,0)*10)/10}" aria-label="Horas jogadas nesta semana em ${esc(g.nome)}" />
+        <span class="wkun">h</span>
+        <button type="button" class="pact" data-semmais="${g.id}">+1h</button>
+      </div>`).join("")
+      : `<div class="vsemnota">Nenhum jogo em andamento: marque ▶️ Estou jogando num jogo da fila.</div>`;
+    if (Number(SB.ex) > 0) jogos += `<div class="vsemnota">+ ${fmtH(SB.ex)} jogadas antes de o app separar por jogo.</div>`;
+  } else jogos = `<div class="vsemnota">As horas desta semana aparecem quando o app abrir com internet.</div>`;
+  return `<div class="vsemed">
+    <div class="wksec">Quanto vou jogar · ${fmtSemanaKey(key)}</div>
+    <div class="vsemrow">
+      <button type="button" class="vstep" data-wkstep="${key}:-1" aria-label="Uma hora a menos">−</button>
+      <input class="wkinp${on?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-wksem="${key}" value="${val}" aria-label="Horas que vou jogar nesta semana" />
+      <span class="wkun">h</span>
+      <button type="button" class="vstep" data-wkstep="${key}:1" aria-label="Uma hora a mais">+</button>
+      ${on ? `<button type="button" class="vrot" data-wkreset="${key}">↺ usar a rotina</button>` : ""}
+    </div>
+    <div class="vsemnota">${nota}</div>
+    <div class="wksec">Quanto joguei · por jogo</div>
+    ${jogos}
+    <div class="vsemnota">Lançar aqui soma nas horas do jogo (as mesmas da fila e da biblioteca).</div>
+    <button type="button" class="vsemfim" data-wkabrir="1">Outras semanas e rotina ›</button>
+  </div>`;
+}
 function viewPlano(){
   const ano = anoFoco(), geral = ano==="geral";
   const fimAno = Number(PLANO_FIM.slice(0,4)), R = Math.round;
@@ -1581,7 +1663,8 @@ function viewPlano(){
     : `<b>${R(fila)}h</b> na fila · tenho <b>${R(cap)}h</b> até ${fimTxt}`;
   const dem = fila + entra, pct = cap > 0 ? Math.min(dem/cap*100, 100) : (dem > 0 ? 100 : 0);
   const ocioso = (!cabe && sobra > 0.5) ? `<div class="vnota">${R(sobra)}h ficam sem uso antes de os jogos chegarem (nada disponível pra jogar nesses dias).</div>` : "";
-  // a semana em curso: o estimado, o que já joguei (e em quê) e o que resta — ou quanto passei do estimado
+  // a semana em curso: o estimado, o que já joguei (e em quê) e o que resta — ou quanto passei do estimado.
+  // "ajustar" abre o editor da semana aqui mesmo (viewSemEditor)
   const semAtual = semanas.find(w=>w.key===ctx.wkAtual);
   let semLinha = "";
   if (semAtual && (geral || ano===ANO_HOJE)){
@@ -1591,8 +1674,9 @@ function viewPlano(){
     semLinha = `<div class="vsem">
       <span>Esta semana: <b>${fmtH(orc)}</b>${ctx.jog>0?` · joguei <b>${fmtH(ctx.jog)}</b>`:""} · ${plus > 0.05
         ? `<b class="vplus">+${fmtH(plus)} além do esperado</b>` : `restam <b>${fmtH(capSemana(semAtual, ctx))}</b>`}${
-        onde.length ? `<small class="vsemjog">${onde.join(" · ")}</small>` : ""}</span>
-      <button type="button" class="vlink" data-wkabrir="1">ajustar</button></div>`;
+        (onde.length && !semEdit) ? `<small class="vsemjog">${onde.join(" · ")}</small>` : ""}</span>
+      <button type="button" class="vlink" data-semedit="1">${semEdit ? "fechar" : "ajustar"}</button></div>`
+      + (semEdit ? viewSemEditor(semAtual) : "");
   }
 
   // ---- fila do escopo, por data (sem data vai pro fim); a linha abre ao toque e mostra as ações ----
@@ -1701,7 +1785,7 @@ function viewPlano(){
       <p class="wknote">Cada fase vale até a data dela. Toque nos dias em que você joga <b>mais</b>.</p>
       ${faseRows}
       <button type="button" class="cbtn" id="btnFaseAdd" style="width:100%;margin-top:10px">➕ Nova fase</button>
-      <div class="wksec">Semanas diferentes da rotina</div>
+      <div class="wksec" id="wkSemanas">Semanas diferentes da rotina</div>
       <p class="wknote">Férias, viagem, lançamento… O número da semana vence a rotina; ↺ volta pra ela.</p>
       ${wkLista.map(wkRow).join("")}
       <div class="wkadd"><span>➕ outra semana</span><input type="date" id="wkAddDate" min="${addMin}" max="${addMax}" aria-label="Escolher a semana por um dia dela" /></div>
@@ -2024,8 +2108,19 @@ document.addEventListener("click", e=>{
   if (sd){ statDim = sd.dataset.statdim; render(); return; }
   const wr = e.target.closest("[data-wkreset]");
   if (wr){ delete HS[wr.dataset.wkreset]; savePlano(true); render(); return; }
+  // editor da semana em curso (cartão do Plano): abre/fecha · − / + no quanto vou jogar · +1h num jogo
+  if (e.target.closest("[data-semedit]")){ semEdit = !semEdit; render(); return; }
+  const wst = e.target.closest("[data-wkstep]");
+  if (wst){ const [k, dd] = wst.dataset.wkstep.split(":"); const w = semanasPlano().find(x=>x.key===k);
+    const base = HS[k] != null ? (Number(HS[k])||0) : (w ? Math.round(w.cheia) : 0);
+    HS[k] = Math.max(0, base + Number(dd)); savePlano(true); render(); return; }
+  const smm = e.target.closest("[data-semmais]");
+  if (smm){ const g = J.find(x=>x && x.id===Number(smm.dataset.semmais));
+    if (g){ setJogadasAtual(g, pjogadasAtual(g)+1); saveJogosQuiet(); render(); } return; }
+  // "Outras semanas e rotina" (no editor da semana): abre o ⚙️ já na lista de semanas
   if (e.target.closest("[data-wkabrir]")){ wkOpen = true; render();
-    const el = document.querySelector("details.wkbox"); if (el) el.scrollIntoView({block:"start",behavior:"smooth"}); return; }
+    const el = document.getElementById("wkSemanas") || document.querySelector("details.wkbox");
+    if (el) el.scrollIntoView({block:"start",behavior:"smooth"}); return; }
   // rotina em fases: dia forte liga/desliga · remover fase · nova fase
   const fd = e.target.closest("[data-fase-dia]");
   if (fd){ const [i,d] = fd.dataset.faseDia.split(":").map(Number);
