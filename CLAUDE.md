@@ -257,7 +257,11 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       jogado na semana vai pra `ex` ("outros" na tela). As chaves são `"g<id>"` porque chave só numérica o Firebase
       devolve como lista. O `ensureSemBase()` roda no fim do `boot()` e no começo de cada `render()` (só depois de
       `bootOk` e com `cloudOK`): reancora se a semana virou com o app aberto e grava (`savePlano(true)`) quando muda.
-      O que não for usado na semana se perde quando ela vira.
+      O que não for usado na semana se perde quando ela vira. ⚠️ **O marco de um jogo nunca fica acima das horas dele**
+      (`marcoSegueCorrecao()`, chamado no `ensureSemBase` e em todo `saveJogos`/`saveJogosQuiet` depois do `bootOk`):
+      se as horas baixam (correção, desfazer um lançamento), o marco desce junto. Sem isso a correção virava uma
+      "dívida" que engolia as próximas horas lançadas — nov/2026: o Phantom Blade começou a semana com 37h, foi
+      corrigido pra 36h, e o +1h seguinte não entrou no "joguei" (o Diogo mandou prints achando que a conta estava errada).
     - **Veredito = simulação dia a dia** (`simularPlano()`): cada dia (`diasPlano()`) gasta a capacidade dele no que
       já está disponível pra jogar — item em andamento ou com data vencida: já; com data futura: na data; sem data:
       1º/jan do ano dele (`pdisp`). O total que fica esperando **não depende da ordem** em que os jogos são jogados;

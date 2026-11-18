@@ -651,11 +651,13 @@ function gravarNuvem(chave, valor){
 function saveJogos(){
   try { localStorage.setItem(LS_KEY, JSON.stringify(J)); } catch(e){}
   gravarNuvem("jogos", J).then(()=>render());
+  if (bootOk && marcoSegueCorrecao()) savePlano(true);    // horas corrigidas pra baixo: o marco da semana desce junto
 }
 // salva sem re-renderizar (edição inline do card — não perde foco enquanto digita)
 function saveJogosQuiet(){
   try { localStorage.setItem(LS_KEY, JSON.stringify(J)); } catch(e){}
   gravarNuvem("jogos", J).then(()=>setSyncTag());
+  if (bootOk && marcoSegueCorrecao()) savePlano(true);    // horas corrigidas pra baixo: o marco da semana desce junto
 }
 // edição inline: commit dos campos do card ao sair de cada campo
 document.addEventListener("change", e=>{
@@ -935,6 +937,21 @@ function ensureSemBase(){
   }
   if (!SB.ab) SB.ab = {};                   // o Firebase não guarda objeto vazio
   J.forEach(g=>{ if (g && g.id != null && emAberto(g) && !SB.ab[gk(g)]){ SB.ab[gk(g)] = 1; mudou = true; } });
+  if (marcoSegueCorrecao()) mudou = true;
+  return mudou;
+}
+// o marco de um jogo nunca fica ACIMA das horas dele: se as horas baixaram (correção ou desfazer um lançamento), o
+// marco desce junto. Sem isso a correção vira uma "dívida" que engole as próximas horas lançadas na semana — nov/2026:
+// o Phantom Blade começou a semana com 37h, foi corrigido pra 36h, e o +1h seguinte não entrou no "joguei".
+// Devolve true se mudou (aí é preciso savePlano). Roda no ensureSemBase e a cada gravação dos jogos.
+function marcoSegueCorrecao(){
+  if (!SB || !SB.tot || SB.wk !== semanaAtualKey()) return false;
+  let mudou = false;
+  J.forEach(g=>{
+    if (!g || g.id == null) return;
+    const k = gk(g), t = totalHoras(g);
+    if (SB.tot[k] != null && (Number(SB.tot[k])||0) > t + 0.001){ SB.tot[k] = t; mudou = true; }
+  });
   return mudou;
 }
 // ano em que o item aparece na fila: se ficou pra trás e ainda não terminou, ROLA pro ano atual (ex.: sobrou de 2026 → 2027)
