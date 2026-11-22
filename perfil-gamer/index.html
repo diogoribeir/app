@@ -289,16 +289,6 @@ details.sec>summary:active{background:var(--surface2)}
 .droprow .dmot{font-size:.7rem;color:var(--muted);margin:3px 0 0 17px;line-height:1.45}
 
 /* ---------- plano ---------- */
-.anobar{display:flex;gap:8px;margin:2px 0 4px}
-.anochip{flex:1;border:1px solid var(--line);background:var(--surface2);color:var(--muted);
-  border-radius:11px;padding:9px 4px;font-size:.9rem;font-weight:800;letter-spacing:.02em;cursor:pointer}
-.anochip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-.pwhen small{display:block;font-size:.5rem;font-weight:700;opacity:.75;margin-top:1px}
-.prolou{font-size:.6rem;font-weight:800;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 5px;margin-left:4px;white-space:nowrap}
-.wkrow.wkatual{background:var(--accent-soft);border-radius:9px;padding:4px 6px;margin:2px -6px}
-.pwhen{flex:0 0 50px;text-align:center;background:var(--accent-soft);color:var(--accent);border-radius:9px;
-  font-size:.62rem;font-weight:800;padding:5px 2px;letter-spacing:.02em;line-height:1.1}
-.pwhen.nodate{background:transparent;color:var(--muted);opacity:.7;font-weight:700}
 .pbody{flex:1;min-width:0}
 .pbody .t{font-size:.82rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pbody .s{font-size:.66rem;color:var(--muted);margin-top:1px;font-weight:700}
@@ -316,9 +306,6 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
 .bkbody{padding:0 14px 10px}
 .wkbody{padding:2px 14px 12px}
 .wknote{font-size:.68rem;color:var(--muted);line-height:1.5;margin:2px 0 8px;font-weight:600}
-.wkrow{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line)}
-.wkrow:last-child{border-bottom:0}
-.wklbl{flex:1;min-width:0;font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wkpar{display:block;font-size:.66rem;font-weight:700;color:var(--muted)}
 .wkinp{width:60px;text-align:center;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);font:inherit;font-size:.85rem;font-weight:800}
 .wkinp:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
@@ -347,7 +334,7 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
 #mRuns{display:flex;flex-direction:column;gap:7px;margin-top:6px}
 #mRuns .runrow{border:1px solid var(--line);border-radius:11px;padding:7px 9px}
 
-/* plano (nov/2026): veredito, fila com linha que abre, rotina em fases, mês a mês */
+/* plano (nov/2026): cartão "jogando agora", fila em ordem de jogar, semana a semana */
 .vcard{padding:14px 15px;margin-top:8px}
 .vtit{font-size:.8rem;font-weight:800;color:var(--vc)}
 .vbig{font-size:1.5rem;font-weight:800;color:var(--vc);line-height:1.15;margin-top:2px}
@@ -368,10 +355,6 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
 /* editor da semana em curso, dentro do cartão (nov/2026) */
 .vsemed{margin-top:10px;padding:10px 12px 8px;border-radius:12px;background:var(--surface2);animation:fadeUp .18s ease}
 .vsemed .wksec{margin:12px 0 7px}
-.vsemnav{display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--line)}
-.vsemqual{flex:1;min-width:0;text-align:center;font-size:.86rem;font-weight:800;color:var(--ink);line-height:1.2}
-.vsemqual small{display:block;font-size:.64rem;color:var(--muted);font-weight:700;margin-top:1px}
-.vstep:disabled{opacity:.3;cursor:default;transform:none}
 .vsemnota b{color:var(--ink);font-weight:800}
 .vsemrow{display:flex;align-items:center;gap:8px}
 .vsemed .wkinp{background:var(--surface)}
@@ -387,8 +370,6 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
 .vsjnm small{display:block;font-size:.64rem;color:var(--muted);font-weight:700;margin-top:1px}
 .vsjrow .wkinp{width:56px}
 .vsjrow .pact{flex:0 0 auto;padding:8px 10px;background:var(--surface)}
-.vsemfim{display:block;width:100%;margin-top:8px;border:0;border-top:1px solid var(--line);background:none;color:var(--accent);
-  font:inherit;font-size:.74rem;font-weight:800;text-align:left;padding:10px 0 4px;cursor:pointer}
 .sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 4px 9px}
 .sechead h2{margin:0}
 .secadd{flex:0 0 auto;border:0;border-radius:10px;padding:8px 13px;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer;
@@ -400,7 +381,7 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
 .pit .pbody .t{white-space:normal;overflow:visible;line-height:1.25}
 .pchev{flex:0 0 auto;color:var(--muted);font-size:1rem;font-weight:800;transition:transform .18s}
 .pit.open .pchev{transform:rotate(90deg)}
-.pit.bk .pwhen,.pit.bk .pbody{opacity:.62}
+.pit.bk .pnum,.pit.bk .pbody,.pit.fim .pnum,.pit.fim .pbody{opacity:.62}
 .pprog{height:5px;border-radius:999px;background:var(--surface2);overflow:hidden;margin-top:6px}
 .pprog>span{display:block;height:100%;border-radius:999px;background:var(--accent)}
 .pmore{padding:0 0 12px;animation:fadeUp .18s ease}
@@ -418,41 +399,83 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
 .pnota b{color:var(--ink)}
 .wksec{font-size:.6rem;color:var(--muted);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin:14px 0 4px}
 .wkbody>.wksec:first-child{margin-top:4px}
-.wklbl .wkpar{white-space:normal}
-.fase{padding:10px 0;border-bottom:1px solid var(--line)}
-.fasetop{display:flex;align-items:center;gap:8px}
-.faselbl{flex:0 0 auto;font-size:.74rem;font-weight:700;color:var(--muted)}
-.faseate{flex:1;min-width:0;padding:8px 6px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);
-  color:var(--ink);font:inherit;font-size:.8rem;font-weight:700}
-.faseate:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
-.fasefim{flex:1;min-width:0;font-size:.8rem;font-weight:800}
-.fasedias{display:flex;gap:4px;margin-top:8px}
-.diachip{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface2);color:var(--muted);font:inherit;
-  font-size:.66rem;font-weight:800;padding:8px 0;border-radius:8px;cursor:pointer}
-.diachip.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.diachip:active{transform:scale(.95)}
-.fasedica{font-size:.66rem;color:var(--muted);font-weight:600;margin-top:6px;line-height:1.4}
-.fasedica b{color:var(--accent);font-weight:800}
 .wkadd{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.74rem;font-weight:700;color:var(--muted)}
 .wkadd input{flex:1;min-width:0;padding:8px 6px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);
   color:var(--ink);font:inherit;font-size:.8rem;font-weight:700}
-details.mmbox{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-details.mmbox>summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:800}
-details.mmbox>summary::-webkit-details-marker{display:none}
-details.mmbox>summary .wksub{margin-left:auto;font-size:.66rem;color:var(--muted);font-weight:700}
-details.mmbox>summary .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
-details.mmbox[open]>summary .schev{transform:rotate(90deg)}
-.mmr{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:.76rem;font-weight:700}
-.mmr:last-child{border-bottom:0}
-.mmr.mhd{font-size:.56rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:800;padding-top:0}
-.mmr .mnm{flex:0 0 50px}
-.mmr .mcap{flex:0 0 42px;text-align:right}
-.mmr .mche{flex:0 0 50px;text-align:right;color:var(--muted)}
-.mmr .mbar{flex:1;min-width:0;height:8px;border-radius:999px;background:var(--surface2);overflow:hidden}
-.mmr.mhd .mbar{background:none}
-.mmr .mbar>i{display:block;height:100%;border-radius:999px;background:var(--accent)}
-.mmr .mfim{flex:0 0 70px;text-align:right}
-.mmr .mfim.ok{color:var(--mb)}
+/* cartão do topo: jogando agora */
+.ag .aghd{font-size:.6rem;color:var(--muted);font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+.agj{padding:8px 0 10px;border-bottom:1px solid var(--line)}
+.agj:last-of-type{border-bottom:0}
+.agtop{display:flex;align-items:flex-start;gap:10px}
+.agnm{flex:1;min-width:0;font-size:1.06rem;font-weight:800;line-height:1.2;overflow-wrap:anywhere}
+.agfalta{flex:0 0 auto;text-align:right;line-height:1}
+.agfalta b{display:block;font-size:1.06rem;font-weight:800;color:var(--accent)}
+.agfalta small{font-size:.56rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.agj .pprog{height:8px;margin-top:8px}
+.aghr{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:.76rem;font-weight:700;color:var(--muted)}
+.aghr input{width:64px;text-align:center;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;
+  background:var(--surface2);color:var(--ink);font:inherit;font-size:.9rem;font-weight:800}
+.aghr input:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
+.aghr .pact{margin-left:auto;padding:8px 12px}
+.agfim{font-size:.76rem;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.4}
+.agfim b{color:var(--ink);font-weight:800}
+.agdep{font-size:.74rem;color:var(--muted);font-weight:600;margin-top:9px;line-height:1.4}
+.agdep b{color:var(--ink);font-weight:800}
+/* veredito, em cima da fila */
+.verd{display:flex;flex-direction:column;gap:2px;margin:0 2px 8px;padding:9px 12px;border-radius:12px;
+  background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--vc)}
+.verd b{font-size:.8rem;font-weight:800;color:var(--vc)}
+.verd span{font-size:.72rem;color:var(--muted);font-weight:600;line-height:1.4}
+/* fila */
+.pnum{flex:0 0 26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:800;
+  background:var(--surface2);color:var(--muted);align-self:flex-start;margin-top:1px}
+.pnum.on{background:var(--accent);color:#fff}
+.pfalta{flex:0 0 auto;text-align:right;line-height:1.05;align-self:flex-start}
+.pfalta b{display:block;font-size:.86rem;font-weight:800;color:var(--ink)}
+.pfalta small{font-size:.52rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.pq{font-size:.68rem;color:var(--accent);font-weight:700;margin-top:3px;line-height:1.35}
+.pq.tarde{color:var(--mr)}
+.phead .pchev{align-self:center}
+.pact:disabled{opacity:.35;cursor:default;transform:none}
+/* semana a semana */
+.sechead .wksub{font-size:.66rem;color:var(--muted);font-weight:700}
+.padbox{padding:10px 14px 12px}
+.padrow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.padlbl{flex:1;min-width:0;font-size:.74rem;font-weight:700;color:var(--muted);line-height:1.2}
+.padlbl b{display:block;font-size:.86rem;color:var(--ink)}
+.padlbl small{font-size:.62rem;font-weight:700}
+.padrow.mud{display:block}
+.padde{display:block;font-size:.64rem;font-weight:800;color:var(--muted);margin-bottom:4px}
+.padline{display:flex;align-items:center;gap:6px}
+.padate{flex:1;min-width:0;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);
+  color:var(--ink);font:inherit;font-size:.76rem;font-weight:700}
+.padbox .wknote{margin:10px 0 0}
+.wkc{flex:0 0 auto;display:flex;align-items:center;gap:4px}
+.wkc .wkinp{width:50px;padding:8px 2px}
+.vstep.sm{width:32px;height:36px;font-size:1rem}
+details.mes{margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+details.mes>summary{cursor:pointer;list-style:none;padding:11px 14px;display:flex;align-items:center;gap:8px}
+details.mes>summary::-webkit-details-marker{display:none}
+.mesnm{flex:0 0 auto;font-size:.84rem;font-weight:800;text-transform:capitalize}
+.mesjg{flex:1;min-width:0;font-size:.68rem;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meshr{flex:0 0 auto;font-size:.76rem;font-weight:800}
+.meshr.aj{color:var(--accent)}
+details.mes .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
+details.mes[open] .schev{transform:rotate(90deg)}
+.mesbody{padding:0 14px 6px;border-top:1px solid var(--line)}
+.wkr{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+.wkr:last-child{border-bottom:0}
+.wkr.atual{background:var(--accent-soft);border-radius:10px;padding:9px 8px;margin:4px -8px}
+.wkl{flex:1;min-width:0}
+.wkd{font-size:.8rem;font-weight:800}
+.wkd small{font-size:.6rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-left:4px}
+.wkpar{font-size:.66rem;color:var(--muted);font-weight:700;margin-top:1px}
+.wkpar b.vplus{color:var(--mb)}
+.wkg{display:flex;flex-wrap:wrap;gap:2px 7px;margin-top:2px;font-size:.72rem;font-weight:700;color:var(--ink);line-height:1.35}
+.wkj{overflow-wrap:anywhere}
+.wkj small,.wkfalta,.wklivre{font-size:.66rem;color:var(--muted);font-weight:700}
+.wklivre{color:var(--mp)}
+.wkpad{display:block;border:0;background:none;color:var(--accent);font:inherit;font-size:.66rem;font-weight:800;padding:4px 0 0;cursor:pointer}
 
 /* ---------- modal ---------- */
 .modal{position:fixed;inset:0;background:rgba(4,6,11,.65);display:flex;align-items:flex-end;justify-content:center;z-index:60}
@@ -573,7 +596,7 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
     </div>
     <div id="pHint" class="phint"></div>
     <div class="mrow">
-      <div><label for="pData">Data (quando pretende jogar)</label><input id="pData" type="date" /></div>
+      <div><label for="pData">Sai em / dá pra jogar a partir de</label><input id="pData" type="date" /></div>
       <div><label for="pEst">Estimativa (horas)</label><input id="pEst" type="number" min="0" step="1" /></div>
     </div>
     <div class="mrow">
@@ -661,25 +684,37 @@ function saveJogosQuiet(){
 }
 // edição inline: commit dos campos do card ao sair de cada campo
 document.addEventListener("change", e=>{
-  // ----- Plano: rotina (fases), semanas ajustadas e horas jogadas do item da fila -----
-  const fh = e.target.closest("[data-fase-h]");
-  if (fh){ editarFases(F=>{ const f=F[Number(fh.dataset.faseH)]; if (f) f.h = Math.max(0, Math.round((Number(fh.value)||0)*2)/2); }); return; }
-  const fa = e.target.closest("[data-fase-ate]");
-  if (fa){ if (fa.value) editarFases(F=>{ const f=F[Number(fa.dataset.faseAte)]; if (f) f.ate = fa.value; }); else render(); return; }
-  if (e.target.id==="wkAddDate"){
+  // ----- Plano: o padrão (e as mudanças dele), as horas de cada semana e as horas jogadas do item da fila -----
+  const fh = e.target.closest("[data-pad]");
+  if (fh){ const v = fh.value==="" ? null : Math.max(0, Math.round((Number(fh.value)||0)*2)/2);
+    if (v==null){ render(); return; }
+    editarFases(F=>{ const f=F[Number(fh.dataset.pad)]; if (f) f.h = v; }); return; }
+  // "a partir de" de uma mudança de padrão: vale da segunda-feira daquela semana; precisa ficar entre a mudança
+  // anterior e a seguinte (senão volta como estava)
+  const fa = e.target.closest("[data-padate]");
+  if (fa){ const i = Number(fa.dataset.padate), F = fasesVivas();
+    if (!fa.value || !F[i] || i < 1){ render(); return; }
+    const m = ymd(segunda(new Date(fa.value+"T00:00:00")));
+    const min = i===1 ? addDias(semanaAtualKey(), 7) : addDias(inicioFase(F, i-1), 7);
+    if (m < min || (F[i].ate && addDias(m,-1) >= F[i].ate)){ render(); return; }
+    editarFases(G=>{ G[i-1].ate = addDias(m,-1); }); return; }
+  // ➕ mudar o padrão a partir de uma data: divide o padrão que vale nessa semana (nasce igual → nada muda até editar)
+  if (e.target.id==="padAddDate"){
     if (!e.target.value) return;
-    const key = ymd(segunda(new Date(e.target.value+"T00:00:00")));
-    const w = semanasPlano().find(x=>x.key===key);
-    if (!w){ render(); return; }
-    if (HS[key]==null){ HS[key] = Math.round(w.cheia); savePlano(true); }
-    if (planoAno!=="geral" && key.slice(0,4)!==String(planoAno)) planoAno = "geral";   // a semana pode cair no ano vizinho
-    wkOpen = true; render();
-    const inp = document.querySelector(`[data-wk="${key}"]`); if (inp){ inp.focus(); inp.select(); }
+    const m = ymd(segunda(new Date(e.target.value+"T00:00:00")));
+    if (m <= semanaAtualKey() || m > PLANO_FIM){ render(); return; }
+    let novo = -1;
+    editarFases(F=>{
+      const k = F.findIndex(f=>!f.ate || m <= f.ate);
+      if (k < 0) return;
+      if (k > 0 && inicioFase(F, k) === m){ novo = k; return; }          // já existe uma mudança nessa semana
+      F.splice(k, 0, { ate: addDias(m,-1), h: F[k].h, fortes:[...F[k].fortes] }); novo = k + 1;
+    });
+    setTimeout(()=>{ const n = document.querySelector(`[data-pad="${novo}"]`); if (n){ n.focus(); n.select(); } }, 30);
     return; }
   const wk = e.target.closest("[data-wk],[data-wksem]");     // data-wksem = o mesmo número, no editor do cartão
   if (wk){ const k = wk.dataset.wk || wk.dataset.wksem;
-    const v = wk.value==="" ? null : Math.max(0, Math.round(Number(wk.value)||0));
-    if (v==null) delete HS[k]; else HS[k]=v;
+    setHorasSemana(k, wk.value==="" ? null : Number(wk.value));
     savePlano(true); renderManterFoco(); return; }
   const ph = e.target.closest("[data-phoras]");
   if (ph){ const p=P[Number(ph.dataset.phoras)], g=p && plinked(p);
@@ -724,22 +759,27 @@ let HS = {};             // ajuste de UMA semana { "<segunda ISO>": nº } — ve
 let HM = {};             // horas/semana de um MÊS inteiro { "AAAA-MM": nº } — vence sobre o padrão global
 const estH = s => { const m = String(s??"").match(/[\d.]+/); return m ? parseFloat(m[0]) : 0; };
 
-/* --- capacidade de horas: ROTINA em fases (h/semana + dias fortes) + semanas ajustadas, de hoje até o horizonte --- */
-const PLANO_FIM = "2027-12-31";           // horizonte do plano
-const HORAS_SEMANA = 7;                   // padrão de fábrica do modelo antigo (só a migração migPadrao7 ainda usa)
-let padraoSemana = HORAS_SEMANA;          // LEGADO (padrão global antigo): só serve p/ derivar as fases de quem nunca editou a rotina
+/* --- horas por semana: um PADRÃO (que pode mudar a partir de uma data) + semanas ajustadas (nov/2026) ---
+   O Diogo (nov/2026): "eu estimo 7 horas por semana; algumas semanas, como as últimas de dezembro, são menos horas e
+   tem semanas com mais. Tenho que saber quanto tempo coloco no jogo e quanto falta, pra saber em que semana termino e
+   começo o próximo." Então: cada semana vale o PADRÃO, a não ser que tenha um número próprio (HS). O padrão mora nas
+   fases da rotina (nó `rotina`): a 1ª fase que vale hoje é o "padrão" e as seguintes são "a partir de <data>".
+   A semana inteira segue a fase da SEGUNDA-FEIRA dela. Os "dias fortes" (`fortes`) das fases antigas saíram da conta
+   (só mudavam a divisão dentro da semana) — continuam gravados, sem efeito. */
+const PLANO_FIM = "2027-12-31";           // horizonte do plano ("cabe até dez/2027?")
+const AGENDA_MAX = "2030-12-30";          // a agenda segue depois do horizonte só p/ dizer quando o resto terminaria
+const HORAS_SEMANA = 7;                   // padrão de fábrica (e da migração migPadrao7)
+let padraoSemana = HORAS_SEMANA;          // LEGADO: só serve p/ derivar as fases de quem nunca editou a rotina
 const LS_ROT = "perfil-gamer:rotina";
-// fases da rotina, em ordem: [{ ate:"AAAA-MM-DD" | null (= até o horizonte), h: horas/semana, fortes:[0..6] (getDay) }]
-// null = a rotina nunca foi editada → as fases são DERIVADAS do legado (padrão global + "todas as semanas do mês")
+// fases da rotina, em ordem: [{ ate:"AAAA-MM-DD" | null (= até o fim), h: horas/semana, fortes:[…] (sem efeito) }]
+// null = nunca editada → as fases são DERIVADAS do legado (padrão global + "todas as semanas do mês")
 let ROT = null;
 let _fasesLeg = null;                     // cache das fases derivadas (zerar quando o legado for carregado)
-const PESO_FORTE = 5;                     // um "dia forte" recebe 5× as horas de um dia comum na divisão da semana
-const FORTES_ATE = "2027-03-31";          // nov/2026: "até abril fico em casa quarta e quinta à noite" → as fases até aqui nascem com qua/qui
 const FOLGA_MIN = 10;                     // cabe, mas com menos que isso de sobra = "no limite"
-const DIAS_SEM = [[1,"seg"],[2,"ter"],[3,"qua"],[4,"qui"],[5,"sex"],[6,"sáb"],[0,"dom"]];
 // data LOCAL em AAAA-MM-DD (toISOString usa UTC: fora do fuso do Brasil a chave da semana saía 1 dia antes)
 function ymd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function hojeD(){ const h = new Date(); h.setHours(0,0,0,0); return h; }
+function addDias(iso, n){ const d = new Date(iso+"T00:00:00"); d.setDate(d.getDate()+n); return ymd(d); }
 // normaliza as fases: ordena pela data, tira data repetida e garante que a última é aberta (ate:null).
 // (o Firebase não guarda null nem lista vazia: `ate` e `fortes` podem voltar ausentes)
 function normFases(arr){
@@ -764,62 +804,30 @@ function rotinaDoLegado(){
     if (ult && ult.h === h) ult.ate = ate; else out.push({ ate, h, fortes: [] });
     if (m===12){ a++; m=1; } else m++;
   }
-  out.forEach(f=>{ if (f.ate <= FORTES_ATE) f.fortes = [3,4]; });
   if (!out.length) out.push({ ate:null, h:padraoSemana, fortes:[] });
   out[out.length-1].ate = null;
   return out;
 }
 function fases(){ return ROT || _fasesLeg || (_fasesLeg = rotinaDoLegado()); }
-// fases que ainda valem (a que já venceu só some da tela; sai de vez na próxima edição)
+// fases que ainda valem (a que já venceu só some da tela; sai de vez na próxima edição). A 1ª = o "padrão" de hoje
 function fasesVivas(){ const h = ymd(hojeD()); return fases().filter(f=>!f.ate || f.ate >= h); }
 function faseDoDia(iso){ const F = fases(); for (const f of F){ if (!f.ate || iso <= f.ate) return f; } return F[F.length-1]; }
-function pesosFase(f){ const w = [1,1,1,1,1,1,1]; (f.fortes||[]).forEach(d=>{ w[d] = PESO_FORTE; }); return w; }
-// horas da ROTINA num dia (sem o ajuste da semana): as horas/semana da fase divididas pelo peso de cada dia
-function horasDoDia(iso){
-  const f = faseDoDia(iso), w = pesosFase(f);
-  return f.h * w[new Date(iso+"T00:00:00").getDay()] / w.reduce((a,b)=>a+b,0);
-}
-// semana = segunda→domingo; a chave do ajuste é a segunda-feira
+// semana = segunda→domingo; a chave da semana (e do ajuste dela em HS) é a segunda-feira
 function segunda(d){ const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-((x.getDay()+6)%7)); return x; }
-// semanas do plano, de hoje até o horizonte. `cheia` = rotina da semana inteira; `dias`/`resto` = só os dias que
-// ainda contam (na semana em curso, de hoje em diante — dia que passou não conta; a última pode acabar no horizonte)
-function semanasPlano(){
-  const hoje = hojeD(), fim = new Date(PLANO_FIM+"T00:00:00"), out = [];
-  for (let ws = segunda(hoje); ws <= fim; ws.setDate(ws.getDate()+7)){
-    let cheia = 0, resto = 0; const dias = [];
-    for (let i=0, d=new Date(ws); i<7; i++, d.setDate(d.getDate()+1)){
-      const iso = ymd(d), h = horasDoDia(iso); cheia += h;
-      if (d >= hoje && d <= fim){ resto += h; dias.push({ iso, h }); }
-    }
-    out.push({ key: ymd(ws), cheia, resto, dias });
-  }
-  return out;
+// 1ª segunda-feira em iso ou depois
+function segundaDesde(iso){ const d = new Date(iso+"T00:00:00"); d.setDate(d.getDate() + (8 - d.getDay()) % 7); return ymd(d); }
+// segunda-feira a partir da qual a fase i (i ≥ 1 em fasesVivas) passa a valer
+function inicioFase(F, i){ return segundaDesde(addDias(F[i-1].ate, 1)); }
+function padraoDaSemana(key){ return faseDoDia(key).h; }
+// horas planejadas pra semana inteira: o número próprio dela (HS) ou o padrão
+function horasDaSemana(key){ return HS[key] != null ? (Number(HS[key])||0) : padraoDaSemana(key); }
+// grava as horas de uma semana; igual ao padrão = sem ajuste (a semana volta a seguir o padrão)
+function setHorasSemana(key, v){
+  if (v == null || !Number.isFinite(v)) { delete HS[key]; return; }
+  v = Math.max(0, Math.round(v*2)/2);
+  if (Math.abs(v - padraoDaSemana(key)) < 0.01) delete HS[key]; else HS[key] = v;
 }
-function ctxSemana(){ return { wkAtual: ymd(segunda(new Date())), jog: jogadoSemana() }; }
-// orçamento de uma semana inteira: o ajuste dela (se houver) ou a rotina
-function orcSemana(w){ return HS[w.key] != null ? (Number(HS[w.key])||0) : w.cheia; }
-// horas que AINDA contam numa semana. Futura: a rotina (ou o ajuste). Em curso: o que foi estimado pra ela — o ajuste
-// ou, sem ajuste, a rotina dos dias que faltam (dia que passou não conta) — MENOS o que já joguei na semana.
-// É de propósito (o Diogo confirmou em nov/2026): estimei 10h e joguei 5h → restam 5h; joguei 12h → não resta nada,
-// e as 2h a mais aparecem como "além do esperado" (a fila caiu 12h, então o plano ganha essas 2h).
-function capSemana(w, ctx){
-  const aj = HS[w.key] != null ? (Number(HS[w.key])||0) : null;
-  if (w.key !== ctx.wkAtual){
-    if (aj == null) return w.resto;
-    return w.cheia > 0 ? aj * w.resto / w.cheia : aj * w.dias.length / 7;
-  }
-  return Math.max((aj != null ? aj : w.resto) - ctx.jog, 0);
-}
-// capacidade de cada dia, de hoje até o horizonte: as horas da semana repartidas pelos dias no peso da rotina
-function diasPlano(){
-  const ctx = ctxSemana(), out = [];
-  semanasPlano().forEach(w=>{
-    const cap = capSemana(w, ctx), s = w.dias.reduce((a,d)=>a+d.h, 0);
-    w.dias.forEach(d=> out.push({ iso:d.iso, cap: s>0 ? cap*d.h/s : cap/w.dias.length }));
-  });
-  return out;
-}
-// quando um item começa a pedir horas: já (em andamento ou data que passou), na data dele, ou em 1º/jan do ano (sem data)
+// quando um item começa a poder ser jogado: já (em andamento ou data que passou), na data dele, ou em 1º/jan do ano (sem data)
 function pdisp(p, hojeIso){
   const g = plinked(p);
   if (g && emAberto(g)) return hojeIso;
@@ -827,29 +835,45 @@ function pdisp(p, hojeIso){
   const a = anoFila(p);
   return a > ANO_HOJE ? `${a}-01-01` : hojeIso;
 }
-// simula a fila dia a dia: cada dia gasta a capacidade dele no que já dá pra jogar. O total que fica esperando não
-// depende da ordem em que os jogos são jogados; hora de um dia sem nada disponível não volta (vira sobra).
-// Devolve o total e o retrato por mês/ano ({ini, cap, chega, livre, fim}) + quanto havia na frente de cada item ao chegar.
-function simularPlano(){
-  const dias = diasPlano(), hojeIso = ymd(hojeD());
-  const arr = P.filter(p=>!p.backlog).map(p=>({ p, h:pfaltaH(p), em:pdisp(p,hojeIso) })).filter(x=>x.h>0)
-    .sort((a,b)=> a.em<b.em ? -1 : a.em>b.em ? 1 : 0);
-  const meses = new Map(), anos = new Map(), frente = new Map();
-  const balde = (map,k,pend)=>{ if (!map.has(k)) map.set(k,{ ini:pend, cap:0, chega:0, livre:0, fim:pend }); return map.get(k); };
-  let pend = 0, k = 0, capTot = 0, chegaTot = 0, livre = 0;
-  for (const d of dias){
-    const m = balde(meses, d.iso.slice(0,7), pend), a = balde(anos, d.iso.slice(0,4), pend);
-    while (k < arr.length && arr[k].em <= d.iso){
-      const x = arr[k++]; frente.set(x.p, pend);
-      pend += x.h; m.chega += x.h; a.chega += x.h; chegaTot += x.h;
+// AGENDA: joga a fila EM ORDEM, um jogo de cada vez. Cada dia, as horas vão pro 1º jogo da fila que já pode ser
+// jogado (lançado / com data vencida) e ainda não acabou; acabou no meio do dia, o resto vai pro seguinte. Jogo que
+// ainda não saiu não segura a fila: quem está abaixo dele e já saiu usa as horas até ele sair (aí ele volta a ter a vez).
+// As horas da semana são repartidas igualmente pelos dias que ainda contam (na semana em curso: de hoje até domingo).
+// Semana em curso = planejado − o que já joguei nela (jogou mais → zera; o excesso já saiu da fila).
+// Devolve as semanas (até o horizonte e depois, enquanto sobrar fila) e, por item, a semana em que começa e termina.
+function agendaPlano(){
+  const hoje = hojeD(), hojeIso = ymd(hoje), wkAtual = ymd(segunda(hoje)), jog = jogadoSemana();
+  const its = [];
+  P.forEach((p,i)=>{ if (p.backlog) return; const h = pfaltaH(p);
+    if (h > 0.001) its.push({ p, i, h0:h, rest:h, em:pdisp(p,hojeIso), ini:null, fim:null, iniWk:null, fimWk:null, restPlano:h }); });
+  const semanas = []; let livrePlano = 0;
+  for (const ws = segunda(hoje); ; ws.setDate(ws.getDate()+7)){
+    const key = ymd(ws), dentro = key <= PLANO_FIM;
+    if (!dentro && (key > AGENDA_MAX || its.every(x=>x.rest <= 0))) break;
+    const aj = HS[key] != null, orc = horasDaSemana(key), atual = key === wkAtual;
+    const cap = atual ? Math.max(orc - jog, 0) : orc;
+    const dias = [];
+    for (let k=0, d=new Date(ws); k<7; k++, d.setDate(d.getDate()+1)) if (d >= hoje) dias.push(ymd(d));
+    const porDia = dias.length ? cap/dias.length : 0, uso = new Map();
+    let livre = 0;
+    for (const iso of dias){
+      let c = porDia;
+      for (const x of its){
+        if (c <= 1e-9) break;
+        if (x.rest <= 0 || x.em > iso) continue;
+        const u = Math.min(c, x.rest); x.rest -= u; c -= u;
+        if (x.ini == null){ x.ini = iso; x.iniWk = key; }
+        uso.set(x, (uso.get(x)||0) + u);
+        if (x.rest <= 1e-6){ x.rest = 0; x.fim = iso; x.fimWk = key; }
+      }
+      livre += c;
     }
-    const uso = Math.min(pend, d.cap); pend -= uso;
-    m.cap += d.cap; a.cap += d.cap; capTot += d.cap;
-    m.livre += d.cap-uso; a.livre += d.cap-uso; livre += d.cap-uso;
-    m.fim = pend; a.fim = pend;
+    if (dentro){ livrePlano += livre; its.forEach(x=>{ x.restPlano = x.rest; }); }
+    semanas.push({ key, aj, orc, cap, atual, dentro, livre, segs:[...uso].map(([x,h])=>({ x, h, depois:x.rest })) });
   }
-  let fora = 0; for (; k < arr.length; k++) fora += arr[k].h;     // com data depois do horizonte: não cabem
-  return { hojeIso, capTot, chegaTot: chegaTot+fora, pendFim: pend+fora, livre, meses, anos, frente };
+  const pendFim = its.reduce((s,x)=>s+x.restPlano, 0);
+  const fimFila = its.reduce((m,x)=> (x.fimWk && x.fimWk > m) ? x.fimWk : m, "");
+  return { semanas, its, porP:new Map(its.map(x=>[x.p,x])), pendFim, livrePlano, fimFila, wkAtual, jog, hojeIso };
 }
 // ano de um item do plano: pela data, ou pelo campo `ano` (jogo sem data de lançamento), ou o ano atual
 const ANO_HOJE = new Date().getFullYear();
@@ -956,31 +980,7 @@ function marcoSegueCorrecao(){
 }
 // ano em que o item aparece na fila: se ficou pra trás e ainda não terminou, ROLA pro ano atual (ex.: sobrou de 2026 → 2027)
 function anoFila(p){ const a=anoDoItem(p); return (a<ANO_HOJE && pitemPendente(p)) ? ANO_HOJE : a; }
-// anos que aparecem no Plano: de hoje até o horizonte + os anos (já rolados) dos itens (ordenados)
-function anosDoPlano(){
-  const s = new Set();
-  for (let a = ANO_HOJE; a <= Number(PLANO_FIM.slice(0,4)); a++) s.add(a);
-  P.forEach(p=>s.add(anoFila(p)));
-  return [...s].sort((a,b)=>a-b);
-}
-// ano em foco no Plano ("geral" = todos os anos juntos; default: ano atual se existir, senão o primeiro)
-function anoFoco(){
-  if (planoAno==="geral") return "geral";
-  const anos = anosDoPlano();
-  if (typeof planoAno==="number" && anos.includes(planoAno)) return planoAno;
-  return anos.includes(ANO_HOJE) ? ANO_HOJE : anos[0];
-}
 const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
-function fmtData(iso){
-  if (!iso) return "s/ data";
-  const [a,m,dd] = iso.split("-"); return `${dd}/${MESES[Number(m)-1]}`;
-}
-// rótulo da semana inteira (segunda→domingo) a partir da chave dela
-function fmtSemanaKey(key){
-  const a=new Date(key+"T00:00:00"), b=new Date(a); b.setDate(b.getDate()+6);
-  const ma=MESES[a.getMonth()], mb=MESES[b.getMonth()];
-  return ma===mb ? `${a.getDate()}–${b.getDate()}/${ma}` : `${a.getDate()}/${ma} – ${b.getDate()}/${mb}`;
-}
 function setSyncTag(){
   const st = $("#syncTag"); if (!st) return;
   const falta = Object.keys(pendentes()).length > 0;       // tem gravação a caminho ou esperando internet
@@ -1162,6 +1162,21 @@ async function boot(){
       }
     } catch(e){}
   }
+  // migração ÚNICA (nov/2026): a ordem da lista P passou a ser a ORDEM DE JOGAR (a agenda joga de cima pra baixo).
+  // Até aqui a ordem era a de inclusão e a tela ordenava pela data; arruma uma vez do jeito que a fila aparecia:
+  // em andamento primeiro, depois pela data, sem data no fim. Depois disso quem manda é o ⬆️/⬇️.
+  if (cloudOK){
+    try {
+      const mr = await fetch(`${SYNC_URL}/migPlanoOrdem.json`, { cache:"no-store" });
+      const done = mr.ok ? await mr.json() : null;
+      if (!done){
+        const kd = p => { const g = plinked(p); return (g && emAberto(g) && !p.backlog) ? "0" : (p.data || "9999"); };
+        const ord = P.map((p,i)=>({ p, i, k:kd(p) })).sort((a,b)=> a.k<b.k ? -1 : a.k>b.k ? 1 : a.i-b.i).map(x=>x.p);
+        if (ord.some((p,i)=>p!==P[i])){ P = ord; savePlano(true); }
+        fetch(`${SYNC_URL}/migPlanoOrdem.json`, { method:"PUT", body:"true" }).catch(()=>{});
+      }
+    } catch(e){}
+  }
   try { const r = await fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" });
     const v = await r.json(); if (typeof v === "number") syncStamp = Math.max(syncStamp, v); } catch(e){}
   if (cloudOK) guardarStamp();
@@ -1198,13 +1213,10 @@ let busca = "";
 let ordem = "veredicto";   // padrão: veredicto e, dentro dele, mais horas (nov/2026)
 let filtersOpen = false;   // painel de filtros recolhido por padrão (mais espaço p/ a lista no celular)
 let sortOpen = false;      // mini-painel de ordenação (separado dos filtros), recolhido por padrão
-let wkOpen = false;        // painel "⚙️ minhas horas" (Plano) recolhido por padrão
 let bkOpen = true;         // painel "backlog" (Plano) ABERTO por padrão — senão parece que o jogo sumiu
-let planoAno = "geral";    // ano selecionado no Plano (chips 2026/2027) — abre no "Geral"
 let planoOpen = null;      // índice (em P) do item da fila aberto: a linha expande e mostra as ações
-let mmOpen = false;        // painel "📅 mês a mês" (Plano) recolhido por padrão
-let semEdit = false;       // editor da semana em curso, aberto pelo "ajustar" dentro do cartão do Plano
-let semVer = null;         // semana mostrada no editor (chave da segunda); null = a semana em curso
+let mesOpen = null;        // meses abertos no "Semana a semana" (Set de "AAAA-MM"); null = abrir o mês atual e o seguinte
+let semEdit = false;       // "esta semana" aberto pelo "ajustar" do cartão do Plano
 let statVer = "";        // filtro de veredicto na seção "Horas por jogo" das Estatísticas
 let statStatus = "";     // filtro de status na mesma seção: "" geral · "S" zerados · "N" dropados
 let statDim = "ver";     // dimensão do gráfico "Distribuição": ver | lanc | jogou
@@ -1614,143 +1626,157 @@ function viewStats(){
 /* ---------- aba Plano ---------- */
 // horas com no máximo 1 casa (7h · 2,5h)
 const fmtH = x => (Math.round((Number(x)||0)*10)/10).toLocaleString("pt-BR") + "h";
-// editor da semana, aberto pelo "ajustar" do cartão do Plano. Nov/2026: o "ajustar" abria as fases da rotina, e mexer
-// numa fase não muda uma semana que tem número próprio — o Diogo tentou arrumar a semana e não achou como. Aqui ficam
-// juntos o quanto vou jogar na semana (o número dela em HS, com − / + e ↺ pra voltar à rotina) e, na semana em curso,
-// o quanto joguei em cada jogo nela. As setas ‹ › passam pras próximas semanas (semVer). Só mexe em dados que já
-// existiam: HS e as horas do jogo (a mesma jogatina do campo "Horas jogadas" da fila, via setJogadasAtual).
-function viewSemEditor(semanas, ctx){
-  // semana mostrada: a em curso, ou a escolhida nas setas ‹ › (semVer); semana que já passou volta pra em curso
-  const ixAtual = semanas.findIndex(x=>x.key===ctx.wkAtual);
-  let ix = semanas.findIndex(x=>x.key===(semVer || ctx.wkAtual));
-  if (ix < 0){ semVer = null; ix = ixAtual; }
-  if (ix < 0) return "";
-  const w = semanas[ix], key = w.key, atual = ix === ixAtual;
-  const on = HS[key] != null, val = on ? (Number(HS[key])||0) : Math.round(w.cheia);
-  const qual = atual ? "esta semana" : fmtSemanaKey(key);
-  const rel = atual ? "esta semana" : (ix === ixAtual+1 ? "próxima semana" : "");
-  const fz = faseDoDia(atual ? ymd(hojeD()) : key);
-  const fortes = DIAS_SEM.filter(([d])=>fz.fortes.includes(d)).map(([,l])=>l);
-  const rot = `${fmtH(w.cheia)} na semana${(fortes.length && fortes.length<7) ? `, mais na ${fortes.join("/")}` : ""}`;
-  const nota = on ? `Vale só pra ${qual}. Pela rotina seriam ${rot}.`
-    : `Pela rotina: ${rot}${(atual && w.resto < w.cheia-0.05) ? ` (de hoje até domingo, ${fmtH(w.resto)})` : ""}. Mudar aqui vale só pra ${qual}.`;
-  // jogos do plano que chegam nessa semana (lançamento = semana em que talvez dê pra jogar mais)
-  const dom = new Date(key+"T00:00:00"); dom.setDate(dom.getDate()+6); const fimW = ymd(dom);
-  const chegam = P.filter(p=>!p.backlog && !p.iniciado && p.data && p.data >= key && p.data <= fimW);
-  const chega = chegam.length ? `<div class="vsemnota">Chega nesta semana: ${chegam.map(p=>
-    `<b>${esc(p.jogo)}</b>${estH(p.est) ? ` (${fmtH(estH(p.est))})` : ""}`).join(" · ")}</div>` : "";
-  // horas jogadas: só na semana em curso (o app conta a partir do marco de segunda; semana futura ainda não tem)
-  let jogos = "";
-  if (atual){
-    if (SB && SB.wk === key && SB.tot){
-      // quem conta na semana (mesma regra do jogadoSemanaPorJogo): em jogo agora, ou esteve em jogo e ganhou horas
-      const lista = J.filter(g=> g && g.id != null && ((SB.ab && SB.ab[gk(g)]) || emAberto(g)))
-        .map(g=>({ g, d: semanaJogoH(g) || 0, r: temStatus(g,"#") ? 0 : temStatus(g,"P") ? 1 : 2 }))
-        .filter(x=> x.r < 2 || x.d > 0.001)
-        .sort((a,b)=> a.r-b.r || b.d-a.d || String(a.g.nome).localeCompare(String(b.g.nome)));
-      jogos = lista.length ? lista.map(({g,d,r})=>`<div class="vsjrow">
-          <div class="vsjnm">${r===1?"⏸️ ":""}${esc(g.nome)}<small>${fmtH(totalHoras(g))} no total</small></div>
-          <input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-semjog="${g.id}" value="${Math.round(Math.max(d,0)*10)/10}" aria-label="Horas jogadas nesta semana em ${esc(g.nome)}" />
-          <span class="wkun">h</span>
-          <button type="button" class="pact" data-semmais="${g.id}">+1h</button>
-        </div>`).join("")
-        : `<div class="vsemnota">Nenhum jogo em andamento: marque ▶️ Estou jogando num jogo da fila.</div>`;
-      if (Number(SB.ex) > 0) jogos += `<div class="vsemnota">+ ${fmtH(SB.ex)} jogadas antes de o app separar por jogo.</div>`;
-      jogos += `<div class="vsemnota">Lançar aqui soma nas horas do jogo (as mesmas da fila e da biblioteca).</div>`;
-    } else jogos = `<div class="vsemnota">As horas desta semana aparecem quando o app abrir com internet.</div>`;
-    jogos = `<div class="wksec">Quanto joguei · por jogo</div>${jogos}`;
-  }
+const MESES_L = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+const sufAno = a => Number(a)!==ANO_HOJE ? `/${String(a).slice(2)}` : "";
+// "4/jan" · "4/jan/27" (o ano só quando não é o atual)
+function fmtDA(iso){ const [a,m,d] = iso.split("-"); return `${Number(d)}/${MESES[Number(m)-1]}${sufAno(a)}`; }
+// semana inteira: "23–29/nov" · "30/nov–6/dez" · "4–10/jan/27"
+function fmtSemA(key){
+  const a = new Date(key+"T00:00:00"), b = new Date(a); b.setDate(b.getDate()+6);
+  const ma = MESES[a.getMonth()], mb = MESES[b.getMonth()], s = sufAno(b.getFullYear());
+  return ma===mb ? `${a.getDate()}–${b.getDate()}/${mb}${s}` : `${a.getDate()}/${ma}–${b.getDate()}/${mb}${s}`;
+}
+// semanas entre a semana em curso e a semana k
+const semanasAte = (de, k) => Math.round((new Date(k+"T00:00:00") - new Date(de+"T00:00:00")) / 604800000);
+// mês ao qual a semana pertence (o da quinta-feira, como no calendário ISO)
+const mesDaSemana = key => addDias(key, 3).slice(0,7);
+// esta semana, aberto pelo "ajustar" do cartão: quanto vou jogar (− / +) e quanto joguei em cada jogo nela.
+// Lançar horas aqui soma nas horas do jogo (a mesma jogatina do "Horas jogadas" da fila, via setJogadasAtual)
+function viewSemanaAtual(w){
+  const key = w.key, pad = padraoDaSemana(key);
+  let jogos;
+  if (SB && SB.wk === key && SB.tot){
+    // quem conta na semana (mesma regra do jogadoSemanaPorJogo): em jogo agora, ou esteve em jogo e ganhou horas
+    const lista = J.filter(g=> g && g.id != null && ((SB.ab && SB.ab[gk(g)]) || emAberto(g)))
+      .map(g=>({ g, d: semanaJogoH(g) || 0, r: temStatus(g,"#") ? 0 : temStatus(g,"P") ? 1 : 2 }))
+      .filter(x=> x.r < 2 || x.d > 0.001)
+      .sort((a,b)=> a.r-b.r || b.d-a.d || String(a.g.nome).localeCompare(String(b.g.nome)));
+    jogos = lista.length ? lista.map(({g,d,r})=>`<div class="vsjrow">
+        <div class="vsjnm">${r===1?"⏸️ ":""}${esc(g.nome)}<small>${fmtH(totalHoras(g))} no total</small></div>
+        <input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-semjog="${g.id}" value="${Math.round(Math.max(d,0)*10)/10}" aria-label="Horas jogadas nesta semana em ${esc(g.nome)}" />
+        <span class="wkun">h</span>
+        <button type="button" class="pact" data-semmais="${g.id}">+1h</button>
+      </div>`).join("")
+      : `<div class="vsemnota">Nenhum jogo em andamento: toque num jogo da fila e em ▶️ Estou jogando.</div>`;
+    if (Number(SB.ex) > 0) jogos += `<div class="vsemnota">+ ${fmtH(SB.ex)} jogadas antes de o app separar por jogo.</div>`;
+  } else jogos = `<div class="vsemnota">As horas desta semana aparecem quando o app abrir com internet.</div>`;
   return `<div class="vsemed">
-    <div class="vsemnav">
-      <button type="button" class="vstep" data-semnav="-1" ${ix<=ixAtual?"disabled":""} aria-label="Semana anterior">‹</button>
-      <span class="vsemqual"><b>${fmtSemanaKey(key)}</b>${rel ? `<small>${rel}</small>` : ""}</span>
-      <button type="button" class="vstep" data-semnav="1" ${ix>=semanas.length-1?"disabled":""} aria-label="Semana seguinte">›</button>
-    </div>
-    <div class="wksec">Quanto vou jogar</div>
+    <div class="wksec">Quanto vou jogar · ${fmtSemA(key)}</div>
     <div class="vsemrow">
       <button type="button" class="vstep" data-wkstep="${key}:-1" aria-label="Uma hora a menos">−</button>
-      <input class="wkinp${on?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-wksem="${key}" value="${val}" aria-label="Horas que vou jogar em ${fmtSemanaKey(key)}" />
+      <input class="wkinp${w.aj?" on":""}" type="number" min="0" step="0.5" inputmode="decimal" data-wksem="${key}" value="${Math.round(w.orc*10)/10}" aria-label="Horas que vou jogar nesta semana" />
       <span class="wkun">h</span>
       <button type="button" class="vstep" data-wkstep="${key}:1" aria-label="Uma hora a mais">+</button>
-      ${on ? `<button type="button" class="vrot" data-wkreset="${key}">↺ usar a rotina</button>` : ""}
+      ${w.aj ? `<button type="button" class="vrot" data-wkreset="${key}">↺ padrão (${fmtH(pad)})</button>` : ""}
     </div>
-    <div class="vsemnota">${nota}</div>
-    ${chega}${jogos}
-    <button type="button" class="vsemfim" data-wkabrir="1">Outras semanas e rotina ›</button>
+    <div class="vsemnota">${w.aj ? `Só esta semana. O padrão é ${fmtH(pad)}.` : `É o padrão. Mudar aqui vale só pra esta semana.`}</div>
+    <div class="wksec">Quanto joguei · por jogo</div>
+    ${jogos}
+    <div class="vsemnota">Lançar aqui soma nas horas do jogo (as mesmas da fila e da biblioteca).</div>
   </div>`;
 }
 function viewPlano(){
-  const ano = anoFoco(), geral = ano==="geral";
-  const fimAno = Number(PLANO_FIM.slice(0,4)), R = Math.round;
-  const sim = simularPlano(), hojeIso = sim.hojeIso, ctx = ctxSemana(), semanas = semanasPlano();
-  const doAno = p => geral || anoFila(p)===ano;      // no "geral" entra tudo; num ano, só os itens dele (já rolados)
+  const A = agendaPlano(), R = Math.round, fimAno = Number(PLANO_FIM.slice(0,4));
+  const fimTxt = `${MESES[Number(PLANO_FIM.slice(5,7))-1]}/${fimAno}`;            // "dez/2027"
+  const wkAtual = A.semanas.find(w=>w.atual);
+  const lista = P.map((p,i)=>({p,i}));
+  const ativos = lista.filter(({p})=>!p.backlog && pitemPendente(p));
+  const concl = lista.filter(({p})=>!p.backlog && !pitemPendente(p));
+  const naBacklog = lista.filter(({p})=>p.backlog);
+  const emJogo = ({p})=>{ const g = plinked(p); return !!(g && emAberto(g)); };
+  // "▶ 25–31/jan → 🏁 8–14/mar" de um item da agenda
+  const quando = (x, jogando)=>{
+    if (!x) return "";
+    const fim = x.fimWk ? `🏁 ${fmtSemA(x.fimWk)}` : `🏁 depois de ${AGENDA_MAX.slice(0,4)}`;
+    const tarde = !x.fimWk || x.fimWk > PLANO_FIM;
+    const txt = jogando ? `🏁 termina ${x.fimWk ? fmtSemA(x.fimWk) : `depois de ${AGENDA_MAX.slice(0,4)}`}` : (x.iniWk ? `▶ ${fmtSemA(x.iniWk)} → ${fim}` : fim);
+    return `<div class="pq num${tarde?" tarde":""}">${txt}${tarde?` · depois de ${fimTxt}`:""}</div>`;
+  };
 
-  // ---- veredito do escopo (geral ou um ano): sai da simulação, então as três visões contam a mesma história ----
-  let fila, cap, entra = 0, falta, sobra;
-  if (geral){ fila = sim.chegaTot; cap = sim.capTot; falta = sim.pendFim; sobra = sim.livre; }
-  else {
-    const a = sim.anos.get(String(ano));
-    if (a){ entra = a.ini; fila = a.chega; cap = a.cap; falta = a.fim; sobra = a.livre; }
-    else { fila = P.reduce((s,p)=>s+((p.backlog||!doAno(p))?0:pfaltaH(p)),0); cap = 0; falta = fila; sobra = 0; }  // ano além do horizonte
-  }
-  const cabe = falta < 0.5, ultimo = geral || ano >= fimAno, limite = cabe && sobra < FOLGA_MIN;
-  const cor = cabe ? (limite ? "var(--mp)" : "var(--mb)") : (ultimo ? "var(--mr)" : "var(--mp)");
-  const fimGeral = `${fmtData(PLANO_FIM)}/${fimAno}`;
-  const onde = geral ? `até ${MESES[Number(PLANO_FIM.slice(5,7))-1]}/${fimAno}` : `em ${ano}`;
-  const tit = cabe ? (limite ? `⚠ Cabe ${onde}, mas no limite` : `✓ Cabe ${onde}`)
-                   : (ultimo ? `✕ Não cabe ${onde}` : `↪ Não cabe tudo ${onde}`);
-  const big = cabe ? `sobra ${R(sobra)}h` : (ultimo ? `faltam ${R(falta)}h` : `${R(falta)}h rolam pra ${ano+1}`);
-  const fimTxt = geral ? fimGeral : (ano < fimAno ? `31/dez/${ano}` : fimGeral);
-  const nums = (!geral && ano > fimAno) ? `<b>${R(fila)}h</b> na fila · fora do horizonte do plano (${fimGeral})`
-    : entra > 0.5 ? `<b>${R(fila)}h</b> de ${ano} + <b>${R(entra)}h</b> que vêm de ${ano-1} · tenho <b>${R(cap)}h</b> até ${fimTxt}`
-    : `<b>${R(fila)}h</b> na fila · tenho <b>${R(cap)}h</b> até ${fimTxt}`;
-  const dem = fila + entra, pct = cap > 0 ? Math.min(dem/cap*100, 100) : (dem > 0 ? 100 : 0);
-  const ocioso = (!cabe && sobra > 0.5) ? `<div class="vnota">${R(sobra)}h ficam sem uso antes de os jogos chegarem (nada disponível pra jogar nesses dias).</div>` : "";
-  // a semana em curso: o estimado, o que já joguei (e em quê) e o que resta — ou quanto passei do estimado.
-  // "ajustar" abre o editor da semana aqui mesmo (viewSemEditor)
-  const semAtual = semanas.find(w=>w.key===ctx.wkAtual);
+  // ---- cartão do topo: o que estou jogando, quando termina, o que vem depois e esta semana ----
+  const atuais = ativos.filter(emJogo);
+  const agJogo = ({p,i})=>{
+    const g = plinked(p), est = estH(p.est), j = pjogadasAtual(g), x = A.porP.get(p), pausado = !temStatus(g,"#");
+    const falta = pfaltaH(p);
+    let fim;
+    if (!est) fim = `Sem estimativa: toque no jogo da fila e em ✏️ Editar pra pôr as horas.`;
+    else if (falta < 0.05) fim = `Passou da estimativa (${est}h). Zerou? Marque na biblioteca, ou aumente a estimativa.`;
+    else if (x && x.fimWk){ const n = semanasAte(A.wkAtual, x.fimWk);
+      fim = `🏁 Termina na semana de <b>${fmtSemA(x.fimWk)}</b>${n===0?" · esta semana":n===1?" · na próxima":` · daqui a ${n} semanas`}`; }
+    else fim = `🏁 Não termina até ${AGENDA_MAX.slice(0,4)} no ritmo do plano`;
+    return `<div class="agj">
+      <div class="agtop"><span class="agnm">${pausado?"⏸️ ":""}${esc(p.jogo)}</span>
+        ${est ? `<span class="agfalta num"><b>${fmtH(falta)}</b><small>faltam</small></span>` : ""}</div>
+      ${est ? `<div class="pprog"><span style="width:${Math.min(j/est*100,100)}%"></span></div>` : ""}
+      <div class="aghr"><span>Joguei</span>
+        <input type="number" min="0" step="0.5" inputmode="decimal" data-phoras="${i}" value="${j}" aria-label="Horas jogadas em ${esc(p.jogo)}" />
+        <span>${est ? `de ${est}h` : "h"}</span>
+        <button type="button" class="pact" data-pmais="${i}">+1h</button></div>
+      <div class="agfim">${fim}</div>
+    </div>`;
+  };
+  const proximo = A.its.filter(x=>!emJogo(x) && x.iniWk).sort((a,b)=> a.ini<b.ini ? -1 : a.ini>b.ini ? 1 : 0)[0];
+  let topo;
+  if (atuais.length){
+    topo = `<div class="aghd">🎮 Jogando agora</div>${atuais.slice(0,3).map(agJogo).join("")}`
+      + (proximo ? `<div class="agdep">Depois: <b>${esc(proximo.p.jogo)}</b> · começa na semana de ${fmtSemA(proximo.iniWk)}</div>` : "");
+  } else if (proximo){
+    const n = semanasAte(A.wkAtual, proximo.iniWk);
+    topo = `<div class="aghd">Nenhum jogo da fila em andamento</div>
+      <div class="agj"><div class="agtop"><span class="agnm">Próximo: ${esc(proximo.p.jogo)}</span></div>
+        <div class="agfim">${n<=0 ? "Dá pra começar já" : `Começa na semana de <b>${fmtSemA(proximo.iniWk)}</b>`} · ${fmtH(proximo.h0)} estimadas</div>
+        <div class="pacts2" style="margin-top:9px"><button type="button" class="pact pri" data-pjogar="${proximo.i}">▶️ Estou jogando</button></div></div>`;
+  } else topo = `<div class="aghd">Nada na fila</div><div class="vsemnota">Toque em ＋ Jogo pra planejar o próximo.</div>`;
   let semLinha = "";
-  if (semAtual && (geral || ano===ANO_HOJE)){
-    const orc = orcSemana(semAtual), plus = ctx.jog - orc;
-    const onde = jogadoSemanaPorJogo().map(x=>`${esc(x.g.nome)} +${fmtH(x.h)}`);
-    if (SB && Number(SB.ex) > 0) onde.push(`outros +${fmtH(SB.ex)}`);
+  if (wkAtual){
+    const plus = A.jog - wkAtual.orc;
     semLinha = `<div class="vsem">
-      <span>Esta semana: <b>${fmtH(orc)}</b>${ctx.jog>0?` · joguei <b>${fmtH(ctx.jog)}</b>`:""} · ${plus > 0.05
-        ? `<b class="vplus">+${fmtH(plus)} além do esperado</b>` : `restam <b>${fmtH(capSemana(semAtual, ctx))}</b>`}${
-        (onde.length && !semEdit) ? `<small class="vsemjog">${onde.join(" · ")}</small>` : ""}</span>
+      <span>Esta semana: <b>${fmtH(wkAtual.orc)}</b>${A.jog>0?` · joguei <b>${fmtH(A.jog)}</b>`:""} · ${plus > 0.05
+        ? `<b class="vplus">+${fmtH(plus)} além do planejado</b>` : `restam <b>${fmtH(wkAtual.cap)}</b> até domingo`}</span>
       <button type="button" class="vlink" data-semedit="1">${semEdit ? "fechar" : "ajustar"}</button></div>`
-      + (semEdit ? viewSemEditor(semanas, ctx) : "");
+      + (semEdit ? viewSemanaAtual(wkAtual) : "");
   }
 
-  // ---- fila do escopo, por data (sem data vai pro fim); a linha abre ao toque e mostra as ações ----
-  const lista = P.map((p,i)=>({p,i})).filter(x=>doAno(x.p)).sort((a,b)=>{
-    const da=a.p.data||"9999", db=b.p.data||"9999";
-    return da<db?-1:da>db?1:0;
-  });
-  const pItem = ({p,i})=>{
-    const est=estH(p.est), g=plinked(p), falta=pfaltaH(p), aberto = planoOpen===i;
-    const rolou = !geral && anoFila(p)>anoDoItem(p);   // veio de um ano anterior
-    const rejogar = p.rejogar && !p.iniciado;
+  // ---- veredito: a fila toda cabe até o fim do plano? ----
+  const cabe = A.pendFim < 0.5, limite = cabe && A.livrePlano < FOLGA_MIN;
+  const ficam = A.its.filter(x=>x.restPlano > 0.05);
+  const vcor = cabe ? (limite ? "var(--mp)" : "var(--mb)") : "var(--mr)";
+  const verd = !A.its.length ? "" : `<div class="verd" style="--vc:${vcor}">
+    <b>${cabe ? (limite ? `⚠ Cabe até ${fimTxt}, no limite` : `✓ Cabe tudo até ${fimTxt}`) : `✕ Não cabe tudo até ${fimTxt}`}</b>
+    <span>${cabe ? `A fila acaba na semana de ${fmtSemA(A.fimFila)} · sobram ${R(A.livrePlano)}h`
+      : `Faltam ${R(A.pendFim)}h: ${ficam.map(x=>esc(x.p.jogo)).join(", ")} ${ficam.length>1?"passam":"passa"} de ${fimTxt}`}</span>
+  </div>`;
+
+  // ---- fila, na ordem em que vou jogar; a linha abre ao toque e mostra as ações ----
+  const pItem = ({p,i}, n)=>{
+    const est=estH(p.est), g=plinked(p), x=A.porP.get(p), aberto = planoOpen===i, falta = pfaltaH(p);
     const jogando = !!(g && temStatus(g,"#")), pausado = !!(g && !jogando && temStatus(g,"P"));
     const fim = (g && !emAberto(g)) ? statusJogo(g) : "";
-    let sub, prog = "";
+    const sub = []; let prog = "";
     if (jogando || pausado){
       const j = pjogadasAtual(g);
-      sub = `${pausado?"⏸️ ":""}${fmtH(j)} de ${est}h` + (p.backlog ? "" : ` · faltam ${R(falta)}h`);
+      sub.push(`${pausado?"⏸️ pausado":"🎮 jogando"} · ${fmtH(j)} de ${est}h`);
       prog = `<div class="pprog"><span style="width:${est>0?Math.min(j/est*100,100):0}%"></span></div>`;
     }
-    else if (fim==="S") sub = `✅ zerado (${totalHoras(g)}h)`;
-    else if (fim==="N") sub = `❌ dropado (${totalHoras(g)}h)`;
-    else sub = `${rejogar?"🔁 rejogar · ":""}${est?est+"h":"sem estimativa"}`;
-    if (p.backlog) sub += " · fora da conta";
-    const quando = p.data
-      ? `${esc(fmtData(p.data))}${p.data.slice(0,4)!==String(ANO_HOJE)?`<small>${p.data.slice(0,4)}</small>`:""}`
-      : `${anoDoItem(p)}<small>s/ data</small>`;
+    else if (fim==="S") sub.push(`✅ zerado (${totalHoras(g)}h)`);
+    else if (fim==="N") sub.push(`❌ dropado (${totalHoras(g)}h)`);
+    else {
+      if (p.rejogar && !p.iniciado) sub.push("🔁 rejogar");
+      if (p.data && p.data > A.hojeIso) sub.push(`sai ${fmtDA(p.data)}`);
+      else if (!p.data && anoFila(p) > ANO_HOJE) sub.push(`sem data · ${anoFila(p)}`);
+      if (!est) sub.push("sem estimativa");
+    }
+    if (p.backlog) sub.push("fora da conta");
     let mais = "";
     if (aberto){
       const acts = [];
       if (!p.backlog && !p.iniciado) acts.push(`<button type="button" class="pact pri" data-pjogar="${i}">▶️ Estou jogando</button>`);
       else if (!p.backlog && pausado) acts.push(`<button type="button" class="pact pri" data-pjogar="${i}">▶️ Retomar</button>`);
+      if (n){
+        const pos = ativos.findIndex(a=>a.i===i);
+        acts.push(`<button type="button" class="pact" data-pmove="${i}:-1" ${pos<=0?"disabled":""}>⬆️ Subir</button>`);
+        acts.push(`<button type="button" class="pact" data-pmove="${i}:1" ${pos>=ativos.length-1?"disabled":""}>⬇️ Descer</button>`);
+      }
       if (g) acts.push(`<button type="button" class="pact" data-pabrir="${g.id}">🎮 Ver na biblioteca</button>`);
       acts.push(`<button type="button" class="pact" data-peditar="${i}">✏️ Editar</button>`);
       acts.push(`<button type="button" class="pact" data-pbacklog="${i}">${p.backlog?"↩️ Voltar pra fila":"📥 Backlog"}</button>`);
@@ -1758,118 +1784,92 @@ function viewPlano(){
       const horas = (jogando || pausado) ? `<div class="phoras"><span>Horas jogadas</span>
           <input type="number" min="0" step="0.5" inputmode="decimal" data-phoras="${i}" value="${pjogadasAtual(g)}" aria-label="Horas jogadas" />
           <button type="button" class="pact" data-pmais="${i}">+1h</button></div>` : "";
-      const fr = sim.frente.get(p);
-      const nota = (!p.backlog && !p.iniciado && p.data && p.data > hojeIso && fr > 0.5)
-        ? `<div class="pnota">Quando chegar (${esc(fmtData(p.data))}), ainda vai ter <b>~${R(fr)}h</b> de outros jogos na frente.</div>` : "";
-      mais = `<div class="pmore">${horas}${nota}<div class="pacts2">${acts.join("")}</div></div>`;
+      const espera = (n && x && x.iniWk && !p.iniciado && p.data && x.ini > p.data && semanasAte(ymd(segunda(new Date(p.data+"T00:00:00"))), x.iniWk) >= 1)
+        ? `<div class="pnota">Sai ${esc(fmtDA(p.data))}, mas os jogos de cima da fila vêm antes. Quer jogar assim que sair? ⬆️ Suba ele.</div>` : "";
+      mais = `<div class="pmore">${horas}${espera}<div class="pacts2">${acts.join("")}</div></div>`;
     }
-    return `<div class="pit${aberto?" open":""}${p.backlog?" bk":""}">
+    const dir = (!p.backlog && est && !fim) ? `<span class="pfalta num"><b>${fmtH(falta)}</b><small>${(jogando||pausado)?"faltam":"estimadas"}</small></span>` : "";
+    return `<div class="pit${aberto?" open":""}${p.backlog?" bk":""}${fim?" fim":""}">
       <div class="phead" data-ptoggle="${i}">
-        <span class="pwhen ${p.data?'':'nodate'}">${quando}</span>
-        <div class="pbody"><div class="t">${p.iniciado?'🎮 ':(rejogar?'🔁 ':'')}${esc(p.jogo)}${rolou?` <span class="prolou">↪ de ${anoDoItem(p)}</span>`:''}</div>
-          <div class="s num">${sub}</div>${prog}</div>
-        <span class="pchev">›</span>
+        <span class="pnum num${(jogando||pausado)?" on":""}">${n || (fim ? "✓" : "–")}</span>
+        <div class="pbody"><div class="t">${esc(p.jogo)}</div>
+          <div class="s num">${sub.join(" · ")}</div>${prog}${p.backlog ? "" : quando(x, jogando||pausado)}</div>
+        ${dir}<span class="pchev">›</span>
       </div>${mais}
     </div>`;
   };
-  const ativos = lista.filter(x=>!x.p.backlog), naBacklog = lista.filter(x=>x.p.backlog);
-  const rows = ativos.length ? ativos.map(pItem).join("")
+  const rows = ativos.length ? ativos.map((x,k)=>pItem(x, k+1)).join("")
     : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
+  const conclRows = concl.length ? `<div class="wksec" style="margin:12px 0 2px">Já terminados</div>${concl.map(x=>pItem(x, 0)).join("")}` : "";
   const bkSec = naBacklog.length ? `<details class="bkbox" ${bkOpen?"open":""}>
     <summary><span>📥 Backlog</span><span class="wksub">${naBacklog.length} jogo${naBacklog.length>1?"s":""} · fora da conta</span><span class="schev">▸</span></summary>
-    <div class="bkbody">${naBacklog.map(pItem).join("")}</div>
+    <div class="bkbody">${naBacklog.map(x=>pItem(x, 0)).join("")}</div>
   </details>` : "";
 
-  // ---- ⚙️ minhas horas: a rotina em fases + as semanas que fogem dela ----
+  // ---- semana a semana: o padrão (e quando ele muda) + cada semana com as horas e o que jogo nela ----
   const FV = fasesVivas();
-  const ajNaFase = new Map();   // semanas com ajuste próprio dentro de cada fase (nelas a rotina não vale)
-  semanas.forEach(w=>{ if (HS[w.key]!=null){ const f = faseDoDia(w.key); ajNaFase.set(f, (ajNaFase.get(f)||0)+1); } });
-  const faseRows = FV.map((f,i)=>{
-    const nF = f.fortes.length, s = 7 + nF*(PESO_FORTE-1), nAjF = ajNaFase.get(f)||0;
-    const dica = ((nF>0 && nF<7) ? `≈ ${fmtH(f.h*PESO_FORTE/s)} em cada dia marcado · ${fmtH(f.h/s)} nos outros`
-                                 : `≈ ${fmtH(f.h/7)} por dia`)
-               + (nAjF ? ` · <b>${nAjF} semana${nAjF>1?"s":""} com ajuste próprio</b>` : "");
-    return `<div class="fase">
-      <div class="fasetop">
-        ${f.ate ? `<span class="faselbl">até</span><input class="faseate" type="date" data-fase-ate="${i}" value="${f.ate}" min="${hojeIso}" max="${PLANO_FIM}" aria-label="Fim da fase" />`
-                : `<span class="fasefim">${FV.length>1?"depois disso":"sempre"} <span class="faselbl">· até ${fimGeral}</span></span>`}
-        <input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-fase-h="${i}" value="${f.h}" aria-label="Horas por semana" />
-        <span class="wkun">h/sem</span>
-        ${f.ate?`<button type="button" class="wkrst" data-fase-del="${i}" title="Remover esta fase">✕</button>`:'<span class="wkrst-ph"></span>'}
-      </div>
-      <div class="fasedias">${DIAS_SEM.map(([d,l])=>`<button type="button" class="diachip${f.fortes.includes(d)?" on":""}" data-fase-dia="${i}:${d}">${l}</button>`).join("")}</div>
-      <div class="fasedica num">${dica}</div>
+  const stepper = (attr, key, v, on, lbl)=>`<div class="wkc">
+      <button type="button" class="vstep sm" data-${attr}step="${key}:-1" aria-label="Uma hora a menos">−</button>
+      <input class="wkinp${on?" on":""}" type="number" min="0" step="0.5" inputmode="decimal" data-${attr}="${key}" value="${Math.round(v*10)/10}" aria-label="${lbl}" />
+      <button type="button" class="vstep sm" data-${attr}step="${key}:1" aria-label="Uma hora a mais">+</button>
     </div>`;
-  }).join("");
-  // semanas: as 6 próximas ficam sempre à mão; das outras, só as que têm ajuste (num ano, só as dele)
-  const noAno = w => geral || w.key.slice(0,4)===String(ano);
-  const proximas = new Set(semanas.slice(0,6).map(w=>w.key));
-  const wkLista = semanas.filter(w=> noAno(w) && (proximas.has(w.key) || HS[w.key]!=null));
+  const padRows = FV.map((f,i)=> i===0
+    ? `<div class="padrow"><span class="padlbl"><b>Padrão</b><small>horas por semana</small></span>${stepper("pad", i, f.h, false, "Horas por semana (padrão)")}</div>`
+    : `<div class="padrow mud"><span class="padde">a partir da semana de</span>
+        <div class="padline"><input class="padate" type="date" data-padate="${i}" value="${inicioFase(FV,i)}" min="${addDias(A.wkAtual,7)}" max="${PLANO_FIM}" aria-label="Começo do novo padrão" />
+        ${stepper("pad", i, f.h, false, "Horas por semana a partir desta data")}
+        <button type="button" class="wkrst" data-paddel="${i}" title="Tirar esta mudança" aria-label="Tirar esta mudança">✕</button></div></div>`).join("");
+  const nAj = A.semanas.filter(w=>w.dentro && w.aj).length;
   const wkRow = w => {
-    const on = HS[w.key]!=null, ehAtual = w.key===ctx.wkAtual;
-    const plusW = ehAtual ? ctx.jog - orcSemana(w) : 0;
-    const extra = ehAtual ? `<small class="wkpar">esta semana${ctx.jog>0?` · joguei ${fmtH(ctx.jog)}`:""} · ${plusW > 0.05
-      ? `+${fmtH(plusW)} além do esperado` : `restam ${fmtH(capSemana(w, ctx))} até domingo`}</small>` : "";
-    return `<div class="wkrow${ehAtual?" wkatual":""}">
-      <span class="wklbl">${fmtSemanaKey(w.key)}${extra}</span>
-      <input class="wkinp${on?" on":""}" type="number" min="0" step="1" inputmode="numeric" data-wk="${w.key}" value="${on ? HS[w.key] : Math.round(w.cheia*10)/10}" />
-      <span class="wkun">h</span>
-      ${on?`<button type="button" class="wkrst" data-wkreset="${w.key}" title="Voltar à rotina (${fmtH(w.cheia)})">↺</button>`:'<span class="wkrst-ph"></span>'}
+    const pad = padraoDaSemana(w.key), partes = [];
+    w.segs.forEach((s,k)=>{
+      const fimAqui = s.x.fimWk===w.key, iniAqui = s.x.iniWk===w.key && !emJogo(s.x);
+      partes.push(`<span class="wkj">${fimAqui?"🏁 ":iniAqui?"▶ ":""}${esc(s.x.p.jogo)}${w.segs.length>1?` <small>${fmtH(s.h)}</small>`:""}</span>`);
+    });
+    const ult = w.segs[w.segs.length-1];
+    if (ult && ult.depois > 0.05) partes.push(`<small class="wkfalta">faltam ${fmtH(ult.depois)}</small>`);
+    if (w.livre >= 0.5) partes.push(`<small class="wklivre">${w.segs.length ? `${fmtH(w.livre)} livres` : (A.its.some(x=>x.rest>0 || x.fimWk>w.key) ? "livre · nada lançado pra jogar" : "livre · a fila acabou")}</small>`);
+    if (!partes.length) partes.push(`<small class="wklivre">${w.atual && A.jog > w.orc ? "já joguei o planejado" : "sem horas"}</small>`);
+    const plus = w.atual ? A.jog - w.orc : 0;
+    const atualTxt = w.atual ? `<div class="wkpar">${A.jog>0?`joguei ${fmtH(A.jog)} · `:""}${plus > 0.05 ? `<b class="vplus">+${fmtH(plus)} além</b>` : `restam ${fmtH(w.cap)} até domingo`}</div>` : "";
+    return `<div class="wkr${w.atual?" atual":""}${w.aj?" aj":""}">
+      <div class="wkl"><div class="wkd">${fmtSemA(w.key)}${w.atual?" <small>esta semana</small>":""}</div>
+        ${atualTxt}<div class="wkg">${partes.join("")}</div>
+        ${w.aj ? `<button type="button" class="wkpad" data-wkreset="${w.key}">↺ voltar ao padrão (${fmtH(pad)})</button>` : ""}</div>
+      ${stepper("wk", w.key, w.orc, w.aj, `Horas na semana de ${fmtSemA(w.key)}`)}
     </div>`;
   };
-  const nAj = semanas.filter(w=>HS[w.key]!=null).length;
-  const wkSub = `${fmtH(faseDoDia(hojeIso).h)}/sem agora${nAj?` · ${nAj} semana${nAj>1?"s":""} ajustada${nAj>1?"s":""}`:""}`;
-  const addMin = (!geral && `${ano}-01-01` > hojeIso) ? `${ano}-01-01` : hojeIso;
-  const addMax = (!geral && `${ano}-12-31` < PLANO_FIM) ? `${ano}-12-31` : PLANO_FIM;
-  const wkSec = `<details class="wkbox" ${wkOpen?"open":""}>
-    <summary><span>⚙️ Minhas horas</span><span class="wksub">${wkSub}</span><span class="schev">▸</span></summary>
-    <div class="wkbody">
-      <div class="wksec">Rotina · horas por semana</div>
-      <p class="wknote">Cada fase vale até a data dela. Toque nos dias em que você joga <b>mais</b>.</p>
-      ${faseRows}
-      <button type="button" class="cbtn" id="btnFaseAdd" style="width:100%;margin-top:10px">➕ Nova fase</button>
-      <div class="wksec" id="wkSemanas">Semanas diferentes da rotina</div>
-      <p class="wknote">Férias, viagem, lançamento… O número da semana vence a rotina; ↺ volta pra ela.</p>
-      ${wkLista.map(wkRow).join("")}
-      <div class="wkadd"><span>➕ outra semana</span><input type="date" id="wkAddDate" min="${addMin}" max="${addMax}" aria-label="Escolher a semana por um dia dela" /></div>
+  const grupos = [];
+  A.semanas.filter(w=>w.dentro).forEach(w=>{ const m = mesDaSemana(w.key); let gr = grupos[grupos.length-1];
+    if (!gr || gr.mes !== m) grupos.push(gr = { mes:m, sem:[] }); gr.sem.push(w); });
+  if (mesOpen == null) mesOpen = new Set(grupos.slice(0,2).map(gr=>gr.mes));
+  const mesSec = grupos.map(gr=>{
+    const [a, m] = gr.mes.split("-").map(Number), tot = gr.sem.reduce((s,w)=>s+w.orc, 0);
+    const nomes = []; gr.sem.forEach(w=>w.segs.forEach(s=>{ if (!nomes.includes(s.x)) nomes.push(s.x); }));
+    const acaba = nomes.filter(x=>x.fimWk && gr.sem.some(w=>w.key===x.fimWk));
+    const resumo = nomes.length ? nomes.map(x=>`${acaba.includes(x)?"🏁 ":""}${esc(x.p.jogo)}`).join(" → ") : "livre";
+    const aj = gr.sem.some(w=>w.aj);
+    return `<details class="mes" data-mes="${gr.mes}" ${mesOpen.has(gr.mes)?"open":""}>
+      <summary><span class="mesnm">${MESES_L[m-1]}${a!==ANO_HOJE?` ${a}`:""}</span><span class="mesjg">${resumo}</span>
+        <span class="meshr num${aj?" aj":""}">${fmtH(tot)}</span><span class="schev">▸</span></summary>
+      <div class="mesbody">${gr.sem.map(wkRow).join("")}</div>
+    </details>`;
+  }).join("");
+  const ult = FV[FV.length-1].h;
+  const depois = (A.pendFim > 0.5) ? `<div class="vsemnota" style="margin:10px 2px 0">Depois de ${fimTxt} ainda faltam <b>${R(A.pendFim)}h</b>: no padrão de ${fmtH(ult)}/semana, a fila acabaria na semana de <b>${A.fimFila && A.its.every(x=>x.fimWk) ? fmtSemA(A.fimFila) : `depois de ${AGENDA_MAX.slice(0,4)}`}</b>.</div>` : "";
+  const calSec = `<div class="sechead"><h2>📅 Semana a semana</h2><span class="wksub">${nAj ? `${nAj} semana${nAj>1?"s":""} com horas próprias` : "todas no padrão"}</span></div>
+    <div class="card padbox">${padRows}
+      <div class="wkadd"><span>➕ Mudar o padrão a partir de</span><input type="date" id="padAddDate" min="${addDias(A.wkAtual,7)}" max="${PLANO_FIM}" aria-label="Escolher a data em que o padrão muda" /></div>
+      <p class="wknote">Toda semana vale o padrão, menos as que têm número próprio (em azul). Mude com − / + na semana; ↺ volta pro padrão.</p>
     </div>
-  </details>`;
+    ${mesSec}${depois}`;
 
-  // ---- 📅 mês a mês: o que tenho, o que entra e quanto fica esperando no fim de cada mês ----
-  const mm = [...sim.meses.entries()].filter(([k])=> geral || k.slice(0,4)===String(ano));
-  const maxFim = Math.max(1, ...mm.map(([,m])=>m.fim));
-  const nomeMes = k => `${MESES[Number(k.slice(5,7))-1]}/${k.slice(2,4)}`;
-  const pico = mm.reduce((b,x)=> (!b || x[1].fim > b[1].fim) ? x : b, null);
-  const mmRows = mm.map(([k,m])=>`<div class="mmr">
-      <span class="mnm">${nomeMes(k)}</span>
-      <span class="mcap num">${R(m.cap)}h</span>
-      <span class="mche num">${m.chega>=0.5?`+${R(m.chega)}h`:"—"}</span>
-      <span class="mbar"><i style="width:${m.fim/maxFim*100}%"></i></span>
-      <span class="mfim num${m.fim<0.5?" ok":""}">${m.fim>=0.5 ? `${R(m.fim)}h` : (m.livre>=0.5 ? `sobra ${R(m.livre)}h` : "0h")}</span>
-    </div>`).join("");
-  const mmSec = mm.length ? `<details class="mmbox" ${mmOpen?"open":""}>
-    <summary><span>📅 Mês a mês</span><span class="wksub">${pico && pico[1].fim>=0.5 ? `maior fila: ${R(pico[1].fim)}h em ${nomeMes(pico[0])}` : "sem fila acumulada"}</span><span class="schev">▸</span></summary>
-    <div class="wkbody">
-      <p class="wknote">As horas que você tem em cada mês, o que entra na fila (pela data dos jogos) e quanto ainda fica <b>esperando</b> no fim do mês.</p>
-      <div class="mmr mhd"><span class="mnm">mês</span><span class="mcap">tenho</span><span class="mche">entra</span><span class="mbar"></span><span class="mfim">fila no fim</span></div>
-      ${mmRows}
-    </div>
-  </details>` : "";
-
-  const anoChips = [`<button type="button" class="anochip${geral?" on":""}" data-pano="geral">Geral</button>`]
-    .concat(anosDoPlano().map(a=>
-      `<button type="button" class="anochip${a===ano?" on":""}" data-pano="${a}">${a}</button>`)).join("");
-  return `<div class="anobar">${anoChips}</div>
-    <div class="card vcard" style="--vc:${cor}">
-      <div class="vtit">${tit}</div>
-      <div class="vbig num">${big}</div>
-      <div class="vbar"><span style="width:${Math.max(pct,2)}%"></span></div>
-      <div class="vnums num">${nums}</div>
-      ${ocioso}${semLinha}
-    </div>
-    <div class="sechead"><h2>🗓 Fila ${geral?"geral":`de ${ano}`} · por data</h2><button type="button" class="secadd" id="btnAddPlano">＋ Jogo</button></div>
-    <div class="card">${rows}</div>
-    ${bkSec}${wkSec}${mmSec}`;
+  return `<div class="card vcard ag">${topo}${semLinha}</div>
+    <div class="sechead"><h2>🎯 Fila · ordem de jogar</h2><button type="button" class="secadd" id="btnAddPlano">＋ Jogo</button></div>
+    ${verd}
+    <div class="card">${rows}${conclRows}</div>
+    <p class="wknote" style="margin:7px 4px 0">Um jogo por vez, de cima pra baixo. Jogo que ainda não saiu dá a vez pro de baixo até sair. Toque num jogo pra subir/descer.</p>
+    ${bkSec}${calSec}`;
 }
 
 /* ---------- render ---------- */
@@ -1888,12 +1888,12 @@ function render(){
   document.querySelectorAll("details.sec").forEach(d=>d.addEventListener("toggle", ()=>{
     d.open ? secOpen.add(d.dataset.sec) : secOpen.delete(d.dataset.sec);
   }));
-  const wb = document.querySelector("details.wkbox");
-  if (wb) wb.addEventListener("toggle", ()=>{ wkOpen = wb.open; });
   const bb = document.querySelector("details.bkbox");
   if (bb) bb.addEventListener("toggle", ()=>{ bkOpen = bb.open; });
-  const mb = document.querySelector("details.mmbox");
-  if (mb) mb.addEventListener("toggle", ()=>{ mmOpen = mb.open; });
+  document.querySelectorAll("details.mes").forEach(d=>d.addEventListener("toggle", ()=>{
+    if (!mesOpen) mesOpen = new Set();
+    d.open ? mesOpen.add(d.dataset.mes) : mesOpen.delete(d.dataset.mes);
+  }));
 }
 // redesenha no tick seguinte e devolve o foco ao campo equivalente: quem sai de um campo do Plano tocando em outro
 // não perde o foco do segundo quando a tela é refeita
@@ -2029,8 +2029,7 @@ function openPlano(idx){
   $("#pJogo").value = p?.jogo || "";
   $("#pData").value = p?.data || "";
   $("#pEst").value = p ? (estH(p.est)||"") : "";
-  const anoDef = anoFoco()==="geral" ? ANO_HOJE : anoFoco();   // no "Geral" cai no ano atual
-  $("#pAno").value = p ? anoDoItem(p) : anoDef;                 // sem data → ano do item; novo → ano em foco
+  $("#pAno").value = p ? anoDoItem(p) : ANO_HOJE;               // sem data → ano do item; novo → ano atual
   pHideSugestoes();
   pRefreshHint();
   $("#pmodal").classList.remove("hidden");
@@ -2067,11 +2066,18 @@ $("#pSave").addEventListener("click", ()=>{
   const data = $("#pData").value || "";
   // ano: pela data (se houver) ou pelo campo Ano — assim jogo sem data ainda cai num ano
   const anoIn = parseInt($("#pAno").value, 10);
-  const ano = data ? Number(data.slice(0,4)) : (Number.isFinite(anoIn) ? anoIn : anoFoco());
+  const ano = data ? Number(data.slice(0,4)) : (Number.isFinite(anoIn) ? anoIn : ANO_HOJE);
   const reg = { jogo, data, ano, est: h==="" ? "" : (Number(h)+"h"),
                 iniciado: !!prev.iniciado, jid: g ? g.id : prev.jid, rejogar };
   if (prev.backlog) reg.backlog = true;      // editar não pode tirar o jogo do backlog
-  if (pEditIdx!=null && P[pEditIdx]) P[pEditIdx] = reg; else P.push(reg);
+  if (pEditIdx!=null && P[pEditIdx]) P[pEditIdx] = reg;   // editar não muda a posição na fila
+  else {
+    // jogo novo entra na fila pela data (como a fila nasceu): antes do 1º jogo ainda não começado com data depois
+    // da dele; sem data vai pro fim. Daí o Diogo sobe/desce à vontade
+    const kd = p => p.data || "9999";
+    const k = P.findIndex(p=>{ const gg = plinked(p); return !(gg && emAberto(gg)) && kd(p) > kd(reg); });
+    if (k < 0) P.push(reg); else P.splice(k, 0, reg);
+  }
   closePlano(); savePlano(); render();
 });
 
@@ -2151,42 +2157,28 @@ document.addEventListener("click", e=>{
   if (sd){ statDim = sd.dataset.statdim; render(); return; }
   const wr = e.target.closest("[data-wkreset]");
   if (wr){ delete HS[wr.dataset.wkreset]; savePlano(true); render(); return; }
-  // editor da semana em curso (cartão do Plano): abre/fecha · − / + no quanto vou jogar · +1h num jogo
-  if (e.target.closest("[data-semedit]")){ semEdit = !semEdit; semVer = null; render(); return; }
-  const snv = e.target.closest("[data-semnav]");
-  if (snv){ const S = semanasPlano(), cur = semanaAtualKey();
-    let ix = S.findIndex(x=>x.key===(semVer || cur)); if (ix < 0) ix = 0;
-    ix = Math.min(Math.max(ix + Number(snv.dataset.semnav), 0), S.length-1);
-    semVer = (S[ix] && S[ix].key !== cur) ? S[ix].key : null; render(); return; }
+  // "esta semana" (cartão do Plano): abre/fecha · − / + nas horas de uma semana · +1h num jogo
+  if (e.target.closest("[data-semedit]")){ semEdit = !semEdit; render(); return; }
   const wst = e.target.closest("[data-wkstep]");
-  if (wst){ const [k, dd] = wst.dataset.wkstep.split(":"); const w = semanasPlano().find(x=>x.key===k);
-    const base = HS[k] != null ? (Number(HS[k])||0) : (w ? Math.round(w.cheia) : 0);
-    HS[k] = Math.max(0, base + Number(dd)); savePlano(true); render(); return; }
+  if (wst){ const [k, dd] = wst.dataset.wkstep.split(":");
+    setHorasSemana(k, horasDaSemana(k) + Number(dd)); savePlano(true); render(); return; }
   const smm = e.target.closest("[data-semmais]");
   if (smm){ const g = J.find(x=>x && x.id===Number(smm.dataset.semmais));
     if (g){ setJogadasAtual(g, pjogadasAtual(g)+1); saveJogosQuiet(); render(); } return; }
-  // "Outras semanas e rotina" (no editor da semana): abre o ⚙️ já na lista de semanas
-  if (e.target.closest("[data-wkabrir]")){ wkOpen = true; render();
-    const el = document.getElementById("wkSemanas") || document.querySelector("details.wkbox");
-    if (el) el.scrollIntoView({block:"start",behavior:"smooth"}); return; }
-  // rotina em fases: dia forte liga/desliga · remover fase · nova fase
-  const fd = e.target.closest("[data-fase-dia]");
-  if (fd){ const [i,d] = fd.dataset.faseDia.split(":").map(Number);
-    editarFases(F=>{ const f=F[i]; if (!f) return; const k=f.fortes.indexOf(d); if (k>=0) f.fortes.splice(k,1); else f.fortes.push(d); }); return; }
-  const fx = e.target.closest("[data-fase-del]");
-  if (fx){ editarFases(F=>{ const i=Number(fx.dataset.faseDel); if (F[i] && F[i].ate) F.splice(i,1); }); return; }
-  if (e.target.closest("#btnFaseAdd")){ editarFases(F=>{
-      // divide a fase que cobre daqui a 4 semanas: a nova nasce igual a ela, então nada muda até o Diogo editar
-      const lim = new Date(PLANO_FIM+"T00:00:00"); lim.setDate(lim.getDate()-1);
-      const d = hojeD(); d.setDate(d.getDate()+28);
-      while (d < lim && F.some(f=>f.ate===ymd(d))) d.setDate(d.getDate()+1);
-      const iso = ymd(d > lim ? lim : d);
-      if (F.some(f=>f.ate===iso)) return;
-      const base = F.find(f=>!f.ate || iso <= f.ate) || F[F.length-1];
-      F.push({ ate: iso, h: base.h, fortes:[...base.fortes] });
-    }); return; }
-  const pa = e.target.closest("[data-pano]");
-  if (pa){ const v=pa.dataset.pano; planoAno = (v==="geral") ? "geral" : Number(v); planoOpen = null; render(); return; }
+  // padrão de horas: − / + · tirar uma mudança ("a partir de"): a semana dela em diante volta ao valor anterior
+  const pst = e.target.closest("[data-padstep]");
+  if (pst){ const [i, dd] = pst.dataset.padstep.split(":").map(Number);
+    editarFases(F=>{ const f=F[i]; if (f) f.h = Math.max(0, f.h + dd); }); return; }
+  const pdl = e.target.closest("[data-paddel]");
+  if (pdl){ const i = Number(pdl.dataset.paddel);
+    editarFases(F=>{ if (i >= 1 && F[i]){ F[i-1].ate = F[i].ate; F.splice(i,1); } }); return; }
+  // fila: ⬆️ / ⬇️ troca de lugar com o vizinho (entre os que ainda estão na fila)
+  const pmv = e.target.closest("[data-pmove]");
+  if (pmv){ const [i, dd] = pmv.dataset.pmove.split(":").map(Number);
+    const vis = P.map((p,k)=>k).filter(k=>!P[k].backlog && pitemPendente(P[k]));
+    const pos = vis.indexOf(i), alvo = vis[pos + dd];
+    if (pos >= 0 && alvo != null){ const [it] = P.splice(i,1); P.splice(alvo, 0, it); planoOpen = alvo; savePlano(true); render(); }
+    return; }
   if (e.target.closest("#btnAddPlano")){ openPlano(null); return; }
   // fila do Plano: a linha abre/fecha ao toque e as ações ficam dentro dela
   const pt = e.target.closest("[data-ptoggle]");
@@ -2228,7 +2220,9 @@ document.addEventListener("click", e=>{
     } else { g = { id: J.reduce((m,x)=>Math.max(m,x.id||0),0)+1, nome:p.jogo, horas:0, enc:"#",
                  w:1, v:"N/A", genres:"", motivo:"" }; J.push(g); }
     p.iniciado = true; p.jid = g.id; planoOpen = null;
-    saveJogos(); savePlano(); tab="jogos"; render(); window.scrollTo({top:0}); return; }
+    // quem acabei de começar é o que estou jogando: vai pro topo da fila (a agenda dá as horas pra ele primeiro)
+    P.splice(i,1); P.unshift(p);
+    saveJogos(); savePlano(); render(); window.scrollTo({top:0}); return; }
   // ---- card = editor inline ----
   const ct = e.target.closest("[data-cardtoggle]");
   if (ct){ const id=Number(ct.dataset.cardtoggle); openGame = (openGame===id)?null:id; render();
