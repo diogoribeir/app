@@ -289,31 +289,10 @@ details.sec>summary:active{background:var(--surface2)}
 .droprow .dmot{font-size:.7rem;color:var(--muted);margin:3px 0 0 17px;line-height:1.45}
 
 /* ---------- plano ---------- */
-.pbody{flex:1;min-width:0}
-.pbody .t{font-size:.82rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pbody .s{font-size:.66rem;color:var(--muted);margin-top:1px;font-weight:700}
 .pbtn{border:1px solid var(--line);background:var(--surface2);color:var(--ink);width:30px;height:30px;
   border-radius:9px;font-size:.82rem;cursor:pointer;display:grid;place-items:center;padding:0}
 .pbtn.del{color:var(--mr)}
 .pbtn:active{transform:scale(.93)}
-/* minhas horas (rotina + semanas ajustadas) e backlog */
-details.wkbox,details.bkbox{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-details.wkbox>summary,details.bkbox>summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:800}
-details.wkbox>summary::-webkit-details-marker,details.bkbox>summary::-webkit-details-marker{display:none}
-details.wkbox>summary .wksub,details.bkbox>summary .wksub{margin-left:auto;font-size:.66rem;color:var(--muted);font-weight:700}
-details.wkbox>summary .schev,details.bkbox>summary .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
-details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:rotate(90deg)}
-.bkbody{padding:0 14px 10px}
-.wkbody{padding:2px 14px 12px}
-.wknote{font-size:.68rem;color:var(--muted);line-height:1.5;margin:2px 0 8px;font-weight:600}
-.wkpar{display:block;font-size:.66rem;font-weight:700;color:var(--muted)}
-.wkinp{width:60px;text-align:center;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);font:inherit;font-size:.85rem;font-weight:800}
-.wkinp:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
-.wkinp.on{border-color:var(--accent);color:var(--accent)}
-.wkun{font-size:.72rem;color:var(--muted);font-weight:700;margin-left:-3px}
-.wkrst{border:1px solid var(--line);background:var(--surface2);color:var(--accent);width:30px;height:30px;border-radius:9px;font-size:.9rem;flex:0 0 auto;cursor:pointer}
-.wkrst:active{transform:scale(.93)}
-.wkrst-ph{width:30px;flex:0 0 auto}
 /* jogatinas (playthroughs) dentro do card */
 .runs{margin-top:11px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .runrow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:.75rem;font-weight:700}
@@ -334,148 +313,133 @@ details.wkbox[open]>summary .schev,details.bkbox[open]>summary .schev{transform:
 #mRuns{display:flex;flex-direction:column;gap:7px;margin-top:6px}
 #mRuns .runrow{border:1px solid var(--line);border-radius:11px;padding:7px 9px}
 
-/* plano (nov/2026): cartão "jogando agora", fila em ordem de jogar, semana a semana */
-.vcard{padding:14px 15px;margin-top:8px}
-.vtit{font-size:.8rem;font-weight:800;color:var(--vc)}
-.vbig{font-size:1.5rem;font-weight:800;color:var(--vc);line-height:1.15;margin-top:2px}
-.vbar{height:10px;border-radius:999px;background:var(--surface2);overflow:hidden;margin:11px 0 8px}
+/* ---------- plano (nov/2026, 4ª versão): totais · jogando agora · linha do tempo · grade de semanas · painel de baixo ---------- */
+.ptot{padding:13px 14px 12px}
+.ptot3{display:flex;text-align:center}
+.ptot3>div{flex:1;border-right:1px solid var(--line);padding:0 4px}
+.ptot3>div:last-child{border-right:0}
+.ptot3 b{display:block;font-size:1.22rem;font-weight:800;line-height:1.15}
+.ptot3 small{display:block;font-size:.56rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:800;margin-top:2px}
+.ptot3 .sb b{color:var(--vc)}
+.vbar{height:8px;border-radius:999px;background:var(--surface2);overflow:hidden;margin:12px 0 8px}
 .vbar>span{display:block;height:100%;border-radius:999px;background:var(--vc);min-width:4px}
-.vnums{font-size:.76rem;color:var(--muted);font-weight:600;line-height:1.45}
-.vnums b{color:var(--ink);font-weight:800}
-.vnota{font-size:.7rem;color:var(--muted);margin-top:6px;line-height:1.4}
-.vsem{display:flex;align-items:center;gap:10px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
-  font-size:.76rem;color:var(--muted);font-weight:600;line-height:1.4}
-.vsem>span{flex:1;min-width:0}
-.vsem b{color:var(--ink);font-weight:800}
-.vsem b.vplus{color:var(--mb)}
-.vsemjog{display:block;font-size:.68rem;font-weight:600;margin-top:3px}
-.vlink{flex:0 0 auto;border:1px solid var(--line);background:var(--surface2);color:var(--accent);font:inherit;
-  font-size:.7rem;font-weight:800;padding:7px 11px;border-radius:9px;cursor:pointer}
-.vlink:active{transform:scale(.96)}
-/* editor da semana em curso, dentro do cartão (nov/2026) */
-.vsemed{margin-top:10px;padding:10px 12px 8px;border-radius:12px;background:var(--surface2);animation:fadeUp .18s ease}
-.vsemed .wksec{margin:12px 0 7px}
-.vsemnota b{color:var(--ink);font-weight:800}
-.vsemrow{display:flex;align-items:center;gap:8px}
-.vsemed .wkinp{background:var(--surface)}
-.vstep{flex:0 0 auto;width:40px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);
-  color:var(--ink);font:inherit;font-size:1.15rem;font-weight:800;line-height:1;cursor:pointer;padding:0}
-.vstep:active{transform:scale(.93)}
-.vrot{margin-left:auto;flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--accent);font:inherit;
-  font-size:.7rem;font-weight:800;padding:8px 10px;border-radius:9px;cursor:pointer}
-.vrot:active{transform:scale(.96)}
-.vsemnota{font-size:.68rem;color:var(--muted);font-weight:600;line-height:1.45;margin-top:6px}
-.vsjrow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
-.vsjnm{flex:1;min-width:0;font-size:.78rem;font-weight:700;color:var(--ink);line-height:1.25;overflow-wrap:anywhere}
-.vsjnm small{display:block;font-size:.64rem;color:var(--muted);font-weight:700;margin-top:1px}
-.vsjrow .wkinp{width:56px}
-.vsjrow .pact{flex:0 0 auto;padding:8px 10px;background:var(--surface)}
+.ptotv{font-size:.74rem;font-weight:700;color:var(--vc);line-height:1.4}
+.np{padding:10px 12px}
+.nphd{font-size:.58rem;color:var(--muted);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin:0 2px 4px}
+.nprow{display:flex;align-items:center;gap:10px;padding:4px 0}
+.nprow+.nprow{border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
+.npbody{flex:1;min-width:0;display:block;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px;cursor:pointer}
+.npnm{display:block;font-size:.92rem;font-weight:800;line-height:1.25;overflow-wrap:anywhere}
+.npsub{display:block;font-size:.7rem;color:var(--muted);font-weight:700;margin-top:1px}
+.npbody .pprog{display:block;margin-top:6px}
+.npmais{flex:0 0 auto;border:0;border-radius:12px;padding:11px 14px;font:inherit;font-size:.84rem;font-weight:800;cursor:pointer;
+  background:var(--accent);color:#fff}
+.npmais:active{transform:scale(.95)}
 .sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 4px 9px}
 .sechead h2{margin:0}
 .secadd{flex:0 0 auto;border:0;border-radius:10px;padding:8px 13px;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer;
   background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 12px var(--accent-soft)}
 .secadd:active{transform:scale(.96)}
-.pit{border-bottom:1px solid var(--line)}
-.pit:last-child{border-bottom:0}
-.phead{display:flex;gap:10px;align-items:center;padding:9px 0;cursor:pointer}
-.pit .pbody .t{white-space:normal;overflow:visible;line-height:1.25}
-.pchev{flex:0 0 auto;color:var(--muted);font-size:1rem;font-weight:800;transition:transform .18s}
-.pit.open .pchev{transform:rotate(90deg)}
-.pit.bk .pnum,.pit.bk .pbody,.pit.fim .pnum,.pit.fim .pbody{opacity:.62}
-.pprog{height:5px;border-radius:999px;background:var(--surface2);overflow:hidden;margin-top:6px}
+/* linha do tempo (roadmap) */
+.tlcard{padding:10px 14px 12px}
+.tlax{margin-bottom:2px}
+.tlanos,.tlmes{display:flex}
+.tlanos span{font-size:.56rem;font-weight:800;color:var(--muted);letter-spacing:.05em;border-left:1px solid var(--line);padding-left:3px;min-width:0}
+.tlanos span:first-child{border-left:0;padding-left:0}
+.tlmes span{flex:1;min-width:0;font-size:.5rem;font-weight:700;color:var(--muted);text-align:center;overflow:hidden}
+.tl{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;color:inherit;font:inherit;
+  padding:8px 0 9px;cursor:pointer}
+.tlax+.tl{border-top:0}
+.tlh{display:flex;align-items:baseline;gap:8px}
+.tln{flex:1;min-width:0;font-size:.8rem;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.tlv{flex:0 0 auto;font-size:.68rem;font-weight:700;color:var(--muted)}
+.tlv.tarde{color:var(--mr)}
+.tlt{position:relative;display:block;height:8px;margin-top:6px;border-radius:4px;background-color:var(--surface2);
+  background-image:linear-gradient(to right,transparent calc(100% - 1px),var(--line) 0);background-size:calc(100% / var(--nm)) 100%}
+.tlb{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--accent);opacity:.5}
+.tlb.on{opacity:1}
+.tlfora{position:absolute;right:-2px;top:-2px;bottom:-2px;width:4px;border-radius:2px;background:var(--mr)}
+/* grade de semanas */
+.wgcard{padding:10px 14px 12px}
+.wgpad,.wgatual{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;border:0;border-bottom:1px solid var(--line);
+  background:none;color:var(--ink);font:inherit;font-size:.82rem;font-weight:700;text-align:left;padding:8px 0 10px;cursor:pointer}
+.wgpad small{color:var(--muted);font-weight:700}
+.wgatual{font-size:.74rem;color:var(--muted);padding:9px 0}
+.wgatual b{color:var(--ink)}
+.vplus{color:var(--mb)!important}
+.pchev{flex:0 0 auto;color:var(--muted);font-size:1rem;font-weight:800}
+.wggrid{margin-top:8px}
+.wgm{display:flex;align-items:center;gap:8px;padding:3px 0}
+.wgml{flex:0 0 34px;font-size:.7rem;font-weight:800;color:var(--muted);line-height:1}
+.wgml small{display:block;font-size:.5rem;margin-top:1px}
+.wgc{flex:1;min-width:0;display:flex;gap:5px}
+.wgk{flex:0 0 auto;width:42px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);
+  font:inherit;font-size:.78rem;font-weight:800;cursor:pointer;padding:0}
+.wgk.aj{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.wgk.atual{box-shadow:0 0 0 2px var(--ink);color:var(--ink)}
+.wgk:active{transform:scale(.94)}
+.wgmt{flex:0 0 auto;font-size:.7rem;font-weight:800;color:var(--ink);min-width:34px;text-align:right}
+.wgleg.aj{color:var(--accent);font-weight:800}
+/* backlog */
+details.bkbox{margin-top:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+details.bkbox>summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:800}
+details.bkbox>summary::-webkit-details-marker{display:none}
+details.bkbox>summary .wksub{margin-left:auto;font-size:.66rem;color:var(--muted);font-weight:700}
+details.bkbox>summary .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
+details.bkbox[open]>summary .schev{transform:rotate(90deg)}
+.bkbody{padding:0 14px 8px}
+.bkit{display:flex;justify-content:space-between;gap:8px;width:100%;border:0;border-top:1px solid var(--line);background:none;color:var(--muted);
+  font:inherit;font-size:.8rem;font-weight:700;text-align:left;padding:10px 0;cursor:pointer}
+/* comuns do Plano */
+.pprog{height:5px;border-radius:999px;background:var(--surface2);overflow:hidden}
 .pprog>span{display:block;height:100%;border-radius:999px;background:var(--accent)}
-.pmore{padding:0 0 12px;animation:fadeUp .18s ease}
 .pacts2{display:flex;flex-wrap:wrap;gap:6px}
-.pact{border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:inherit;font-size:.74rem;
-  font-weight:700;padding:9px 11px;border-radius:10px;cursor:pointer}
+.pact{border:1px solid var(--line);background:var(--surface2);color:var(--ink);font:inherit;font-size:.76rem;
+  font-weight:700;padding:10px 12px;border-radius:10px;cursor:pointer}
 .pact:active{transform:scale(.97)}
+.pact:disabled{opacity:.35;cursor:default;transform:none}
 .pact.pri{background:var(--accent);border-color:var(--accent);color:#fff}
 .pact.del{color:var(--mr)}
-.phoras{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-size:.74rem;font-weight:700;color:var(--muted)}
-.phoras input{width:74px;text-align:center;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;
-  background:var(--bg);color:var(--ink);font:inherit;font-size:.9rem;font-weight:800}
-.phoras input:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
-.pnota{font-size:.72rem;color:var(--muted);line-height:1.45;margin-bottom:9px}
-.pnota b{color:var(--ink)}
-.wksec{font-size:.6rem;color:var(--muted);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin:14px 0 4px}
-.wkbody>.wksec:first-child{margin-top:4px}
-.wkadd{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.74rem;font-weight:700;color:var(--muted)}
-.wkadd input{flex:1;min-width:0;padding:8px 6px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);
-  color:var(--ink);font:inherit;font-size:.8rem;font-weight:700}
-/* cartão do topo: jogando agora */
-.ag .aghd{font-size:.6rem;color:var(--muted);font-weight:800;letter-spacing:.09em;text-transform:uppercase}
-.agj{padding:8px 0 10px;border-bottom:1px solid var(--line)}
-.agj:last-of-type{border-bottom:0}
-.agtop{display:flex;align-items:flex-start;gap:10px}
-.agnm{flex:1;min-width:0;font-size:1.06rem;font-weight:800;line-height:1.2;overflow-wrap:anywhere}
-.agfalta{flex:0 0 auto;text-align:right;line-height:1}
-.agfalta b{display:block;font-size:1.06rem;font-weight:800;color:var(--accent)}
-.agfalta small{font-size:.56rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
-.agj .pprog{height:8px;margin-top:8px}
-.aghr{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:.76rem;font-weight:700;color:var(--muted)}
-.aghr input{width:64px;text-align:center;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;
-  background:var(--surface2);color:var(--ink);font:inherit;font-size:.9rem;font-weight:800}
-.aghr input:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
-.aghr .pact{margin-left:auto;padding:8px 12px}
-.agfim{font-size:.76rem;color:var(--muted);font-weight:600;margin-top:8px;line-height:1.4}
-.agfim b{color:var(--ink);font-weight:800}
-.agdep{font-size:.74rem;color:var(--muted);font-weight:600;margin-top:9px;line-height:1.4}
-.agdep b{color:var(--ink);font-weight:800}
-/* veredito, em cima da fila */
-.verd{display:flex;flex-direction:column;gap:2px;margin:0 2px 8px;padding:9px 12px;border-radius:12px;
-  background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--vc)}
-.verd b{font-size:.8rem;font-weight:800;color:var(--vc)}
-.verd span{font-size:.72rem;color:var(--muted);font-weight:600;line-height:1.4}
-/* fila */
-.pnum{flex:0 0 26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:800;
-  background:var(--surface2);color:var(--muted);align-self:flex-start;margin-top:1px}
-.pnum.on{background:var(--accent);color:#fff}
-.pfalta{flex:0 0 auto;text-align:right;line-height:1.05;align-self:flex-start}
-.pfalta b{display:block;font-size:.86rem;font-weight:800;color:var(--ink)}
-.pfalta small{font-size:.52rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em}
-.pq{font-size:.68rem;color:var(--accent);font-weight:700;margin-top:3px;line-height:1.35}
-.pq.tarde{color:var(--mr)}
-.phead .pchev{align-self:center}
-.pact:disabled{opacity:.35;cursor:default;transform:none}
-/* semana a semana */
-.sechead .wksub{font-size:.66rem;color:var(--muted);font-weight:700}
-.padbox{padding:10px 14px 12px}
-.padrow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
-.padlbl{flex:1;min-width:0;font-size:.74rem;font-weight:700;color:var(--muted);line-height:1.2}
-.padlbl b{display:block;font-size:.86rem;color:var(--ink)}
-.padlbl small{font-size:.62rem;font-weight:700}
-.padrow.mud{display:block}
-.padde{display:block;font-size:.64rem;font-weight:800;color:var(--muted);margin-bottom:4px}
-.padline{display:flex;align-items:center;gap:6px}
-.padate{flex:1;min-width:0;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);
-  color:var(--ink);font:inherit;font-size:.76rem;font-weight:700}
-.padbox .wknote{margin:10px 0 0}
-.wkc{flex:0 0 auto;display:flex;align-items:center;gap:4px}
-.wkc .wkinp{width:50px;padding:8px 2px}
-.vstep.sm{width:32px;height:36px;font-size:1rem}
-details.mes{margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-details.mes>summary{cursor:pointer;list-style:none;padding:11px 14px;display:flex;align-items:center;gap:8px}
-details.mes>summary::-webkit-details-marker{display:none}
-.mesnm{flex:0 0 auto;font-size:.84rem;font-weight:800;text-transform:capitalize}
-.mesjg{flex:1;min-width:0;font-size:.68rem;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.meshr{flex:0 0 auto;font-size:.76rem;font-weight:800}
-.meshr.aj{color:var(--accent)}
-details.mes .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
-details.mes[open] .schev{transform:rotate(90deg)}
-.mesbody{padding:0 14px 6px;border-top:1px solid var(--line)}
-.wkr{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
-.wkr:last-child{border-bottom:0}
-.wkr.atual{background:var(--accent-soft);border-radius:10px;padding:9px 8px;margin:4px -8px}
-.wkl{flex:1;min-width:0}
-.wkd{font-size:.8rem;font-weight:800}
-.wkd small{font-size:.6rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;margin-left:4px}
-.wkpar{font-size:.66rem;color:var(--muted);font-weight:700;margin-top:1px}
-.wkpar b.vplus{color:var(--mb)}
-.wkg{display:flex;flex-wrap:wrap;gap:2px 7px;margin-top:2px;font-size:.72rem;font-weight:700;color:var(--ink);line-height:1.35}
-.wkj{overflow-wrap:anywhere}
-.wkj small,.wkfalta,.wklivre{font-size:.66rem;color:var(--muted);font-weight:700}
-.wklivre{color:var(--mp)}
-.wkpad{display:block;border:0;background:none;color:var(--accent);font:inherit;font-size:.66rem;font-weight:800;padding:4px 0 0;cursor:pointer}
+.wksec{font-size:.6rem;color:var(--muted);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin:16px 0 6px}
+.wknote{font-size:.68rem;color:var(--muted);line-height:1.5;margin:2px 0 8px;font-weight:600}
+.wkinp{width:64px;text-align:center;padding:8px 4px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);font:inherit;font-size:.9rem;font-weight:800}
+.wkinp:focus-visible{outline:2px solid var(--accent);border-color:var(--accent)}
+.wkinp.on{border-color:var(--accent);color:var(--accent)}
+.wkun{font-size:.74rem;color:var(--muted);font-weight:700}
+.wkrst{border:1px solid var(--line);background:var(--surface2);color:var(--accent);width:34px;height:34px;border-radius:9px;font-size:.9rem;flex:0 0 auto;cursor:pointer}
+.vstep{flex:0 0 auto;width:44px;height:42px;border-radius:11px;border:1px solid var(--line);background:var(--surface2);
+  color:var(--ink);font:inherit;font-size:1.2rem;font-weight:800;line-height:1;cursor:pointer;padding:0}
+.vstep:active{transform:scale(.93)}
+.vstep:disabled{opacity:.3;cursor:default;transform:none}
+.vrot{border:1px solid var(--line);background:var(--surface2);color:var(--accent);font:inherit;font-size:.74rem;font-weight:800;padding:9px 12px;border-radius:10px;cursor:pointer}
+.vsjrow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.vsjnm{flex:1;min-width:0;font-size:.8rem;font-weight:700;color:var(--ink);line-height:1.25;overflow-wrap:anywhere}
+.wkadd{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:.76rem;font-weight:700;color:var(--muted)}
+/* painel de baixo (semana · padrão · jogo) */
+.psh .wkinp,.psh input.padate,.psh .wkadd input{width:auto;padding:8px 4px;border-radius:10px;font-size:.95rem}
+.psh .wkinp{width:72px;text-align:center}
+.psh .vsjrow .wkinp{width:60px}
+.psh input.padate{flex:1;min-width:0;font-size:.8rem}
+.psh .wkadd input{flex:1;min-width:0;font-size:.8rem}
+.shnav{display:flex;align-items:center;gap:10px}
+.shtit{flex:1;text-align:center;line-height:1.2}
+.shtit b{display:block;font-size:1.05rem}
+.shtit small{font-size:.62rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.07em}
+.shstep{display:flex;align-items:center;gap:8px}
+.shstep .pact{margin-left:auto}
+.shnota{font-size:.72rem;color:var(--muted);font-weight:600;line-height:1.45;margin-top:8px}
+.shli{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:.82rem;font-weight:700}
+.shli small{font-size:.7rem;color:var(--muted);font-weight:700;text-align:right}
+.shli .muted,.muted{color:var(--muted)}
+.shinfo{margin-top:12px;font-size:.78rem;line-height:1.5;color:var(--muted);font-weight:600}
+.shinfo>div{padding:3px 0}
+.shinfo b{color:var(--ink)}
+.tarde{color:var(--mr)}
+.shmud{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
+.shmudl{flex:0 0 100%;font-size:.64rem;font-weight:800;color:var(--muted)}
+.shmud .shstep{gap:5px}
+.shmud .vstep{width:38px;height:38px}
+.shmud .wkinp{width:52px}
 
 /* ---------- modal ---------- */
 .modal{position:fixed;inset:0;background:rgba(4,6,11,.65);display:flex;align-items:flex-end;justify-content:center;z-index:60}
@@ -608,6 +572,8 @@ details.internal-fields summary{cursor:pointer;font-size:.72rem;color:var(--mute
     </div>
   </div>
 </div>
+
+<div id="psheet" class="modal hidden" role="dialog" aria-modal="true"><div class="mbox psh" id="psheetBox"></div></div>
 
 <div id="bmodal" class="modal hidden" role="dialog" aria-modal="true">
   <div class="mbox">
@@ -1214,9 +1180,6 @@ let ordem = "veredicto";   // padrão: veredicto e, dentro dele, mais horas (nov
 let filtersOpen = false;   // painel de filtros recolhido por padrão (mais espaço p/ a lista no celular)
 let sortOpen = false;      // mini-painel de ordenação (separado dos filtros), recolhido por padrão
 let bkOpen = true;         // painel "backlog" (Plano) ABERTO por padrão — senão parece que o jogo sumiu
-let planoOpen = null;      // índice (em P) do item da fila aberto: a linha expande e mostra as ações
-let mesOpen = null;        // meses abertos no "Semana a semana" (Set de "AAAA-MM"); null = abrir o mês atual e o seguinte
-let semEdit = false;       // "esta semana" aberto pelo "ajustar" do cartão do Plano
 let statVer = "";        // filtro de veredicto na seção "Horas por jogo" das Estatísticas
 let statStatus = "";     // filtro de status na mesma seção: "" geral · "S" zerados · "N" dropados
 let statDim = "ver";     // dimensão do gráfico "Distribuição": ver | lanc | jogou
@@ -1624,8 +1587,14 @@ function viewStats(){
 }
 
 /* ---------- aba Plano ---------- */
+// nov/2026, 4ª versão: o Diogo achou a anterior "horrorosa" (cartão do topo gigante, semanas poluídas, sem as horas
+// totais) e pediu pra copiar apps de referência. A tela agora é: TOTAIS no topo (como apps de orçamento: na fila ·
+// tenho · sobra), "jogando agora" numa barra pequena (como o "tocando agora" de apps de música), a fila como LINHA DO
+// TEMPO (barras nos meses, como roadmaps tipo Notion/Linear) e as horas como uma GRADE de semanas por mês (como
+// calendário/hábitos). Todo detalhe e edição abre num painel de baixo (`sheet`), nada fica espalhado na tela.
 // horas com no máximo 1 casa (7h · 2,5h)
 const fmtH = x => (Math.round((Number(x)||0)*10)/10).toLocaleString("pt-BR") + "h";
+const fmtN = x => (Math.round((Number(x)||0)*10)/10).toLocaleString("pt-BR");
 const MESES_L = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 const sufAno = a => Number(a)!==ANO_HOJE ? `/${String(a).slice(2)}` : "";
 // "4/jan" · "4/jan/27" (o ano só quando não é o atual)
@@ -1636,240 +1605,231 @@ function fmtSemA(key){
   const ma = MESES[a.getMonth()], mb = MESES[b.getMonth()], s = sufAno(b.getFullYear());
   return ma===mb ? `${a.getDate()}–${b.getDate()}/${mb}${s}` : `${a.getDate()}/${ma}–${b.getDate()}/${mb}${s}`;
 }
-// semanas entre a semana em curso e a semana k
+// semanas entre a semana de `de` e a semana `k`
 const semanasAte = (de, k) => Math.round((new Date(k+"T00:00:00") - new Date(de+"T00:00:00")) / 604800000);
 // mês ao qual a semana pertence (o da quinta-feira, como no calendário ISO)
 const mesDaSemana = key => addDias(key, 3).slice(0,7);
-// esta semana, aberto pelo "ajustar" do cartão: quanto vou jogar (− / +) e quanto joguei em cada jogo nela.
-// Lançar horas aqui soma nas horas do jogo (a mesma jogatina do "Horas jogadas" da fila, via setJogadasAtual)
-function viewSemanaAtual(w){
-  const key = w.key, pad = padraoDaSemana(key);
-  let jogos;
-  if (SB && SB.wk === key && SB.tot){
-    // quem conta na semana (mesma regra do jogadoSemanaPorJogo): em jogo agora, ou esteve em jogo e ganhou horas
-    const lista = J.filter(g=> g && g.id != null && ((SB.ab && SB.ab[gk(g)]) || emAberto(g)))
-      .map(g=>({ g, d: semanaJogoH(g) || 0, r: temStatus(g,"#") ? 0 : temStatus(g,"P") ? 1 : 2 }))
-      .filter(x=> x.r < 2 || x.d > 0.001)
-      .sort((a,b)=> a.r-b.r || b.d-a.d || String(a.g.nome).localeCompare(String(b.g.nome)));
-    jogos = lista.length ? lista.map(({g,d,r})=>`<div class="vsjrow">
-        <div class="vsjnm">${r===1?"⏸️ ":""}${esc(g.nome)}<small>${fmtH(totalHoras(g))} no total</small></div>
-        <input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-semjog="${g.id}" value="${Math.round(Math.max(d,0)*10)/10}" aria-label="Horas jogadas nesta semana em ${esc(g.nome)}" />
-        <span class="wkun">h</span>
-        <button type="button" class="pact" data-semmais="${g.id}">+1h</button>
-      </div>`).join("")
-      : `<div class="vsemnota">Nenhum jogo em andamento: toque num jogo da fila e em ▶️ Estou jogando.</div>`;
-    if (Number(SB.ex) > 0) jogos += `<div class="vsemnota">+ ${fmtH(SB.ex)} jogadas antes de o app separar por jogo.</div>`;
-  } else jogos = `<div class="vsemnota">As horas desta semana aparecem quando o app abrir com internet.</div>`;
-  return `<div class="vsemed">
-    <div class="wksec">Quanto vou jogar · ${fmtSemA(key)}</div>
-    <div class="vsemrow">
-      <button type="button" class="vstep" data-wkstep="${key}:-1" aria-label="Uma hora a menos">−</button>
-      <input class="wkinp${w.aj?" on":""}" type="number" min="0" step="0.5" inputmode="decimal" data-wksem="${key}" value="${Math.round(w.orc*10)/10}" aria-label="Horas que vou jogar nesta semana" />
-      <span class="wkun">h</span>
-      <button type="button" class="vstep" data-wkstep="${key}:1" aria-label="Uma hora a mais">+</button>
-      ${w.aj ? `<button type="button" class="vrot" data-wkreset="${key}">↺ padrão (${fmtH(pad)})</button>` : ""}
-    </div>
-    <div class="vsemnota">${w.aj ? `Só esta semana. O padrão é ${fmtH(pad)}.` : `É o padrão. Mudar aqui vale só pra esta semana.`}</div>
-    <div class="wksec">Quanto joguei · por jogo</div>
-    ${jogos}
-    <div class="vsemnota">Lançar aqui soma nas horas do jogo (as mesmas da fila e da biblioteca).</div>
-  </div>`;
+// "até 31/jan" = o domingo da semana em que o jogo termina
+const ateTxt = x => x && x.fimWk ? (x.fimWk > PLANO_FIM ? `passa de dez/${PLANO_FIM.slice(2,4)}` : `até ${fmtDA(addDias(x.fimWk,6))}`)
+                                 : (x ? `passa de dez/${PLANO_FIM.slice(2,4)}` : "");
+let sheet = null;   // painel de baixo do Plano: {t:"sem", k:"<segunda>"} · {t:"pad"} · {t:"jogo", i}
+// trechos de semanas em que cada item é jogado (semanas seguidas viram um trecho só): Map item → [[ini, fim)]
+function trechosAgenda(A){
+  const tr = new Map();
+  A.semanas.forEach(w=>w.segs.forEach(s=>{
+    if (s.h < 0.05) return;
+    const ini = w.key < A.hojeIso ? A.hojeIso : w.key, fim = addDias(w.key, 7);
+    const l = tr.get(s.x) || []; const u = l[l.length-1];
+    if (u && u[1] === w.key) u[1] = fim; else l.push([ini, fim]);
+    tr.set(s.x, l);
+  }));
+  return tr;
 }
 function viewPlano(){
   const A = agendaPlano(), R = Math.round, fimAno = Number(PLANO_FIM.slice(0,4));
-  const fimTxt = `${MESES[Number(PLANO_FIM.slice(5,7))-1]}/${fimAno}`;            // "dez/2027"
-  const wkAtual = A.semanas.find(w=>w.atual);
+  const fimTxt = `dez/${String(fimAno).slice(2)}`;
   const lista = P.map((p,i)=>({p,i}));
   const ativos = lista.filter(({p})=>!p.backlog && pitemPendente(p));
-  const concl = lista.filter(({p})=>!p.backlog && !pitemPendente(p));
   const naBacklog = lista.filter(({p})=>p.backlog);
   const emJogo = ({p})=>{ const g = plinked(p); return !!(g && emAberto(g)); };
-  // "▶ 25–31/jan → 🏁 8–14/mar" de um item da agenda
-  const quando = (x, jogando)=>{
-    if (!x) return "";
-    const fim = x.fimWk ? `🏁 ${fmtSemA(x.fimWk)}` : `🏁 depois de ${AGENDA_MAX.slice(0,4)}`;
-    const tarde = !x.fimWk || x.fimWk > PLANO_FIM;
-    const txt = jogando ? `🏁 termina ${x.fimWk ? fmtSemA(x.fimWk) : `depois de ${AGENDA_MAX.slice(0,4)}`}` : (x.iniWk ? `▶ ${fmtSemA(x.iniWk)} → ${fim}` : fim);
-    return `<div class="pq num${tarde?" tarde":""}">${txt}${tarde?` · depois de ${fimTxt}`:""}</div>`;
-  };
 
-  // ---- cartão do topo: o que estou jogando, quando termina, o que vem depois e esta semana ----
-  const atuais = ativos.filter(emJogo);
-  const agJogo = ({p,i})=>{
-    const g = plinked(p), est = estH(p.est), j = pjogadasAtual(g), x = A.porP.get(p), pausado = !temStatus(g,"#");
-    const falta = pfaltaH(p);
-    let fim;
-    if (!est) fim = `Sem estimativa: toque no jogo da fila e em ✏️ Editar pra pôr as horas.`;
-    else if (falta < 0.05) fim = `Passou da estimativa (${est}h). Zerou? Marque na biblioteca, ou aumente a estimativa.`;
-    else if (x && x.fimWk){ const n = semanasAte(A.wkAtual, x.fimWk);
-      fim = `🏁 Termina na semana de <b>${fmtSemA(x.fimWk)}</b>${n===0?" · esta semana":n===1?" · na próxima":` · daqui a ${n} semanas`}`; }
-    else fim = `🏁 Não termina até ${AGENDA_MAX.slice(0,4)} no ritmo do plano`;
-    return `<div class="agj">
-      <div class="agtop"><span class="agnm">${pausado?"⏸️ ":""}${esc(p.jogo)}</span>
-        ${est ? `<span class="agfalta num"><b>${fmtH(falta)}</b><small>faltam</small></span>` : ""}</div>
-      ${est ? `<div class="pprog"><span style="width:${Math.min(j/est*100,100)}%"></span></div>` : ""}
-      <div class="aghr"><span>Joguei</span>
-        <input type="number" min="0" step="0.5" inputmode="decimal" data-phoras="${i}" value="${j}" aria-label="Horas jogadas em ${esc(p.jogo)}" />
-        <span>${est ? `de ${est}h` : "h"}</span>
-        <button type="button" class="pact" data-pmais="${i}">+1h</button></div>
-      <div class="agfim">${fim}</div>
-    </div>`;
-  };
-  const proximo = A.its.filter(x=>!emJogo(x) && x.iniWk).sort((a,b)=> a.ini<b.ini ? -1 : a.ini>b.ini ? 1 : 0)[0];
-  let topo;
-  if (atuais.length){
-    topo = `<div class="aghd">🎮 Jogando agora</div>${atuais.slice(0,3).map(agJogo).join("")}`
-      + (proximo ? `<div class="agdep">Depois: <b>${esc(proximo.p.jogo)}</b> · começa na semana de ${fmtSemA(proximo.iniWk)}</div>` : "");
-  } else if (proximo){
-    const n = semanasAte(A.wkAtual, proximo.iniWk);
-    topo = `<div class="aghd">Nenhum jogo da fila em andamento</div>
-      <div class="agj"><div class="agtop"><span class="agnm">Próximo: ${esc(proximo.p.jogo)}</span></div>
-        <div class="agfim">${n<=0 ? "Dá pra começar já" : `Começa na semana de <b>${fmtSemA(proximo.iniWk)}</b>`} · ${fmtH(proximo.h0)} estimadas</div>
-        <div class="pacts2" style="margin-top:9px"><button type="button" class="pact pri" data-pjogar="${proximo.i}">▶️ Estou jogando</button></div></div>`;
-  } else topo = `<div class="aghd">Nada na fila</div><div class="vsemnota">Toque em ＋ Jogo pra planejar o próximo.</div>`;
-  let semLinha = "";
-  if (wkAtual){
-    const plus = A.jog - wkAtual.orc;
-    semLinha = `<div class="vsem">
-      <span>Esta semana: <b>${fmtH(wkAtual.orc)}</b>${A.jog>0?` · joguei <b>${fmtH(A.jog)}</b>`:""} · ${plus > 0.05
-        ? `<b class="vplus">+${fmtH(plus)} além do planejado</b>` : `restam <b>${fmtH(wkAtual.cap)}</b> até domingo`}</span>
-      <button type="button" class="vlink" data-semedit="1">${semEdit ? "fechar" : "ajustar"}</button></div>`
-      + (semEdit ? viewSemanaAtual(wkAtual) : "");
-  }
-
-  // ---- veredito: a fila toda cabe até o fim do plano? ----
-  const cabe = A.pendFim < 0.5, limite = cabe && A.livrePlano < FOLGA_MIN;
+  // ---- totais: na fila · tenho até o fim do plano · sobra (+ o veredito da agenda) ----
+  const fila = ativos.reduce((s,{p})=>s+pfaltaH(p), 0);
+  const tenho = A.semanas.filter(w=>w.dentro).reduce((s,w)=>s+w.cap, 0);
+  const sobra = tenho - fila, cabe = A.pendFim < 0.5, limite = cabe && A.livrePlano < FOLGA_MIN;
   const ficam = A.its.filter(x=>x.restPlano > 0.05);
-  const vcor = cabe ? (limite ? "var(--mp)" : "var(--mb)") : "var(--mr)";
-  const verd = !A.its.length ? "" : `<div class="verd" style="--vc:${vcor}">
-    <b>${cabe ? (limite ? `⚠ Cabe até ${fimTxt}, no limite` : `✓ Cabe tudo até ${fimTxt}`) : `✕ Não cabe tudo até ${fimTxt}`}</b>
-    <span>${cabe ? `A fila acaba na semana de ${fmtSemA(A.fimFila)} · sobram ${R(A.livrePlano)}h`
-      : `Faltam ${R(A.pendFim)}h: ${ficam.map(x=>esc(x.p.jogo)).join(", ")} ${ficam.length>1?"passam":"passa"} de ${fimTxt}`}</span>
+  const cor = cabe ? (limite ? "var(--mp)" : "var(--mb)") : "var(--mr)";
+  const verd = !A.its.length ? "Nada na fila ainda"
+    : cabe ? `${limite ? "⚠ Cabe, mas no limite" : "✓ Tudo cabe"} · a fila acaba em ${fmtDA(addDias(A.fimFila,6))}`
+    : `✕ Não cabe: ${ficam.map(x=>esc(x.p.jogo)).join(", ")} ${ficam.length>1?"passam":"passa"} de ${fimTxt}`;
+  const pct = tenho > 0 ? Math.min(fila/tenho*100, 100) : (fila > 0 ? 100 : 0);
+  const totais = `<div class="card ptot" style="--vc:${cor}">
+    <div class="ptot3 num">
+      <div><b>${R(fila)}h</b><small>na fila</small></div>
+      <div><b>${R(tenho)}h</b><small>tenho até ${fimTxt}</small></div>
+      <div class="sb"><b>${sobra>=0?"+":"−"}${R(Math.abs(sobra))}h</b><small>${sobra>=0?"sobra":"falta"}</small></div>
+    </div>
+    <div class="vbar"><span style="width:${Math.max(pct,2)}%"></span></div>
+    <div class="ptotv">${verd}</div>
   </div>`;
 
-  // ---- fila, na ordem em que vou jogar; a linha abre ao toque e mostra as ações ----
-  const pItem = ({p,i}, n)=>{
-    const est=estH(p.est), g=plinked(p), x=A.porP.get(p), aberto = planoOpen===i, falta = pfaltaH(p);
-    const jogando = !!(g && temStatus(g,"#")), pausado = !!(g && !jogando && temStatus(g,"P"));
-    const fim = (g && !emAberto(g)) ? statusJogo(g) : "";
-    const sub = []; let prog = "";
-    if (jogando || pausado){
-      const j = pjogadasAtual(g);
-      sub.push(`${pausado?"⏸️ pausado":"🎮 jogando"} · ${fmtH(j)} de ${est}h`);
-      prog = `<div class="pprog"><span style="width:${est>0?Math.min(j/est*100,100):0}%"></span></div>`;
-    }
-    else if (fim==="S") sub.push(`✅ zerado (${totalHoras(g)}h)`);
-    else if (fim==="N") sub.push(`❌ dropado (${totalHoras(g)}h)`);
-    else {
-      if (p.rejogar && !p.iniciado) sub.push("🔁 rejogar");
-      if (p.data && p.data > A.hojeIso) sub.push(`sai ${fmtDA(p.data)}`);
-      else if (!p.data && anoFila(p) > ANO_HOJE) sub.push(`sem data · ${anoFila(p)}`);
-      if (!est) sub.push("sem estimativa");
-    }
-    if (p.backlog) sub.push("fora da conta");
-    let mais = "";
-    if (aberto){
-      const acts = [];
-      if (!p.backlog && !p.iniciado) acts.push(`<button type="button" class="pact pri" data-pjogar="${i}">▶️ Estou jogando</button>`);
-      else if (!p.backlog && pausado) acts.push(`<button type="button" class="pact pri" data-pjogar="${i}">▶️ Retomar</button>`);
-      if (n){
-        const pos = ativos.findIndex(a=>a.i===i);
-        acts.push(`<button type="button" class="pact" data-pmove="${i}:-1" ${pos<=0?"disabled":""}>⬆️ Subir</button>`);
-        acts.push(`<button type="button" class="pact" data-pmove="${i}:1" ${pos>=ativos.length-1?"disabled":""}>⬇️ Descer</button>`);
-      }
-      if (g) acts.push(`<button type="button" class="pact" data-pabrir="${g.id}">🎮 Ver na biblioteca</button>`);
-      acts.push(`<button type="button" class="pact" data-peditar="${i}">✏️ Editar</button>`);
-      acts.push(`<button type="button" class="pact" data-pbacklog="${i}">${p.backlog?"↩️ Voltar pra fila":"📥 Backlog"}</button>`);
-      acts.push(`<button type="button" class="pact del" data-pexcluir="${i}">🗑 Excluir</button>`);
-      const horas = (jogando || pausado) ? `<div class="phoras"><span>Horas jogadas</span>
-          <input type="number" min="0" step="0.5" inputmode="decimal" data-phoras="${i}" value="${pjogadasAtual(g)}" aria-label="Horas jogadas" />
-          <button type="button" class="pact" data-pmais="${i}">+1h</button></div>` : "";
-      const espera = (n && x && x.iniWk && !p.iniciado && p.data && x.ini > p.data && semanasAte(ymd(segunda(new Date(p.data+"T00:00:00"))), x.iniWk) >= 1)
-        ? `<div class="pnota">Sai ${esc(fmtDA(p.data))}, mas os jogos de cima da fila vêm antes. Quer jogar assim que sair? ⬆️ Suba ele.</div>` : "";
-      mais = `<div class="pmore">${horas}${espera}<div class="pacts2">${acts.join("")}</div></div>`;
-    }
-    const dir = (!p.backlog && est && !fim) ? `<span class="pfalta num"><b>${fmtH(falta)}</b><small>${(jogando||pausado)?"faltam":"estimadas"}</small></span>` : "";
-    return `<div class="pit${aberto?" open":""}${p.backlog?" bk":""}${fim?" fim":""}">
-      <div class="phead" data-ptoggle="${i}">
-        <span class="pnum num${(jogando||pausado)?" on":""}">${n || (fim ? "✓" : "–")}</span>
-        <div class="pbody"><div class="t">${esc(p.jogo)}</div>
-          <div class="s num">${sub.join(" · ")}</div>${prog}${p.backlog ? "" : quando(x, jogando||pausado)}</div>
-        ${dir}<span class="pchev">›</span>
-      </div>${mais}
-    </div>`;
-  };
-  const rows = ativos.length ? ativos.map((x,k)=>pItem(x, k+1)).join("")
-    : '<p class="lead" style="margin:6px 2px">Nenhum jogo planejado ainda.</p>';
-  const conclRows = concl.length ? `<div class="wksec" style="margin:12px 0 2px">Já terminados</div>${concl.map(x=>pItem(x, 0)).join("")}` : "";
-  const bkSec = naBacklog.length ? `<details class="bkbox" ${bkOpen?"open":""}>
-    <summary><span>📥 Backlog</span><span class="wksub">${naBacklog.length} jogo${naBacklog.length>1?"s":""} · fora da conta</span><span class="schev">▸</span></summary>
-    <div class="bkbody">${naBacklog.map(x=>pItem(x, 0)).join("")}</div>
-  </details>` : "";
+  // ---- jogando agora: uma linha por jogo, com +1h ----
+  const atuais = ativos.filter(emJogo);
+  let agora;
+  if (atuais.length){
+    agora = atuais.slice(0,3).map(({p,i})=>{
+      const g = plinked(p), est = estH(p.est), j = pjogadasAtual(g), x = A.porP.get(p), pausa = !temStatus(g,"#");
+      return `<div class="nprow">
+        <button type="button" class="npbody" data-psheet="jogo:${i}">
+          <span class="npnm">${pausa?"⏸️ ":""}${esc(p.jogo)}</span>
+          <span class="npsub num">${fmtN(j)} de ${est ? est+"h" : "?"}${x ? ` · ${ateTxt(x)}` : ""}</span>
+          ${est ? `<span class="pprog"><span style="width:${Math.min(j/est*100,100)}%"></span></span>` : ""}
+        </button>
+        <button type="button" class="npmais" data-pmais="${i}">+1h</button>
+      </div>`; }).join("");
+  } else {
+    const px = A.its.filter(x=>x.iniWk).sort((a,b)=> a.ini<b.ini ? -1 : 1)[0];
+    agora = px ? `<div class="nprow"><button type="button" class="npbody" data-psheet="jogo:${px.i}">
+        <span class="npnm">Próximo: ${esc(px.p.jogo)}</span><span class="npsub">${px.ini <= A.hojeIso ? "dá pra começar já" : `a partir de ${fmtDA(px.ini)}`}</span></button>
+        <button type="button" class="npmais" data-pjogar="${px.i}">▶️</button></div>`
+      : `<div class="npsub" style="padding:4px 2px">Nenhum jogo na fila.</div>`;
+  }
+  const agoraSec = `<div class="card np"><div class="nphd">${atuais.length ? "Jogando agora" : "Nada em andamento"}</div>${agora}</div>`;
 
-  // ---- semana a semana: o padrão (e quando ele muda) + cada semana com as horas e o que jogo nela ----
-  const FV = fasesVivas();
-  const stepper = (attr, key, v, on, lbl)=>`<div class="wkc">
-      <button type="button" class="vstep sm" data-${attr}step="${key}:-1" aria-label="Uma hora a menos">−</button>
-      <input class="wkinp${on?" on":""}" type="number" min="0" step="0.5" inputmode="decimal" data-${attr}="${key}" value="${Math.round(v*10)/10}" aria-label="${lbl}" />
-      <button type="button" class="vstep sm" data-${attr}step="${key}:1" aria-label="Uma hora a mais">+</button>
-    </div>`;
-  const padRows = FV.map((f,i)=> i===0
-    ? `<div class="padrow"><span class="padlbl"><b>Padrão</b><small>horas por semana</small></span>${stepper("pad", i, f.h, false, "Horas por semana (padrão)")}</div>`
-    : `<div class="padrow mud"><span class="padde">a partir da semana de</span>
-        <div class="padline"><input class="padate" type="date" data-padate="${i}" value="${inicioFase(FV,i)}" min="${addDias(A.wkAtual,7)}" max="${PLANO_FIM}" aria-label="Começo do novo padrão" />
-        ${stepper("pad", i, f.h, false, "Horas por semana a partir desta data")}
-        <button type="button" class="wkrst" data-paddel="${i}" title="Tirar esta mudança" aria-label="Tirar esta mudança">✕</button></div></div>`).join("");
-  const nAj = A.semanas.filter(w=>w.dentro && w.aj).length;
-  const wkRow = w => {
-    const pad = padraoDaSemana(w.key), partes = [];
-    w.segs.forEach((s,k)=>{
-      const fimAqui = s.x.fimWk===w.key, iniAqui = s.x.iniWk===w.key && !emJogo(s.x);
-      partes.push(`<span class="wkj">${fimAqui?"🏁 ":iniAqui?"▶ ":""}${esc(s.x.p.jogo)}${w.segs.length>1?` <small>${fmtH(s.h)}</small>`:""}</span>`);
-    });
-    const ult = w.segs[w.segs.length-1];
-    if (ult && ult.depois > 0.05) partes.push(`<small class="wkfalta">faltam ${fmtH(ult.depois)}</small>`);
-    if (w.livre >= 0.5) partes.push(`<small class="wklivre">${w.segs.length ? `${fmtH(w.livre)} livres` : (A.its.some(x=>x.rest>0 || x.fimWk>w.key) ? "livre · nada lançado pra jogar" : "livre · a fila acabou")}</small>`);
-    if (!partes.length) partes.push(`<small class="wklivre">${w.atual && A.jog > w.orc ? "já joguei o planejado" : "sem horas"}</small>`);
-    const plus = w.atual ? A.jog - w.orc : 0;
-    const atualTxt = w.atual ? `<div class="wkpar">${A.jog>0?`joguei ${fmtH(A.jog)} · `:""}${plus > 0.05 ? `<b class="vplus">+${fmtH(plus)} além</b>` : `restam ${fmtH(w.cap)} até domingo`}</div>` : "";
-    return `<div class="wkr${w.atual?" atual":""}${w.aj?" aj":""}">
-      <div class="wkl"><div class="wkd">${fmtSemA(w.key)}${w.atual?" <small>esta semana</small>":""}</div>
-        ${atualTxt}<div class="wkg">${partes.join("")}</div>
-        ${w.aj ? `<button type="button" class="wkpad" data-wkreset="${w.key}">↺ voltar ao padrão (${fmtH(pad)})</button>` : ""}</div>
-      ${stepper("wk", w.key, w.orc, w.aj, `Horas na semana de ${fmtSemA(w.key)}`)}
-    </div>`;
+  // ---- linha do tempo: uma barra por jogo nos meses de hoje até o fim do plano ----
+  const m0 = new Date(A.hojeIso+"T00:00:00"), meses = [];
+  for (let a=m0.getFullYear(), m=m0.getMonth(); `${a}-${String(m+1).padStart(2,"0")}` <= PLANO_FIM.slice(0,7); m===11 ? (a++, m=0) : m++) meses.push([a,m]);
+  const nM = meses.length;
+  const xPos = iso => {            // posição (0–100%) de uma data: cada mês tem a mesma largura
+    if (iso > PLANO_FIM) return 100;
+    const d = new Date(iso+"T00:00:00"), k = (d.getFullYear()-meses[0][0])*12 + d.getMonth()-meses[0][1];
+    if (k < 0) return 0;
+    return Math.min((k + (d.getDate()-1)/new Date(d.getFullYear(), d.getMonth()+1, 0).getDate()) / nM * 100, 100);
   };
+  const anos = []; meses.forEach(([a])=>{ const u = anos[anos.length-1]; if (u && u[0]===a) u[1]++; else anos.push([a,1]); });
+  const eixo = `<div class="tlax" style="--nm:${nM}">
+      <div class="tlanos">${anos.map(([a,n])=>`<span style="flex:${n}">${n>=2?a:""}</span>`).join("")}</div>
+      <div class="tlmes">${meses.map(([,m])=>`<span>${MESES[m]}</span>`).join("")}</div></div>`;
+  const tr = trechosAgenda(A);
+  const linha = ({p,i})=>{
+    const x = A.porP.get(p), est = estH(p.est), jog = emJogo({p}), falta = pfaltaH(p);
+    const bars = (tr.get(x)||[]).filter(([a])=>a <= PLANO_FIM).map(([a,b])=>{
+      const l = xPos(a), r = b > PLANO_FIM ? 100 : xPos(b);
+      return `<i class="tlb${jog?" on":""}" style="left:${l}%;width:${Math.max(r-l,1.2)}%"></i>`; }).join("");
+    const tarde = x && (!x.fimWk || x.fimWk > PLANO_FIM);
+    const dir = !est ? `<span class="tlv muted">sem estimativa</span>`
+      : `<span class="tlv num${tarde?" tarde":""}">${R(falta)}h · ${ateTxt(x)}</span>`;
+    return `<button type="button" class="tl" data-psheet="jogo:${i}">
+      <span class="tlh"><span class="tln">${esc(p.jogo)}</span>${dir}</span>
+      <span class="tlt" style="--nm:${nM}">${bars}${tarde?'<i class="tlfora"></i>':""}</span>
+    </button>`;
+  };
+  const tlSec = `<div class="sechead"><h2>🗺 Fila · linha do tempo</h2><button type="button" class="secadd" id="btnAddPlano">＋ Jogo</button></div>
+    <div class="card tlcard">${ativos.length ? eixo + ativos.map(linha).join("") : '<p class="lead" style="margin:4px 2px">Nenhum jogo planejado ainda.</p>'}
+      <div class="wknote" style="margin:10px 0 0">Joga um por vez, de cima pra baixo. Toque num jogo pra lançar horas, mover ou editar.</div></div>`;
+
+  // ---- horas por semana: grade (mês → semanas); toque numa semana pra mudar ----
+  const FV = fasesVivas(), nMud = FV.length - 1;
   const grupos = [];
   A.semanas.filter(w=>w.dentro).forEach(w=>{ const m = mesDaSemana(w.key); let gr = grupos[grupos.length-1];
     if (!gr || gr.mes !== m) grupos.push(gr = { mes:m, sem:[] }); gr.sem.push(w); });
-  if (mesOpen == null) mesOpen = new Set(grupos.slice(0,2).map(gr=>gr.mes));
-  const mesSec = grupos.map(gr=>{
+  const grade = grupos.map(gr=>{
     const [a, m] = gr.mes.split("-").map(Number), tot = gr.sem.reduce((s,w)=>s+w.orc, 0);
-    const nomes = []; gr.sem.forEach(w=>w.segs.forEach(s=>{ if (!nomes.includes(s.x)) nomes.push(s.x); }));
-    const acaba = nomes.filter(x=>x.fimWk && gr.sem.some(w=>w.key===x.fimWk));
-    const resumo = nomes.length ? nomes.map(x=>`${acaba.includes(x)?"🏁 ":""}${esc(x.p.jogo)}`).join(" → ") : "livre";
-    const aj = gr.sem.some(w=>w.aj);
-    return `<details class="mes" data-mes="${gr.mes}" ${mesOpen.has(gr.mes)?"open":""}>
-      <summary><span class="mesnm">${MESES_L[m-1]}${a!==ANO_HOJE?` ${a}`:""}</span><span class="mesjg">${resumo}</span>
-        <span class="meshr num${aj?" aj":""}">${fmtH(tot)}</span><span class="schev">▸</span></summary>
-      <div class="mesbody">${gr.sem.map(wkRow).join("")}</div>
-    </details>`;
-  }).join("");
-  const ult = FV[FV.length-1].h;
-  const depois = (A.pendFim > 0.5) ? `<div class="vsemnota" style="margin:10px 2px 0">Depois de ${fimTxt} ainda faltam <b>${R(A.pendFim)}h</b>: no padrão de ${fmtH(ult)}/semana, a fila acabaria na semana de <b>${A.fimFila && A.its.every(x=>x.fimWk) ? fmtSemA(A.fimFila) : `depois de ${AGENDA_MAX.slice(0,4)}`}</b>.</div>` : "";
-  const calSec = `<div class="sechead"><h2>📅 Semana a semana</h2><span class="wksub">${nAj ? `${nAj} semana${nAj>1?"s":""} com horas próprias` : "todas no padrão"}</span></div>
-    <div class="card padbox">${padRows}
-      <div class="wkadd"><span>➕ Mudar o padrão a partir de</span><input type="date" id="padAddDate" min="${addDias(A.wkAtual,7)}" max="${PLANO_FIM}" aria-label="Escolher a data em que o padrão muda" /></div>
-      <p class="wknote">Toda semana vale o padrão, menos as que têm número próprio (em azul). Mude com − / + na semana; ↺ volta pro padrão.</p>
-    </div>
-    ${mesSec}${depois}`;
+    return `<div class="wgm"><span class="wgml">${MESES[m-1]}${a!==ANO_HOJE?`<small>${String(a).slice(2)}</small>`:""}</span>
+      <span class="wgc">${gr.sem.map(w=>`<button type="button" class="wgk num${w.aj?" aj":""}${w.atual?" atual":""}" data-psheet="sem:${w.key}" aria-label="Semana de ${fmtSemA(w.key)}: ${fmtH(w.orc)}">${fmtN(w.orc)}</button>`).join("")}</span>
+      <span class="wgmt num">${fmtH(tot)}</span></div>`; }).join("");
+  const wAt = A.semanas.find(w=>w.atual);
+  const estaSem = wAt ? `<button type="button" class="wgatual" data-psheet="sem:${wAt.key}"><span>Esta semana: joguei <b>${fmtH(A.jog)}</b> de ${fmtH(wAt.orc)}${
+      A.jog > wAt.orc + 0.05 ? ` · <b class="vplus">+${fmtH(A.jog-wAt.orc)}</b>` : ` · restam <b>${fmtH(wAt.cap)}</b>`}</span><span class="pchev">›</span></button>` : "";
+  const gradeSec = `<div class="sechead"><h2>⏱ Horas por semana</h2></div>
+    <div class="card wgcard">
+      <button type="button" class="wgpad" data-psheet="pad"><span>Padrão <b>${fmtH(FV[0].h)}</b> por semana${nMud ? ` <small>· muda ${nMud}× depois</small>` : ""}</span><span class="pchev">›</span></button>
+      ${estaSem}
+      <div class="wggrid">${grade}</div>
+      <div class="wknote" style="margin:10px 0 0">Toque numa semana pra mudar as horas. <span class="wgleg aj">azul</span> = diferente do padrão.</div>
+    </div>`;
 
-  return `<div class="card vcard ag">${topo}${semLinha}</div>
-    <div class="sechead"><h2>🎯 Fila · ordem de jogar</h2><button type="button" class="secadd" id="btnAddPlano">＋ Jogo</button></div>
-    ${verd}
-    <div class="card">${rows}${conclRows}</div>
-    <p class="wknote" style="margin:7px 4px 0">Um jogo por vez, de cima pra baixo. Jogo que ainda não saiu dá a vez pro de baixo até sair. Toque num jogo pra subir/descer.</p>
-    ${bkSec}${calSec}`;
+  const bkSec = naBacklog.length ? `<details class="bkbox" ${bkOpen?"open":""}>
+    <summary><span>📥 Backlog</span><span class="wksub">${naBacklog.length} jogo${naBacklog.length>1?"s":""} · fora da conta</span><span class="schev">▸</span></summary>
+    <div class="bkbody">${naBacklog.map(({p,i})=>`<button type="button" class="bkit" data-psheet="jogo:${i}"><span>${esc(p.jogo)}</span><small>${estH(p.est) ? estH(p.est)+"h" : ""}</small></button>`).join("")}</div>
+  </details>` : "";
+
+  return totais + agoraSec + tlSec + gradeSec + bkSec;
+}
+// ---- painel de baixo do Plano: uma semana, o padrão ou um jogo ----
+function viewSheet(){
+  const A = agendaPlano();
+  const fechar = `<div class="mactions"><button type="button" class="btn btn-ghost" data-shclose="1">Fechar</button></div>`;
+  const step = (attr, key, v, on, lbl)=>`<div class="shstep">
+      <button type="button" class="vstep" data-${attr}step="${key}:-1" aria-label="Uma hora a menos">−</button>
+      <input class="wkinp${on?" on":""}" type="number" min="0" step="0.5" inputmode="decimal" data-${attr}="${key}" value="${Math.round(v*10)/10}" aria-label="${lbl}" />
+      <span class="wkun">h</span>
+      <button type="button" class="vstep" data-${attr}step="${key}:1" aria-label="Uma hora a mais">+</button>
+    </div>`;
+  if (sheet.t === "sem"){
+    const w = A.semanas.find(x=>x.key===sheet.k && x.dentro); if (!w){ sheet = null; return ""; }
+    const pad = padraoDaSemana(w.key), ix = A.semanas.indexOf(w), ult = A.semanas.filter(x=>x.dentro).length - 1;
+    const jogos = w.segs.filter(s=>s.h >= 0.05).map(s=>`<div class="shli"><span>${s.x.fimWk===w.key?"🏁 ":""}${esc(s.x.p.jogo)}</span><small class="num">${fmtH(s.h)}${s.depois > 0.05 ? ` · depois faltam ${fmtH(s.depois)}` : " · termina"}</small></div>`).join("")
+      || `<div class="shli"><span class="muted">${w.atual && A.jog >= w.orc ? "Já joguei o planejado" : "Nada pra jogar nessa semana"}</span></div>`;
+    let joguei = "";
+    if (w.atual){
+      let porJogo = "";
+      if (SB && SB.wk === w.key && SB.tot){
+        porJogo = J.filter(g=> g && g.id != null && ((SB.ab && SB.ab[gk(g)]) || emAberto(g)))
+          .map(g=>({ g, d: semanaJogoH(g) || 0, r: temStatus(g,"#") ? 0 : temStatus(g,"P") ? 1 : 2 }))
+          .filter(x=> x.r < 2 || x.d > 0.001)
+          .sort((a,b)=> a.r-b.r || b.d-a.d)
+          .map(({g,d,r})=>`<div class="vsjrow">
+            <div class="vsjnm">${r===1?"⏸️ ":""}${esc(g.nome)}</div>
+            <input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-semjog="${g.id}" value="${Math.round(Math.max(d,0)*10)/10}" aria-label="Horas nesta semana em ${esc(g.nome)}" />
+            <span class="wkun">h</span>
+            <button type="button" class="pact" data-semmais="${g.id}">+1h</button></div>`).join("");
+      }
+      joguei = `<div class="wksec">Joguei nesta semana · ${fmtH(A.jog)}${A.jog > w.orc + 0.05 ? ` <b class="vplus">(+${fmtH(A.jog - w.orc)})</b>` : ""}</div>${porJogo}`;
+    }
+    return `<div class="shnav">
+        <button type="button" class="vstep" data-shnav="-1" ${ix<=0?"disabled":""} aria-label="Semana anterior">‹</button>
+        <div class="shtit"><b>${fmtSemA(w.key)}</b><small>${w.atual ? "esta semana" : "semana"}</small></div>
+        <button type="button" class="vstep" data-shnav="1" ${ix>=ult?"disabled":""} aria-label="Semana seguinte">›</button></div>
+      <div class="wksec">Vou jogar</div>
+      ${step("wk", w.key, w.orc, w.aj, "Horas nesta semana")}
+      <div class="shnota">${w.aj ? `<button type="button" class="vrot" data-wkreset="${w.key}">↺ Voltar ao padrão (${fmtH(pad)})</button>` : `No padrão (${fmtH(pad)}). Mudar aqui vale só pra essa semana.`}</div>
+      <div class="wksec">O que jogo nela</div>${jogos}
+      ${joguei}${fechar}`;
+  }
+  if (sheet.t === "pad"){
+    const FV = fasesVivas();
+    const muds = FV.slice(1).map((f,k)=>{ const i = k+1; return `<div class="shmud">
+        <span class="shmudl">a partir de</span>
+        <input class="padate" type="date" data-padate="${i}" value="${inicioFase(FV,i)}" min="${addDias(A.wkAtual,7)}" max="${PLANO_FIM}" aria-label="Semana em que o padrão muda" />
+        ${step("pad", i, f.h, false, "Horas por semana a partir dessa data")}
+        <button type="button" class="wkrst" data-paddel="${i}" aria-label="Tirar esta mudança">✕</button></div>`; }).join("");
+    return `<h2>Padrão de horas</h2>
+      <div class="shnota" style="margin-top:2px">Vale pra toda semana que não tem número próprio.</div>
+      <div class="wksec">Por semana</div>${step("pad", 0, FV[0].h, false, "Horas por semana")}
+      <div class="wksec">Mudanças</div>${muds || `<div class="shnota">Nenhuma. Use se a rotina mudar de vez (ex.: a partir de maio, 5h).</div>`}
+      <div class="wkadd"><span>➕ Mudar a partir de</span><input type="date" id="padAddDate" min="${addDias(A.wkAtual,7)}" max="${PLANO_FIM}" aria-label="Escolher a data em que o padrão muda" /></div>
+      ${fechar}`;
+  }
+  // jogo
+  const i = sheet.i, p = P[i]; if (!p){ sheet = null; return ""; }
+  const g = plinked(p), est = estH(p.est), x = A.porP.get(p);
+  const jogando = !!(g && temStatus(g,"#")), pausado = !!(g && !jogando && temStatus(g,"P"));
+  const fim = (g && !emAberto(g)) ? statusJogo(g) : "";
+  const vis = P.map((q,k)=>k).filter(k=>!P[k].backlog && pitemPendente(P[k])), pos = vis.indexOf(i);
+  const info = [];
+  if (fim==="S") info.push(`✅ Zerado (${totalHoras(g)}h)`);
+  else if (fim==="N") info.push(`❌ Dropado (${totalHoras(g)}h)`);
+  else if (p.backlog) info.push("📥 No backlog · fora da conta");
+  else if (x){
+    if (!(jogando||pausado) && x.iniWk) info.push(`▶ Começa na semana de <b>${fmtSemA(x.iniWk)}</b>`);
+    info.push(x.fimWk ? `🏁 Termina na semana de <b>${fmtSemA(x.fimWk)}</b>${x.fimWk > PLANO_FIM ? ` <span class="tarde">(depois de dez/${PLANO_FIM.slice(2,4)})</span>` : ""}` : `🏁 Não termina até ${AGENDA_MAX.slice(0,4)}`);
+  } else if (!est) info.push("Sem estimativa de horas: toque em ✏️ Editar.");
+  if (p.data && p.data > A.hojeIso) info.push(`Sai ${fmtDA(p.data)}`);
+  else if (!p.data && !p.iniciado) info.push(`Sem data · entra em ${anoFila(p)}`);
+  if (!p.backlog && x && !p.iniciado && p.data && x.ini > p.data && semanasAte(ymd(segunda(new Date(p.data+"T00:00:00"))), x.iniWk) >= 1)
+    info.push(`Os jogos de cima vêm antes. Quer jogar assim que sair? ⬆️ Suba ele.`);
+  const horas = (jogando || pausado) ? `<div class="wksec">Horas jogadas${pausado?" · ⏸️ pausado":""}</div>
+      <div class="shstep"><input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-phoras="${i}" value="${pjogadasAtual(g)}" aria-label="Horas jogadas" />
+        <span class="wkun">de ${est||"?"}h</span><button type="button" class="pact" data-pmais="${i}">+1h</button></div>
+      ${est ? `<div class="pprog" style="margin-top:8px"><span style="width:${Math.min(pjogadasAtual(g)/est*100,100)}%"></span></div>` : ""}` : "";
+  const acts = [];
+  if (!p.backlog && !p.iniciado) acts.push(`<button type="button" class="pact pri" data-pjogar="${i}">▶️ Estou jogando</button>`);
+  else if (!p.backlog && pausado) acts.push(`<button type="button" class="pact pri" data-pjogar="${i}">▶️ Retomar</button>`);
+  if (pos >= 0){
+    acts.push(`<button type="button" class="pact" data-pmove="${i}:-1" ${pos<=0?"disabled":""}>⬆️ Subir</button>`);
+    acts.push(`<button type="button" class="pact" data-pmove="${i}:1" ${pos>=vis.length-1?"disabled":""}>⬇️ Descer</button>`);
+  }
+  acts.push(`<button type="button" class="pact" data-peditar="${i}">✏️ Editar</button>`);
+  if (g) acts.push(`<button type="button" class="pact" data-pabrir="${g.id}">🎮 Biblioteca</button>`);
+  acts.push(`<button type="button" class="pact" data-pbacklog="${i}">${p.backlog?"↩️ Voltar pra fila":"📥 Backlog"}</button>`);
+  acts.push(`<button type="button" class="pact del" data-pexcluir="${i}">🗑 Excluir</button>`);
+  return `<h2>${esc(p.jogo)}</h2>
+    <div class="shnota" style="margin-top:2px">${pos >= 0 ? `${pos+1}º da fila · ` : ""}${est ? `${est}h estimadas` : "sem estimativa"}${(jogando||pausado) && est ? ` · faltam ${fmtH(pfaltaH(p))}` : ""}</div>
+    ${horas}
+    <div class="shinfo">${info.map(t=>`<div>${t}</div>`).join("")}</div>
+    <div class="pacts2" style="margin-top:14px">${acts.join("")}</div>
+    ${fechar}`;
 }
 
 /* ---------- render ---------- */
@@ -1890,17 +1850,18 @@ function render(){
   }));
   const bb = document.querySelector("details.bkbox");
   if (bb) bb.addEventListener("toggle", ()=>{ bkOpen = bb.open; });
-  document.querySelectorAll("details.mes").forEach(d=>d.addEventListener("toggle", ()=>{
-    if (!mesOpen) mesOpen = new Set();
-    d.open ? mesOpen.add(d.dataset.mes) : mesOpen.delete(d.dataset.mes);
-  }));
+  // painel de baixo do Plano (semana / padrão / jogo): redesenhado junto com a tela
+  const shEl = $("#psheet");
+  const shHtml = (tab==="plano" && sheet) ? viewSheet() : "";
+  if (shHtml){ const box = $("#psheetBox"), st = box.scrollTop; box.innerHTML = shHtml; box.scrollTop = st; shEl.classList.remove("hidden"); }
+  else { sheet = null; shEl.classList.add("hidden"); }
 }
 // redesenha no tick seguinte e devolve o foco ao campo equivalente: quem sai de um campo do Plano tocando em outro
 // não perde o foco do segundo quando a tela é refeita
 function renderManterFoco(){
   setTimeout(()=>{
     const a = document.activeElement; let sel = null;
-    if (a && a.closest && a.closest("#content")){
+    if (a && a.closest && (a.closest("#content") || a.closest("#psheet"))){
       if (a.id) sel = "#" + a.id;
       else { const at = [...a.attributes].find(x=>x.name.startsWith("data-")); if (at) sel = `[${at.name}="${at.value}"]`; }
     }
@@ -2126,7 +2087,7 @@ $("#bFile").addEventListener("change", e=>{
       if (d.plano && Number.isFinite(d.plano.padraoSemana)) padraoSemana = d.plano.padraoSemana;
       _fasesLeg = null;
       if (d.plano && "rotina" in d.plano){ ROT = normFases(d.plano.rotina); saveRotina(); }
-      planoOpen = null;
+      sheet = null;
       saveJogos(); savePlano(); closeBackup(); render();
     } catch(err){ alert("Não consegui ler o arquivo (JSON inválido)."); }
   };
@@ -2158,7 +2119,14 @@ document.addEventListener("click", e=>{
   const wr = e.target.closest("[data-wkreset]");
   if (wr){ delete HS[wr.dataset.wkreset]; savePlano(true); render(); return; }
   // "esta semana" (cartão do Plano): abre/fecha · − / + nas horas de uma semana · +1h num jogo
-  if (e.target.closest("[data-semedit]")){ semEdit = !semEdit; render(); return; }
+  // painel de baixo do Plano: abrir (semana · padrão · jogo), fechar, andar de semana
+  const psh = e.target.closest("[data-psheet]");
+  if (psh){ const [t, v] = psh.dataset.psheet.split(":");
+    sheet = t==="sem" ? { t, k:v } : t==="jogo" ? { t, i:Number(v) } : { t }; render(); return; }
+  if (e.target.closest("[data-shclose]") || e.target.id === "psheet"){ sheet = null; render(); return; }
+  const shn = e.target.closest("[data-shnav]");
+  if (shn && sheet && sheet.t==="sem"){ const k = addDias(sheet.k, 7*Number(shn.dataset.shnav));
+    if (k >= semanaAtualKey() && k <= PLANO_FIM) sheet.k = k; render(); return; }
   const wst = e.target.closest("[data-wkstep]");
   if (wst){ const [k, dd] = wst.dataset.wkstep.split(":");
     setHorasSemana(k, horasDaSemana(k) + Number(dd)); savePlano(true); render(); return; }
@@ -2177,23 +2145,21 @@ document.addEventListener("click", e=>{
   if (pmv){ const [i, dd] = pmv.dataset.pmove.split(":").map(Number);
     const vis = P.map((p,k)=>k).filter(k=>!P[k].backlog && pitemPendente(P[k]));
     const pos = vis.indexOf(i), alvo = vis[pos + dd];
-    if (pos >= 0 && alvo != null){ const [it] = P.splice(i,1); P.splice(alvo, 0, it); planoOpen = alvo; savePlano(true); render(); }
+    if (pos >= 0 && alvo != null){ const [it] = P.splice(i,1); P.splice(alvo, 0, it); if (sheet && sheet.t==="jogo") sheet.i = alvo; savePlano(true); render(); }
     return; }
   if (e.target.closest("#btnAddPlano")){ openPlano(null); return; }
   // fila do Plano: a linha abre/fecha ao toque e as ações ficam dentro dela
-  const pt = e.target.closest("[data-ptoggle]");
-  if (pt){ const i=Number(pt.dataset.ptoggle); planoOpen = (planoOpen===i) ? null : i; render(); return; }
   const pm = e.target.closest("[data-pmais]");
   if (pm){ const p=P[Number(pm.dataset.pmais)], g=p && plinked(p);
     if (g){ setJogadasAtual(g, pjogadasAtual(g)+1); saveJogosQuiet(); render(); } return; }
   const pab = e.target.closest("[data-pabrir]");
-  if (pab){ const id=Number(pab.dataset.pabrir); openGame = id; tab = "jogos"; render();
+  if (pab){ const id=Number(pab.dataset.pabrir); openGame = id; tab = "jogos"; sheet = null; render();
     let el = document.querySelector(`.game[data-gid="${id}"]`);
     if (!el){ busca = ""; fStatus.clear(); fVer.clear(); fAno.clear(); fAnoJog.clear(); render();   // um filtro da aba Jogos escondia o card
       el = document.querySelector(`.game[data-gid="${id}"]`); }
     if (el) el.scrollIntoView({block:"center"}); return; }
   const pe = e.target.closest("[data-peditar]");
-  if (pe){ openPlano(Number(pe.dataset.peditar)); return; }
+  if (pe){ sheet = null; render(); openPlano(Number(pe.dataset.peditar)); return; }
   const pb = e.target.closest("[data-pbacklog]");
   if (pb){ const i=Number(pb.dataset.pbacklog); const p=P[i];
     if (p){
@@ -2202,10 +2168,10 @@ document.addEventListener("click", e=>{
         // foi pro backlog → a jogatina em andamento vira PAUSADA (sai do "Jogando agora" da aba Jogos)
         if (pausarJogo(pjogoDoItem(p))) saveJogosQuiet();
       }
-      planoOpen = null; savePlano(); render(); } return; }
+      sheet = null; savePlano(); render(); } return; }
   const px = e.target.closest("[data-pexcluir]");
   if (px){ const i=Number(px.dataset.pexcluir);
-    if (P[i] && confirm(`Tirar "${P[i].jogo}" do plano? (o jogo continua na biblioteca)`)){ P.splice(i,1); planoOpen = null; savePlano(); render(); } return; }
+    if (P[i] && confirm(`Tirar "${P[i].jogo}" do plano? (o jogo continua na biblioteca)`)){ P.splice(i,1); sheet = null; savePlano(); render(); } return; }
   const pj = e.target.closest("[data-pjogar]");
   if (pj){ const i=Number(pj.dataset.pjogar); const p=P[i]; if (!p) return;
     // liga como "jogando agora": usa o jid (escolhido da biblioteca) ou acha por nome igual/parecido; senão cria
@@ -2219,7 +2185,7 @@ document.addEventListener("click", e=>{
       else if (!temStatus(g,"#")) (g.runs=g.runs||[]).push({horas:0, enc:"#"});
     } else { g = { id: J.reduce((m,x)=>Math.max(m,x.id||0),0)+1, nome:p.jogo, horas:0, enc:"#",
                  w:1, v:"N/A", genres:"", motivo:"" }; J.push(g); }
-    p.iniciado = true; p.jid = g.id; planoOpen = null;
+    p.iniciado = true; p.jid = g.id; sheet = null;
     // quem acabei de começar é o que estou jogando: vai pro topo da fila (a agenda dá as horas pra ele primeiro)
     P.splice(i,1); P.unshift(p);
     saveJogos(); savePlano(); render(); window.scrollTo({top:0}); return; }

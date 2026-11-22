@@ -196,13 +196,18 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   motivo, jogatinas W2+, análise interna, Excluir) — salva ao sair de cada campo, sem abrir janela.
   A aba 🗓 **Plano** é editável: cada jogo planejado tem **nome + estimativa de horas + data (lançamento / dá pra
   jogar a partir de) + ano**; a fila fica na **ordem de jogar** (a ordem da lista `P`, mexida com ⬆️/⬇️).
-  - 🗓 **Plano por SEMANAS + agenda (nov/2026, 3ª versão — respeitar):** o Diogo achou o controle de horas por mês
-    "horrível" e pediu: *"eu estimo 7 horas por semana; algumas semanas, como as últimas de dezembro, são menos horas
+  - 🗓 **Plano por SEMANAS + agenda (nov/2026) — 4ª versão da TELA (respeitar):** o Diogo achou o controle de horas por
+    mês "horrível" e pediu: *"eu estimo 7 horas por semana; algumas semanas, como as últimas de dezembro, são menos horas
     e tem semanas com mais; tenho que ter ideia de quanto tempo coloco no jogo e ver o tempo que falta, pra saber em
-    que semana eu terminaria e começaria o próximo — organizado, simples de editar e de ver"*. Saíram: chips de ano
-    (Geral/2026/2027), "⚙️ Minhas horas" (fases com dias fortes), "📅 Mês a mês", o editor da semana com setas e o
-    veredito "ordem não importa". Ordem da tela: **cartão "Jogando agora"** → **🎯 Fila · ordem de jogar** (veredito em
-    cima, `＋ Jogo` no título) → 📥 backlog → **📅 Semana a semana**.
+    que semana eu terminaria e começaria o próximo — organizado, simples de editar e de ver"*. A 3ª versão (cartão
+    "Jogando agora" grande, fila com linha de datas, "Semana a semana" com − / + e "↺ voltar ao padrão" em TODA semana)
+    ele chamou de **"horrorosa"**: *"não dá pra ver mais horas totais; o jogando ficou gigante com muita informação; o
+    por semana tá muito poluído"* — e mandou **copiar apps de referência**. A 4ª versão copia padrões conhecidos:
+    **totais no topo** (apps de orçamento tipo YNAB) · **"tocando agora" pequeno** (players de música) · **fila como
+    linha do tempo** (roadmaps tipo Notion/Linear) · **horas como grade de semanas** (calendário/hábitos) · **todo
+    detalhe/edição num painel de baixo** (`sheet`, bottom sheet). ⚠️ Manter a tela ENXUTA: nada de texto explicativo
+    por linha, nada de botão repetido em cada semana; detalhe vai pro painel. Ordem da tela: **totais** → **Jogando
+    agora** → **🗺 Fila · linha do tempo** (`＋ Jogo`) → **⏱ Horas por semana** → 📥 backlog.
     - **Horas = PADRÃO por semana + semanas com número próprio.** Toda semana vale o padrão (`padraoDaSemana(key)`),
       a não ser que tenha número em `HS` (`horasDaSemana(key)`). `setHorasSemana(key, v)` grava e, se `v` = padrão,
       **apaga** o ajuste (a semana volta a seguir o padrão — não fica "ajustada" à toa). O padrão mora nas **fases da
@@ -233,22 +238,23 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       ⬇️ Descer** na linha aberta (`data-pmove="i:±1"`, troca com o vizinho entre os que estão na fila);
       **▶️ Estou jogando leva o item pro topo** (e fica no Plano — antes pulava pra aba Jogos); **jogo novo** entra pela
       data (antes do 1º não começado com data depois da dele; sem data → fim); **editar não muda a posição**.
-    - **Cartão "Jogando agora"** (`.ag`): cada item da fila em andamento/pausado com barra, **"Joguei [__] de Xh"**
-      (`data-phoras`, horas da jogatina atual) + **+1h** (`data-pmais`), **"🏁 Termina na semana de X · daqui a N
-      semanas"** e "Depois: <próximo> · começa na semana de Y". Sem nada em andamento: "Próximo: X" + ▶️. Embaixo,
-      **Esta semana** (planejado · joguei · restam/+além) + **ajustar** (`semEdit` → `viewSemanaAtual`: − / + das horas
-      da semana, ↺ padrão, e o **Quanto joguei · por jogo** — `data-semjog`/`data-semmais`, igual antes).
-    - **Fila:** número da posição (`.pnum`, azul = em jogo), nome inteiro, "sai 23/fev/27"/"sem data · 2027"/"🔁 rejogar",
-      e a linha da agenda **"▶ 15–21/mar/27 → 🏁 5–11/abr/27"** (`.pq`; vermelho se termina depois de dez/2027); à
-      direita as horas (faltam/estimadas). Linha aberta: Horas jogadas + +1h · ▶️ · ⬆️/⬇️ · 🎮 Ver na biblioteca ·
-      ✏️ · 📥 · 🗑 (com confirmação); se o jogo já saiu mas espera os de cima, avisa "suba ele". Zerados/dropados que
-      seguem em `P` ficam em "Já terminados" no fim (sem número).
-    - **📅 Semana a semana:** cartão do **Padrão** (− / + e as mudanças "a partir de") + um `details.mes` por mês
-      (mês = o da quinta-feira da semana; `mesOpen` — abre o mês atual e o seguinte). Resumo do mês: jogos (🏁 = termina
-      no mês) e total de horas (azul se tem semana ajustada). Cada semana (`.wkr`): período, o que joga nela ("▶"
-      começa · "🏁" termina · horas de cada um quando são 2+), **"faltam Xh"** do jogo que segue, horas livres (âmbar:
-      "nada lançado pra jogar" = dá pra encaixar outro jogo), "↺ voltar ao padrão" se ajustada, e − [h] + à direita
-      (`data-wk`/`data-wkstep`). Depois de dez/2027, se sobrar fila, uma linha diz quando ela acabaria.
+    - **Totais** (`.ptot`): **na fila** (Σ `pfaltaH` dos itens da fila) · **tenho até dez/27** (Σ `cap` das semanas do
+      plano, a semana em curso já descontada) · **sobra/falta** (= tenho − fila), barra fila/tenho e o veredito da agenda.
+    - **Jogando agora** (`.np`): uma linha por item em andamento — nome, "18 de 90h · até 31/jan/27", barra e **+1h**
+      (`data-pmais`). Tocar abre o painel do jogo. Sem nada em andamento: "Próximo: X" + ▶️.
+    - **Fila · linha do tempo** (`.tlcard`): eixo de meses (hoje → dez/27, `--nm` meses de largura igual; `xPos(iso)`),
+      e por jogo (na ordem de `P`): nome · "72h · até 31/jan/27" (domingo da semana em que termina; vermelho "passa de
+      dez/27") e a **barra** nos meses em que é jogado (`trechosAgenda(A)`: semanas seguidas viram um trecho; jogo
+      pausado por outro aparece em 2 barras). Barra cheia = em andamento; meio-transparente = na fila. Tocar abre o painel.
+    - **Horas por semana** (`.wgcard`): linha **"Padrão 7h por semana · muda N× depois ›"** (abre o painel do padrão),
+      linha **"Esta semana: joguei Xh de Yh · restam/+Zh ›"** e a **grade**: uma linha por mês (mês da quinta-feira),
+      um botão por semana com só o número (`.wgk`; azul = número próprio, contorno = semana em curso) e o total do mês.
+    - **Painel de baixo** (`#psheet`, estado `sheet`, `viewSheet()`; redesenhado a cada `render()`, fecha ao tocar no
+      fundo/Fechar): **semana** (`{t:"sem",k}`: ‹ › entre semanas, − [h] + (`data-wk`/`data-wkstep`), "↺ Voltar ao padrão",
+      o que joga nela com "depois faltam Xh" e, na semana em curso, o **Joguei nesta semana** por jogo — `data-semjog`/
+      `data-semmais`) · **padrão** (`{t:"pad"}`: − / + do padrão, mudanças "a partir de" com data/− +/✕, ➕ Mudar a partir
+      de) · **jogo** (`{t:"jogo",i}`: posição, estimativa, Horas jogadas + +1h, começa/termina na semana de…, "sai…",
+      aviso "suba ele", e ▶️ / ⬆️ Subir / ⬇️ Descer / ✏️ / 🎮 / 📥 / 🗑).
     - Os campos do Plano salvam com `savePlano(true)` (quieto) + `renderManterFoco()` (redesenha no tick seguinte e
       devolve o foco ao campo equivalente).
     - `ymd(d)` formata a data **local** (antes usava `toISOString()`: num fuso à frente do UTC a chave da semana
@@ -284,12 +290,10 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
   renomear quebraria o link salvo no celular e a sincronização; só mexer nisso se o Diogo pedir.
 - **Backlog do Plano (`p.backlog`):** com a linha aberta, **📥 Backlog** manda o item pro backlog e **↩️ Voltar pra
   fila** traz de volta — sem confirmação, e o item continua guardado com data/estimativa. Item no backlog **não
-  entra na simulação** (some da fila e do veredito) e aparece na seção recolhível `details.bkbox`
+  entra na agenda** (some da fila e do veredito) e aparece na seção recolhível `details.bkbox`
   ("📥 Backlog · N jogos · fora da conta", estado `bkOpen`), sem o ▶️. A flag é `delete`ada ao voltar (não fica
-  `false` sujando a nuvem). Renderização: `pItem({p,i}, n)` desenha todos os casos (n = posição na fila; 0 =
-  backlog/terminado); `ativos`/`concl`/`naBacklog` saem de `P` na ordem de jogar. ⚠️ `bkOpen` começa **aberto**: com ele fechado o Diogo achou que um jogo tinha
-  sumido do plano (na época o 📥 ficava ao lado do ✏️ e era fácil tocar sem querer — hoje as ações ficam dentro da
-  linha aberta). ⚠️ O `#pSave` remonta o item do zero — **tem que copiar o `backlog` do `prev`**, senão editar um
+  `false` sujando a nuvem). Na tela é uma lista simples (nome + horas); tocar abre o painel do jogo. ⚠️ `bkOpen` começa **aberto**: com ele fechado o Diogo achou que um jogo tinha
+  sumido do plano (na época o 📥 ficava ao lado do ✏️ e era fácil tocar sem querer — hoje as ações ficam no painel do jogo). ⚠️ O `#pSave` remonta o item do zero — **tem que copiar o `backlog` do `prev`**, senão editar um
   jogo do backlog o devolve pra fila sozinho (era um bug).
 - **Migração única `migPlanoAdd2027`:** 6 jogos que o Diogo pediu pra somar ao Plano (set/2026) — Fable
   23/02/27 50h · Exodus 07/04/27 30h · Final Fantasy VII Revelations 08/04/27 80h · Lord of the Fallen 2,
