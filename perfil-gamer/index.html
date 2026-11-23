@@ -318,8 +318,8 @@ details.sec>summary:active{background:var(--surface2)}
 .ptot3{display:flex;text-align:center}
 .ptot3>div{flex:1;border-right:1px solid var(--line);padding:0 4px}
 .ptot3>div:last-child{border-right:0}
-.ptot3 b{display:block;font-size:1.22rem;font-weight:800;line-height:1.15}
-.ptot3 small{display:block;font-size:.56rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:800;margin-top:2px}
+.ptot3 b{display:block;font-size:1.12rem;font-weight:800;line-height:1.15}
+.ptot3 small{display:block;font-size:.52rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:800;margin-top:2px;line-height:1.25}
 .ptot3 .sb b{color:var(--vc)}
 .vbar{height:8px;border-radius:999px;background:var(--surface2);overflow:hidden;margin:12px 0 8px}
 .vbar>span{display:block;height:100%;border-radius:999px;background:var(--vc);min-width:4px}
@@ -329,25 +329,18 @@ details.sec>summary:active{background:var(--surface2)}
 .secadd{flex:0 0 auto;border:0;border-radius:10px;padding:8px 13px;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer;
   background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 12px var(--accent-soft)}
 .secadd:active{transform:scale(.96)}
-/* linha do tempo (roadmap) */
-.tlcard{padding:10px 14px 12px}
-.tlax{margin-bottom:2px}
-.tlanos,.tlmes{display:flex}
-.tlanos span{font-size:.56rem;font-weight:800;color:var(--muted);letter-spacing:.05em;border-left:1px solid var(--line);padding-left:3px;min-width:0}
-.tlanos span:first-child{border-left:0;padding-left:0}
-.tlmes span{flex:1;min-width:0;font-size:.5rem;font-weight:700;color:var(--muted);text-align:center;overflow:hidden}
-.tl{display:block;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;color:inherit;font:inherit;
-  padding:8px 0 9px;cursor:pointer}
-.tlax+.tl{border-top:0}
-.tlh{display:flex;align-items:baseline;gap:8px}
-.tln{flex:1;min-width:0;font-size:.8rem;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
-.tlv{flex:0 0 auto;font-size:.68rem;font-weight:700;color:var(--muted)}
-.tlv.tarde{color:var(--mr)}
-.tlt{position:relative;display:block;height:8px;margin-top:6px;border-radius:4px;background-color:var(--surface2);
-  background-image:linear-gradient(to right,transparent calc(100% - 1px),var(--line) 0);background-size:calc(100% / var(--nm)) 100%}
-.tlb{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--accent);opacity:.5}
-.tlb.on{opacity:1}
-.tlfora{position:absolute;right:-2px;top:-2px;bottom:-2px;width:4px;border-radius:2px;background:var(--mr)}
+/* fila simples: jogo + horas */
+.fqcard{padding:4px 14px}
+.fq{display:flex;align-items:center;gap:12px;width:100%;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);
+  font:inherit;text-align:left;padding:13px 0;cursor:pointer}
+.fq:first-child{border-top:0}
+.fq:active{opacity:.7}
+.fqn{flex:1;min-width:0;font-size:.9rem;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.fq.on .fqn{color:var(--accent)}
+.fqn .pprog{display:block;margin-top:7px;max-width:180px}
+.fqh{flex:0 0 auto;font-size:.9rem;color:var(--muted)}
+.fqh b{color:var(--ink);font-weight:800}
+.fqh small{font-size:.74rem;font-weight:700}
 /* grade de semanas */
 details.wgbox{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
 details.wgbox>summary{cursor:pointer;list-style:none;padding:13px 14px;display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:800}
@@ -1625,18 +1618,6 @@ const ateTxt = x => x && x.fimWk ? (x.fimWk > PLANO_FIM ? `passa de dez/${PLANO_
 // grade "Horas por semana" aberta ou recolhida (fica lembrado neste aparelho)
 let wgOpen = (()=>{ try { return localStorage.getItem("perfil-gamer:wgOpen") !== "0"; } catch(e){ return true; } })();
 let sheet = null;   // painel de baixo do Plano: {t:"sem", k:"<segunda>"} · {t:"jogo", i}
-// trechos de semanas em que cada item é jogado (semanas seguidas viram um trecho só): Map item → [[ini, fim)]
-function trechosAgenda(A){
-  const tr = new Map();
-  A.semanas.forEach(w=>w.segs.forEach(s=>{
-    if (s.h < 0.05) return;
-    const ini = w.key < A.hojeIso ? A.hojeIso : w.key, fim = addDias(w.key, 7);
-    const l = tr.get(s.x) || []; const u = l[l.length-1];
-    if (u && u[1] === w.key) u[1] = fim; else l.push([ini, fim]);
-    tr.set(s.x, l);
-  }));
-  return tr;
-}
 function viewPlano(){
   const A = agendaPlano(), R = Math.round, fimAno = Number(PLANO_FIM.slice(0,4));
   const fimTxt = `dez/${String(fimAno).slice(2)}`;
@@ -1657,6 +1638,7 @@ function viewPlano(){
   const pct = tenho > 0 ? Math.min(fila/tenho*100, 100) : (fila > 0 ? 100 : 0);
   const totais = `<div class="card ptot" style="--vc:${cor}">
     <div class="ptot3 num">
+      <div><b>${ativos.length}</b><small>${ativos.length===1?"jogo":"jogos"}</small></div>
       <div><b>${R(fila)}h</b><small>na fila</small></div>
       <div><b>${R(tenho)}h</b><small>tenho até ${fimTxt}</small></div>
       <div class="sb"><b>${sobra>=0?"+":"−"}${R(Math.abs(sobra))}h</b><small>${sobra>=0?"sobra":"falta"}</small></div>
@@ -1665,37 +1647,19 @@ function viewPlano(){
     <div class="ptotv">${verd}</div>
   </div>`;
 
-  // ---- linha do tempo: uma barra por jogo nos meses de hoje até o fim do plano ----
-  const m0 = new Date(A.hojeIso+"T00:00:00"), meses = [];
-  for (let a=m0.getFullYear(), m=m0.getMonth(); `${a}-${String(m+1).padStart(2,"0")}` <= PLANO_FIM.slice(0,7); m===11 ? (a++, m=0) : m++) meses.push([a,m]);
-  const nM = meses.length;
-  const xPos = iso => {            // posição (0–100%) de uma data: cada mês tem a mesma largura
-    if (iso > PLANO_FIM) return 100;
-    const d = new Date(iso+"T00:00:00"), k = (d.getFullYear()-meses[0][0])*12 + d.getMonth()-meses[0][1];
-    if (k < 0) return 0;
-    return Math.min((k + (d.getDate()-1)/new Date(d.getFullYear(), d.getMonth()+1, 0).getDate()) / nM * 100, 100);
-  };
-  const anos = []; meses.forEach(([a])=>{ const u = anos[anos.length-1]; if (u && u[0]===a) u[1]++; else anos.push([a,1]); });
-  const eixo = `<div class="tlax" style="--nm:${nM}">
-      <div class="tlanos">${anos.map(([a,n])=>`<span style="flex:${n}">${n>=2?a:""}</span>`).join("")}</div>
-      <div class="tlmes">${meses.map(([,m])=>`<span>${MESES[m]}</span>`).join("")}</div></div>`;
-  const tr = trechosAgenda(A);
+  // ---- fila: só o jogo e as horas (nov/2026: "remove a linha do tempo, deixa só jogo e horas estimadas").
+  // Em andamento: "15/90h" + barrinha. Quando começa/termina fica no painel do jogo (toque)
   const linha = ({p,i})=>{
-    const x = A.porP.get(p), est = estH(p.est), jog = emJogo({p}), falta = pfaltaH(p);
-    const bars = (tr.get(x)||[]).filter(([a])=>a <= PLANO_FIM).map(([a,b])=>{
-      const l = xPos(a), r = b > PLANO_FIM ? 100 : xPos(b);
-      return `<i class="tlb${jog?" on":""}" style="left:${l}%;width:${Math.max(r-l,1.2)}%"></i>`; }).join("");
-    const tarde = x && (!x.fimWk || x.fimWk > PLANO_FIM);
-    const dir = !est ? `<span class="tlv muted">sem estimativa</span>`
-      : `<span class="tlv num${tarde?" tarde":""}">${R(falta)}h · ${ateTxt(x)}</span>`;
-    return `<button type="button" class="tl" data-psheet="jogo:${i}">
-      <span class="tlh"><span class="tln">${esc(p.jogo)}</span>${dir}</span>
-      <span class="tlt" style="--nm:${nM}">${bars}${tarde?'<i class="tlfora"></i>':""}</span>
+    const g = plinked(p), est = estH(p.est), jog = emJogo({p}), j = jog ? pjogadasAtual(g) : 0;
+    const hrs = !est ? `<span class="fqh muted">—</span>`
+      : jog ? `<span class="fqh num"><b>${fmtN(j)}</b><small>/${est}h</small></span>` : `<span class="fqh num"><b>${est}h</b></span>`;
+    return `<button type="button" class="fq${jog?" on":""}" data-psheet="jogo:${i}">
+      <span class="fqn">${esc(p.jogo)}${jog && est ? `<span class="pprog"><span style="width:${Math.min(j/est*100,100)}%"></span></span>` : ""}</span>${hrs}
     </button>`;
   };
-  const tlSec = `<div class="sechead"><h2>🗺 Fila · linha do tempo</h2><button type="button" class="secadd" id="btnAddPlano">＋ Jogo</button></div>
-    <div class="card tlcard">${ativos.length ? eixo + ativos.map(linha).join("") : '<p class="lead" style="margin:4px 2px">Nenhum jogo planejado ainda.</p>'}
-      <div class="wknote" style="margin:10px 0 0">Joga um por vez, de cima pra baixo. Toque num jogo pra lançar horas, mover ou editar.</div></div>`;
+  const tlSec = `<div class="sechead"><h2>🎮 Fila · ${ativos.length} ${ativos.length===1?"jogo":"jogos"}</h2><button type="button" class="secadd" id="btnAddPlano">＋ Jogo</button></div>
+    <div class="card fqcard">${ativos.length ? ativos.map(linha).join("") : '<p class="lead" style="margin:4px 2px">Nenhum jogo planejado ainda.</p>'}</div>
+    <div class="wknote" style="margin:6px 6px 0">Na ordem em que vou jogar. Toque num jogo pra ver quando começa e termina, mover ou editar.</div>`;
 
   // ---- horas por semana: grade (mês → semanas), recolhível; toque numa semana pra mudar ----
   const pad = fasesVivas()[0].h;

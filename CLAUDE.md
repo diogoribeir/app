@@ -206,8 +206,8 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
     **totais no topo** (apps de orçamento tipo YNAB) · **"tocando agora" pequeno** (players de música) · **fila como
     linha do tempo** (roadmaps tipo Notion/Linear) · **horas como grade de semanas** (calendário/hábitos) · **todo
     detalhe/edição num painel de baixo** (`sheet`, bottom sheet). ⚠️ Manter a tela ENXUTA: nada de texto explicativo
-    por linha, nada de botão repetido em cada semana; detalhe vai pro painel. Ordem da tela: **totais** → **🗺 Fila ·
-    linha do tempo** (`＋ Jogo`) → **⏱ Horas por semana** → 📥 backlog. ⚠️ **Sem "Jogando agora" no Plano** (nov/2026:
+    por linha, nada de botão repetido em cada semana; detalhe vai pro painel. Ordem da tela: **totais** → **🎮 Fila · N
+    jogos** (`＋ Jogo`) → **⏱ Horas por semana** → 📥 backlog. ⚠️ **Sem "Jogando agora" no Plano** (nov/2026:
     *"não precisa deixar jogo jogando nessa tela, tá redundante com a página principal"* — a aba Jogos já tem).
     - **Horas = PADRÃO por semana (UM número) + semanas com número próprio.** Toda semana vale o padrão
       (`padraoDaSemana(key)`), a não ser que tenha número em `HS` (`horasDaSemana(key)`). `setHorasSemana(key, v)` grava
@@ -239,12 +239,13 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       ⬇️ Descer** na linha aberta (`data-pmove="i:±1"`, troca com o vizinho entre os que estão na fila);
       **▶️ Estou jogando leva o item pro topo** (e fica no Plano — antes pulava pra aba Jogos); **jogo novo** entra pela
       data (antes do 1º não começado com data depois da dele; sem data → fim); **editar não muda a posição**.
-    - **Totais** (`.ptot`): **na fila** (Σ `pfaltaH` dos itens da fila) · **tenho até dez/27** (Σ `cap` das semanas do
-      plano, a semana em curso já descontada) · **sobra/falta** (= tenho − fila), barra fila/tenho e o veredito da agenda.
-    - **Fila · linha do tempo** (`.tlcard`): eixo de meses (hoje → dez/27, `--nm` meses de largura igual; `xPos(iso)`),
-      e por jogo (na ordem de `P`): nome · "72h · até 31/jan/27" (domingo da semana em que termina; vermelho "passa de
-      dez/27") e a **barra** nos meses em que é jogado (`trechosAgenda(A)`: semanas seguidas viram um trecho; jogo
-      pausado por outro aparece em 2 barras). Barra cheia = em andamento; meio-transparente = na fila. Tocar abre o painel.
+    - **Totais** (`.ptot`, 4 números): **jogos** (quantos na fila — pedido dele: *"coloque qtde jogos"*) · **na fila**
+      (Σ `pfaltaH`) · **tenho até dez/27** (Σ `cap` das semanas do plano, a semana em curso já descontada) ·
+      **sobra/falta** (= tenho − fila), barra fila/tenho e o veredito da agenda.
+    - **Fila** (`.fqcard`, título "🎮 Fila · N jogos"): **só o nome e as horas estimadas** (`.fq`), na ordem de `P`; em
+      andamento = nome azul, "15/90h" e barrinha. ⚠️ A **linha do tempo** (barras nos meses + "até <data>" em cada jogo)
+      foi **tirada a pedido** (nov/2026: *"remove a linha do tempo, deixa só jogo e horas estimadas, simplifica pra ficar
+      mais bonito e relevante"*) — não voltar com ela. Quando cada jogo começa/termina continua no painel do jogo (toque).
     - **Horas por semana** (`details.wgbox`, **recolhível** — pedido dele: *"mantenha essa mas com opção de recolher"*;
       `wgOpen` lembrado em `localStorage` `perfil-gamer:wgOpen`, começa aberta; recolhida mostra "padrão 7h · esta semana
       0/10h"): linha **"Padrão por semana − 7 +"**, linha **"Esta semana: joguei Xh de Yh · restam/+Zh ›"** e a
