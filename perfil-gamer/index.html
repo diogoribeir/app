@@ -349,10 +349,19 @@ details.sec>summary:active{background:var(--surface2)}
 .tlb.on{opacity:1}
 .tlfora{position:absolute;right:-2px;top:-2px;bottom:-2px;width:4px;border-radius:2px;background:var(--mr)}
 /* grade de semanas */
-.wgcard{padding:10px 14px 12px}
+details.wgbox{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+details.wgbox>summary{cursor:pointer;list-style:none;padding:13px 14px;display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:800}
+details.wgbox>summary::-webkit-details-marker{display:none}
+details.wgbox>summary .wksub{margin-left:auto;font-size:.66rem;color:var(--muted);font-weight:700}
+details.wgbox>summary .schev{color:var(--muted);font-size:.8rem;transition:transform .18s}
+details.wgbox[open]>summary .schev{transform:rotate(90deg)}
+.wgbody{padding:0 14px 12px}
 .wgpad,.wgatual{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;border:0;border-bottom:1px solid var(--line);
   background:none;color:var(--ink);font:inherit;font-size:.82rem;font-weight:700;text-align:left;padding:8px 0 10px;cursor:pointer}
-.wgpad small{color:var(--muted);font-weight:700}
+.wgpad{border-top:1px solid var(--line);padding-top:10px;cursor:default}
+.wgst{display:flex;align-items:center;gap:6px}
+.wgst .vstep{width:36px;height:34px;font-size:1rem}
+.wgst .wkinp{width:52px;padding:6px 2px}
 .wgatual{font-size:.74rem;color:var(--muted);padding:9px 0}
 .wgatual b{color:var(--ink)}
 .vplus{color:var(--mb)!important}
@@ -403,13 +412,10 @@ details.bkbox[open]>summary .schev{transform:rotate(90deg)}
 .vrot{border:1px solid var(--line);background:var(--surface2);color:var(--accent);font:inherit;font-size:.74rem;font-weight:800;padding:9px 12px;border-radius:10px;cursor:pointer}
 .vsjrow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
 .vsjnm{flex:1;min-width:0;font-size:.8rem;font-weight:700;color:var(--ink);line-height:1.25;overflow-wrap:anywhere}
-.wkadd{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:.76rem;font-weight:700;color:var(--muted)}
 /* painel de baixo (semana · padrão · jogo) */
-.psh .wkinp,.psh input.padate,.psh .wkadd input{width:auto;padding:8px 4px;border-radius:10px;font-size:.95rem}
+.psh .wkinp{width:auto;padding:8px 4px;border-radius:10px;font-size:.95rem}
 .psh .wkinp{width:72px;text-align:center}
 .psh .vsjrow .wkinp{width:60px}
-.psh input.padate{flex:1;min-width:0;font-size:.8rem}
-.psh .wkadd input{flex:1;min-width:0;font-size:.8rem}
 .shnav{display:flex;align-items:center;gap:10px}
 .shtit{flex:1;text-align:center;line-height:1.2}
 .shtit b{display:block;font-size:1.05rem}
@@ -431,11 +437,6 @@ details.bkbox[open]>summary .schev{transform:rotate(90deg)}
 .shsem small{font-size:.62rem;color:var(--muted);font-weight:700}
 .shsem.aj{border-color:var(--accent);background:var(--accent-soft)}
 .shsem.aj b{color:var(--accent)}
-.shmud{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
-.shmudl{flex:0 0 100%;font-size:.64rem;font-weight:800;color:var(--muted)}
-.shmud .shstep{gap:5px}
-.shmud .vstep{width:38px;height:38px}
-.shmud .wkinp{width:52px}
 
 /* ---------- modal ---------- */
 .modal{position:fixed;inset:0;background:rgba(4,6,11,.65);display:flex;align-items:flex-end;justify-content:center;z-index:60}
@@ -646,34 +647,9 @@ function saveJogosQuiet(){
 }
 // edição inline: commit dos campos do card ao sair de cada campo
 document.addEventListener("change", e=>{
-  // ----- Plano: o padrão (e as mudanças dele), as horas de cada semana e as horas jogadas do item da fila -----
+  // ----- Plano: o padrão (um número só), as horas de cada semana e as horas jogadas do item da fila -----
   const fh = e.target.closest("[data-pad]");
-  if (fh){ const v = fh.value==="" ? null : Math.max(0, Math.round((Number(fh.value)||0)*2)/2);
-    if (v==null){ render(); return; }
-    editarFases(F=>{ const f=F[Number(fh.dataset.pad)]; if (f) f.h = v; }); return; }
-  // "a partir de" de uma mudança de padrão: vale da segunda-feira daquela semana; precisa ficar entre a mudança
-  // anterior e a seguinte (senão volta como estava)
-  const fa = e.target.closest("[data-padate]");
-  if (fa){ const i = Number(fa.dataset.padate), F = fasesVivas();
-    if (!fa.value || !F[i] || i < 1){ render(); return; }
-    const m = ymd(segunda(new Date(fa.value+"T00:00:00")));
-    const min = i===1 ? addDias(semanaAtualKey(), 7) : addDias(inicioFase(F, i-1), 7);
-    if (m < min || (F[i].ate && addDias(m,-1) >= F[i].ate)){ render(); return; }
-    editarFases(G=>{ G[i-1].ate = addDias(m,-1); }); return; }
-  // ➕ mudar o padrão a partir de uma data: divide o padrão que vale nessa semana (nasce igual → nada muda até editar)
-  if (e.target.id==="padAddDate"){
-    if (!e.target.value) return;
-    const m = ymd(segunda(new Date(e.target.value+"T00:00:00")));
-    if (m <= semanaAtualKey() || m > PLANO_FIM){ render(); return; }
-    let novo = -1;
-    editarFases(F=>{
-      const k = F.findIndex(f=>!f.ate || m <= f.ate);
-      if (k < 0) return;
-      if (k > 0 && inicioFase(F, k) === m){ novo = k; return; }          // já existe uma mudança nessa semana
-      F.splice(k, 0, { ate: addDias(m,-1), h: F[k].h, fortes:[...F[k].fortes] }); novo = k + 1;
-    });
-    setTimeout(()=>{ const n = document.querySelector(`[data-pad="${novo}"]`); if (n){ n.focus(); n.select(); } }, 30);
-    return; }
+  if (fh){ if (fh.value===""){ render(); return; } setPadrao(Number(fh.value)); return; }
   const wk = e.target.closest("[data-wk],[data-wksem]");     // data-wksem = o mesmo número, no editor do cartão
   if (wk){ const k = wk.dataset.wk || wk.dataset.wksem;
     setHorasSemana(k, wk.value==="" ? null : Number(wk.value));
@@ -778,8 +754,6 @@ function faseDoDia(iso){ const F = fases(); for (const f of F){ if (!f.ate || is
 function segunda(d){ const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-((x.getDay()+6)%7)); return x; }
 // 1ª segunda-feira em iso ou depois
 function segundaDesde(iso){ const d = new Date(iso+"T00:00:00"); d.setDate(d.getDate() + (8 - d.getDay()) % 7); return ymd(d); }
-// segunda-feira a partir da qual a fase i (i ≥ 1 em fasesVivas) passa a valer
-function inicioFase(F, i){ return segundaDesde(addDias(F[i-1].ate, 1)); }
 function padraoDaSemana(key){ return faseDoDia(key).h; }
 // horas planejadas pra semana inteira: o número próprio dela (HS) ou o padrão
 function horasDaSemana(key){ return HS[key] != null ? (Number(HS[key])||0) : padraoDaSemana(key); }
@@ -961,11 +935,12 @@ function saveRotina(){
   try { ROT ? localStorage.setItem(LS_ROT, JSON.stringify(ROT)) : localStorage.removeItem(LS_ROT); } catch(e){}
   gravarNuvem("rotina", ROT).then(()=>setSyncTag());
 }
-// edita as fases da rotina: parte das que ainda valem (as derivadas do modelo antigo passam a ser as salvas), aplica e grava
-function editarFases(fn){
-  const F = fasesVivas().map(f=>({ ate:f.ate, h:f.h, fortes:[...f.fortes] }));
-  fn(F);
-  ROT = normFases(F); saveRotina(); renderManterFoco();
+// o padrão de horas por semana é UM número (nov/2026: a tela de "mudanças a partir de uma data" saiu — "muito confusa").
+// Grava como uma fase só e NÃO mexe nas semanas com horas próprias (um + seguido de − apagaria as que batessem no meio)
+function setPadrao(v){
+  v = Math.max(0, Math.round((Number(v)||0)*2)/2);
+  ROT = [{ ate:null, h:v, fortes:[] }]; saveRotina();
+  renderManterFoco();
 }
 
 async function boot(){
@@ -1152,6 +1127,29 @@ async function boot(){
         if (Number(HS["2027-04-12"]) === 30){ delete HS["2027-04-12"]; mudou = true; }
         if (mudou) savePlano(true);
         fetch(`${SYNC_URL}/migAbril27.json`, { method:"PUT", body:"true" }).catch(()=>{});
+      }
+    } catch(e){}
+  }
+  // migração ÚNICA (nov/2026): a tela "Padrão de horas" com mudanças por data saiu ("pode tirar essa tela, é muito
+  // confusa"). Cada semana que seguia uma mudança (9h abr/27, 6h set–nov/27, 5h dez/27…) ganha o número como horas
+  // próprias (azul na grade) — a grade mostra os mesmos números e nenhuma conta muda — e o padrão vira um número só.
+  if (cloudOK){
+    try {
+      const mr = await fetch(`${SYNC_URL}/migFasesSemanas.json`, { cache:"no-store" });
+      const done = mr.ok ? await mr.json() : null;
+      if (!done){
+        const F = fasesVivas();
+        if (F.length > 1){
+          const pad = F[0].h; let mudou = false;
+          for (let k = semanaAtualKey(); k <= PLANO_FIM; k = addDias(k, 7)){
+            if (HS[k] != null) continue;
+            const h = padraoDaSemana(k);
+            if (Math.abs(h - pad) > 0.01){ HS[k] = h; mudou = true; }
+          }
+          ROT = [{ ate:null, h:pad, fortes:[] }]; saveRotina();
+          if (mudou) savePlano(true);
+        }
+        fetch(`${SYNC_URL}/migFasesSemanas.json`, { method:"PUT", body:"true" }).catch(()=>{});
       }
     } catch(e){}
   }
@@ -1624,7 +1622,9 @@ const mesDaSemana = key => addDias(key, 3).slice(0,7);
 // "até 31/jan" = o domingo da semana em que o jogo termina
 const ateTxt = x => x && x.fimWk ? (x.fimWk > PLANO_FIM ? `passa de dez/${PLANO_FIM.slice(2,4)}` : `até ${fmtDA(addDias(x.fimWk,6))}`)
                                  : (x ? `passa de dez/${PLANO_FIM.slice(2,4)}` : "");
-let sheet = null;   // painel de baixo do Plano: {t:"sem", k:"<segunda>"} · {t:"pad"} · {t:"jogo", i}
+// grade "Horas por semana" aberta ou recolhida (fica lembrado neste aparelho)
+let wgOpen = (()=>{ try { return localStorage.getItem("perfil-gamer:wgOpen") !== "0"; } catch(e){ return true; } })();
+let sheet = null;   // painel de baixo do Plano: {t:"sem", k:"<segunda>"} · {t:"jogo", i}
 // trechos de semanas em que cada item é jogado (semanas seguidas viram um trecho só): Map item → [[ini, fim)]
 function trechosAgenda(A){
   const tr = new Map();
@@ -1697,26 +1697,31 @@ function viewPlano(){
     <div class="card tlcard">${ativos.length ? eixo + ativos.map(linha).join("") : '<p class="lead" style="margin:4px 2px">Nenhum jogo planejado ainda.</p>'}
       <div class="wknote" style="margin:10px 0 0">Joga um por vez, de cima pra baixo. Toque num jogo pra lançar horas, mover ou editar.</div></div>`;
 
-  // ---- horas por semana: grade (mês → semanas); toque numa semana pra mudar ----
-  const FV = fasesVivas(), nMud = FV.length - 1;
+  // ---- horas por semana: grade (mês → semanas), recolhível; toque numa semana pra mudar ----
+  const pad = fasesVivas()[0].h;
   const grupos = [];
   A.semanas.filter(w=>w.dentro).forEach(w=>{ const m = mesDaSemana(w.key); let gr = grupos[grupos.length-1];
     if (!gr || gr.mes !== m) grupos.push(gr = { mes:m, sem:[] }); gr.sem.push(w); });
   const grade = grupos.map(gr=>{
     const [a, m] = gr.mes.split("-").map(Number), tot = gr.sem.reduce((s,w)=>s+w.orc, 0);
     return `<div class="wgm"><span class="wgml">${MESES[m-1]}${a!==ANO_HOJE?`<small>${String(a).slice(2)}</small>`:""}</span>
-      <span class="wgc">${gr.sem.map(w=>`<button type="button" class="wgk num${w.aj?" aj":""}${w.atual?" atual":""}" data-psheet="sem:${w.key}" aria-label="Semana de ${fmtSemA(w.key)}: ${fmtH(w.orc)}">${fmtN(w.orc)}</button>`).join("")}</span>
+      <span class="wgc">${gr.sem.map(w=>`<button type="button" class="wgk num${(w.aj && Math.abs(w.orc - padraoDaSemana(w.key)) > 0.01)?" aj":""}${w.atual?" atual":""}" data-psheet="sem:${w.key}" aria-label="Semana de ${fmtSemA(w.key)}: ${fmtH(w.orc)}">${fmtN(w.orc)}</button>`).join("")}</span>
       <span class="wgmt num">${fmtH(tot)}</span></div>`; }).join("");
   const wAt = A.semanas.find(w=>w.atual);
   const estaSem = wAt ? `<button type="button" class="wgatual" data-psheet="sem:${wAt.key}"><span>Esta semana: joguei <b>${fmtH(A.jog)}</b> de ${fmtH(wAt.orc)}${
       A.jog > wAt.orc + 0.05 ? ` · <b class="vplus">+${fmtH(A.jog-wAt.orc)}</b>` : ` · restam <b>${fmtH(wAt.cap)}</b>`}</span><span class="pchev">›</span></button>` : "";
-  const gradeSec = `<div class="sechead"><h2>⏱ Horas por semana</h2></div>
-    <div class="card wgcard">
-      <button type="button" class="wgpad" data-psheet="pad"><span>Padrão <b>${fmtH(FV[0].h)}</b> por semana${nMud ? ` <small>· muda ${nMud}× depois</small>` : ""}</span><span class="pchev">›</span></button>
+  const gradeSec = `<details class="wgbox" ${wgOpen?"open":""}>
+    <summary><span>⏱ Horas por semana</span><span class="wksub">padrão ${fmtH(pad)}${wAt ? ` · esta semana ${fmtN(A.jog)}/${fmtH(wAt.orc)}` : ""}</span><span class="schev">▸</span></summary>
+    <div class="wgbody">
+      <div class="wgpad"><span>Padrão por semana</span>
+        <span class="wgst"><button type="button" class="vstep" data-padstep="0:-1" aria-label="Uma hora a menos">−</button>
+          <input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-pad="0" value="${pad}" aria-label="Horas por semana (padrão)" />
+          <button type="button" class="vstep" data-padstep="0:1" aria-label="Uma hora a mais">+</button></span></div>
       ${estaSem}
       <div class="wggrid">${grade}</div>
       <div class="wknote" style="margin:10px 0 0">Toque numa semana pra mudar as horas. <span class="wgleg aj">azul</span> = diferente do padrão.</div>
-    </div>`;
+    </div>
+  </details>`;
 
   const bkSec = naBacklog.length ? `<details class="bkbox" ${bkOpen?"open":""}>
     <summary><span>📥 Backlog</span><span class="wksub">${naBacklog.length} jogo${naBacklog.length>1?"s":""} · fora da conta</span><span class="schev">▸</span></summary>
@@ -1765,20 +1770,6 @@ function viewSheet(){
       <div class="shnota">${w.aj ? `<button type="button" class="vrot" data-wkreset="${w.key}">↺ Voltar ao padrão (${fmtH(pad)})</button>` : `No padrão (${fmtH(pad)}). Mudar aqui vale só pra essa semana.`}</div>
       <div class="wksec">O que jogo nela</div>${jogos}
       ${joguei}${fechar}`;
-  }
-  if (sheet.t === "pad"){
-    const FV = fasesVivas();
-    const muds = FV.slice(1).map((f,k)=>{ const i = k+1; return `<div class="shmud">
-        <span class="shmudl">a partir de</span>
-        <input class="padate" type="date" data-padate="${i}" value="${inicioFase(FV,i)}" min="${addDias(A.wkAtual,7)}" max="${PLANO_FIM}" aria-label="Semana em que o padrão muda" />
-        ${step("pad", i, f.h, false, "Horas por semana a partir dessa data")}
-        <button type="button" class="wkrst" data-paddel="${i}" aria-label="Tirar esta mudança">✕</button></div>`; }).join("");
-    return `<h2>Padrão de horas</h2>
-      <div class="shnota" style="margin-top:2px">Vale pra toda semana que não tem número próprio.</div>
-      <div class="wksec">Por semana</div>${step("pad", 0, FV[0].h, false, "Horas por semana")}
-      <div class="wksec">Mudanças</div>${muds || `<div class="shnota">Nenhuma. Use se a rotina mudar de vez (ex.: a partir de maio, 5h).</div>`}
-      <div class="wkadd"><span>➕ Mudar a partir de</span><input type="date" id="padAddDate" min="${addDias(A.wkAtual,7)}" max="${PLANO_FIM}" aria-label="Escolher a data em que o padrão muda" /></div>
-      ${fechar}`;
   }
   // jogo
   const i = sheet.i, p = P[i]; if (!p){ sheet = null; return ""; }
@@ -1846,6 +1837,8 @@ function render(){
   }));
   const bb = document.querySelector("details.bkbox");
   if (bb) bb.addEventListener("toggle", ()=>{ bkOpen = bb.open; });
+  const wg = document.querySelector("details.wgbox");
+  if (wg) wg.addEventListener("toggle", ()=>{ wgOpen = wg.open; try { localStorage.setItem("perfil-gamer:wgOpen", wgOpen ? "1" : "0"); } catch(e){} });
   // painel de baixo do Plano (semana / padrão / jogo): redesenhado junto com a tela
   const shEl = $("#psheet");
   const shHtml = (tab==="plano" && sheet) ? viewSheet() : "";
@@ -2118,7 +2111,7 @@ document.addEventListener("click", e=>{
   // painel de baixo do Plano: abrir (semana · padrão · jogo), fechar, andar de semana
   const psh = e.target.closest("[data-psheet]");
   if (psh){ const [t, v] = psh.dataset.psheet.split(":");
-    sheet = t==="sem" ? { t, k:v } : t==="jogo" ? { t, i:Number(v) } : { t }; render(); return; }
+    sheet = t==="sem" ? { t, k:v } : { t, i:Number(v) }; render(); return; }
   if (e.target.closest("[data-shclose]") || e.target.id === "psheet"){ sheet = null; render(); return; }
   const shn = e.target.closest("[data-shnav]");
   if (shn && sheet && sheet.t==="sem"){ const k = addDias(sheet.k, 7*Number(shn.dataset.shnav));
@@ -2129,13 +2122,9 @@ document.addEventListener("click", e=>{
   const smm = e.target.closest("[data-semmais]");
   if (smm){ const g = J.find(x=>x && x.id===Number(smm.dataset.semmais));
     if (g){ setJogadasAtual(g, pjogadasAtual(g)+1); saveJogosQuiet(); render(); } return; }
-  // padrão de horas: − / + · tirar uma mudança ("a partir de"): a semana dela em diante volta ao valor anterior
+  // padrão de horas: − / +
   const pst = e.target.closest("[data-padstep]");
-  if (pst){ const [i, dd] = pst.dataset.padstep.split(":").map(Number);
-    editarFases(F=>{ const f=F[i]; if (f) f.h = Math.max(0, f.h + dd); }); return; }
-  const pdl = e.target.closest("[data-paddel]");
-  if (pdl){ const i = Number(pdl.dataset.paddel);
-    editarFases(F=>{ if (i >= 1 && F[i]){ F[i-1].ate = F[i].ate; F.splice(i,1); } }); return; }
+  if (pst){ setPadrao(fasesVivas()[0].h + Number(pst.dataset.padstep.split(":")[1])); return; }
   // fila: ⬆️ / ⬇️ troca de lugar com o vizinho (entre os que ainda estão na fila)
   const pmv = e.target.closest("[data-pmove]");
   if (pmv){ const [i, dd] = pmv.dataset.pmove.split(":").map(Number);

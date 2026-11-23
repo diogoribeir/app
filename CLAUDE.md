@@ -209,17 +209,17 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
     por linha, nada de botão repetido em cada semana; detalhe vai pro painel. Ordem da tela: **totais** → **🗺 Fila ·
     linha do tempo** (`＋ Jogo`) → **⏱ Horas por semana** → 📥 backlog. ⚠️ **Sem "Jogando agora" no Plano** (nov/2026:
     *"não precisa deixar jogo jogando nessa tela, tá redundante com a página principal"* — a aba Jogos já tem).
-    - **Horas = PADRÃO por semana + semanas com número próprio.** Toda semana vale o padrão (`padraoDaSemana(key)`),
-      a não ser que tenha número em `HS` (`horasDaSemana(key)`). `setHorasSemana(key, v)` grava e, se `v` = padrão,
-      **apaga** o ajuste (a semana volta a seguir o padrão — não fica "ajustada" à toa). O padrão mora nas **fases da
-      rotina** (nó `rotina`, mesmo formato `[{ate, h, fortes}]`): a 1ª fase viva = **"Padrão"** e as seguintes aparecem
-      como **"a partir da semana de <data>"** (`inicioFase(F,i)` = 1ª segunda depois do `ate` da anterior). **A semana
-      inteira segue a fase da SEGUNDA-FEIRA dela.** ➕ "Mudar o padrão a partir de" (`#padAddDate`) divide o padrão
-      daquela semana (nasce igual → nada muda até editar) e já foca o número novo; ✕ (`data-paddel`) junta a mudança
-      com a anterior; a data (`data-padate`) só aceita uma segunda entre a mudança anterior e a seguinte. Os **dias
-      fortes** (`fortes`, `PESO_FORTE`, `FORTES_ATE`) **saíram da conta** — seguem gravados nas fases, sem efeito.
-      `padraoSemana`/`HM` continuam lidos/gravados no `plano2026` só p/ derivar as fases de quem nunca editou
-      (`rotinaDoLegado()`); `ROT` real do Diogo em nov/2026: 7h · 9h (abr/27) · 7h · 6h (set/27) · 5h (dez/27).
+    - **Horas = PADRÃO por semana (UM número) + semanas com número próprio.** Toda semana vale o padrão
+      (`padraoDaSemana(key)`), a não ser que tenha número em `HS` (`horasDaSemana(key)`). `setHorasSemana(key, v)` grava
+      e, se `v` = padrão, **apaga** o ajuste. O padrão se muda com − / + na própria grade (`data-pad`/`data-padstep` →
+      `setPadrao(v)`, que grava `ROT = [{ate:null, h:v}]` no nó `rotina` e **não mexe nas semanas** — uma versão que
+      "limpava" semanas iguais ao padrão novo apagava as de 8h num simples + seguido de −). ⚠️ **Não existe mais "mudar o
+      padrão a partir de uma data"**: a tela "Padrão de horas" com mudanças por data foi tirada a pedido (*"pode tirar
+      essa tela, é muito confusa"*); mudança longa = números nas semanas. Migração única **`migFasesSemanas`**: as
+      semanas que seguiam uma mudança (9h abr/27, 6h set–nov/27, 5h dez/27) ganharam o número como horas próprias e o
+      padrão virou só 7h — a grade mostra os mesmos números e nenhuma conta mudou. A semana segue a fase da SEGUNDA-FEIRA
+      (só importa pra dados antigos com várias fases). Dias fortes (`fortes`) não contam. `padraoSemana`/`HM` seguem
+      no `plano2026` só p/ derivar a rotina de quem nunca editou (`rotinaDoLegado()`).
     - **Semana em curso = planejado − jogado** (sem regra de "dias que faltam"): `cap = max(horasDaSemana − jogadoSemana(), 0)`.
       Jogou mais que o planejado → zera e mostra **"+Xh além do planejado"** (verde). ⚠️ Pedido explícito dele (nov/2026:
       *"estimo 10h; se apliquei 5h, só tenho mais 5h; se joguei 12h, são 2h a mais"*). Sempre mostrar "restam Xh até
@@ -245,14 +245,15 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       e por jogo (na ordem de `P`): nome · "72h · até 31/jan/27" (domingo da semana em que termina; vermelho "passa de
       dez/27") e a **barra** nos meses em que é jogado (`trechosAgenda(A)`: semanas seguidas viram um trecho; jogo
       pausado por outro aparece em 2 barras). Barra cheia = em andamento; meio-transparente = na fila. Tocar abre o painel.
-    - **Horas por semana** (`.wgcard`): linha **"Padrão 7h por semana · muda N× depois ›"** (abre o painel do padrão),
-      linha **"Esta semana: joguei Xh de Yh · restam/+Zh ›"** e a **grade**: uma linha por mês (mês da quinta-feira),
-      um botão por semana com só o número (`.wgk`; azul = número próprio, contorno = semana em curso) e o total do mês.
+    - **Horas por semana** (`details.wgbox`, **recolhível** — pedido dele: *"mantenha essa mas com opção de recolher"*;
+      `wgOpen` lembrado em `localStorage` `perfil-gamer:wgOpen`, começa aberta; recolhida mostra "padrão 7h · esta semana
+      0/10h"): linha **"Padrão por semana − 7 +"**, linha **"Esta semana: joguei Xh de Yh · restam/+Zh ›"** e a
+      **grade**: uma linha por mês (mês da quinta-feira), um botão por semana com só o número (`.wgk`; azul = número
+      diferente do padrão, contorno = semana em curso) e o total do mês.
     - **Painel de baixo** (`#psheet`, estado `sheet`, `viewSheet()`; redesenhado a cada `render()`, fecha ao tocar no
       fundo/Fechar): **semana** (`{t:"sem",k}`: ‹ › entre semanas, − [h] + (`data-wk`/`data-wkstep`), "↺ Voltar ao padrão",
       o que joga nela com "depois faltam Xh" e, na semana em curso, o **Joguei nesta semana** por jogo — `data-semjog`/
-      `data-semmais`) · **padrão** (`{t:"pad"}`: − / + do padrão, mudanças "a partir de" com data/− +/✕, ➕ Mudar a partir
-      de) · **jogo** (`{t:"jogo",i}`: posição, estimativa, Horas jogadas + +1h, começa/termina na semana de…, "sai…",
+      `data-semmais`) · **jogo** (`{t:"jogo",i}`: posição, estimativa, Horas jogadas + +1h, começa/termina na semana de…, "sai…",
       aviso "suba ele", **"Semanas · de onde vêm as horas"** (`.shsem`: cada semana em que o jogo entra e quantas horas dela
       vão pra ele; azul = semana com horas próprias; toque abre a semana) e ▶️ / ⬆️ / ⬇️ / ✏️ / 🎮 / 📥 / 🗑).
       ⚠️ Esse "de onde vêm as horas" existe porque o Diogo viu o Exodus (33h) cabendo em 2 semanas e achou a conta
