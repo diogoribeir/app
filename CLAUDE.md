@@ -206,8 +206,9 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
     **totais no topo** (apps de orçamento tipo YNAB) · **"tocando agora" pequeno** (players de música) · **fila como
     linha do tempo** (roadmaps tipo Notion/Linear) · **horas como grade de semanas** (calendário/hábitos) · **todo
     detalhe/edição num painel de baixo** (`sheet`, bottom sheet). ⚠️ Manter a tela ENXUTA: nada de texto explicativo
-    por linha, nada de botão repetido em cada semana; detalhe vai pro painel. Ordem da tela: **totais** → **Jogando
-    agora** → **🗺 Fila · linha do tempo** (`＋ Jogo`) → **⏱ Horas por semana** → 📥 backlog.
+    por linha, nada de botão repetido em cada semana; detalhe vai pro painel. Ordem da tela: **totais** → **🗺 Fila ·
+    linha do tempo** (`＋ Jogo`) → **⏱ Horas por semana** → 📥 backlog. ⚠️ **Sem "Jogando agora" no Plano** (nov/2026:
+    *"não precisa deixar jogo jogando nessa tela, tá redundante com a página principal"* — a aba Jogos já tem).
     - **Horas = PADRÃO por semana + semanas com número próprio.** Toda semana vale o padrão (`padraoDaSemana(key)`),
       a não ser que tenha número em `HS` (`horasDaSemana(key)`). `setHorasSemana(key, v)` grava e, se `v` = padrão,
       **apaga** o ajuste (a semana volta a seguir o padrão — não fica "ajustada" à toa). O padrão mora nas **fases da
@@ -240,8 +241,6 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       data (antes do 1º não começado com data depois da dele; sem data → fim); **editar não muda a posição**.
     - **Totais** (`.ptot`): **na fila** (Σ `pfaltaH` dos itens da fila) · **tenho até dez/27** (Σ `cap` das semanas do
       plano, a semana em curso já descontada) · **sobra/falta** (= tenho − fila), barra fila/tenho e o veredito da agenda.
-    - **Jogando agora** (`.np`): uma linha por item em andamento — nome, "18 de 90h · até 31/jan/27", barra e **+1h**
-      (`data-pmais`). Tocar abre o painel do jogo. Sem nada em andamento: "Próximo: X" + ▶️.
     - **Fila · linha do tempo** (`.tlcard`): eixo de meses (hoje → dez/27, `--nm` meses de largura igual; `xPos(iso)`),
       e por jogo (na ordem de `P`): nome · "72h · até 31/jan/27" (domingo da semana em que termina; vermelho "passa de
       dez/27") e a **barra** nos meses em que é jogado (`trechosAgenda(A)`: semanas seguidas viram um trecho; jogo
@@ -254,7 +253,13 @@ como atualizar cada app e como publicar. **Responda sempre em português (BR).**
       o que joga nela com "depois faltam Xh" e, na semana em curso, o **Joguei nesta semana** por jogo — `data-semjog`/
       `data-semmais`) · **padrão** (`{t:"pad"}`: − / + do padrão, mudanças "a partir de" com data/− +/✕, ➕ Mudar a partir
       de) · **jogo** (`{t:"jogo",i}`: posição, estimativa, Horas jogadas + +1h, começa/termina na semana de…, "sai…",
-      aviso "suba ele", e ▶️ / ⬆️ Subir / ⬇️ Descer / ✏️ / 🎮 / 📥 / 🗑).
+      aviso "suba ele", **"Semanas · de onde vêm as horas"** (`.shsem`: cada semana em que o jogo entra e quantas horas dela
+      vão pra ele; azul = semana com horas próprias; toque abre a semana) e ▶️ / ⬆️ / ⬇️ / ✏️ / 🎮 / 📥 / 🗑).
+      ⚠️ Esse "de onde vêm as horas" existe porque o Diogo viu o Exodus (33h) cabendo em 2 semanas e achou a conta
+      sem sentido — eram semanas de abr/27 com 20h e 30h gravadas numa versão antiga. Conta da agenda tem que ficar
+      **à vista**, nunca só o resultado.
+    - **Migração única `migAbril27`** (nov/2026): apagou as horas próprias das semanas de 5/abr/27 (20h) e 12/abr/27
+      (30h) — *"não tem essas horas disponíveis nesse curto período"* — só se ainda estivessem com 20/30.
     - Os campos do Plano salvam com `savePlano(true)` (quieto) + `renderManterFoco()` (redesenha no tick seguinte e
       devolve o foco ao campo equivalente).
     - `ymd(d)` formata a data **local** (antes usava `toISOString()`: num fuso à frente do UTC a chave da semana
