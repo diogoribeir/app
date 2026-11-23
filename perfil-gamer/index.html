@@ -324,17 +324,6 @@ details.sec>summary:active{background:var(--surface2)}
 .vbar{height:8px;border-radius:999px;background:var(--surface2);overflow:hidden;margin:12px 0 8px}
 .vbar>span{display:block;height:100%;border-radius:999px;background:var(--vc);min-width:4px}
 .ptotv{font-size:.74rem;font-weight:700;color:var(--vc);line-height:1.4}
-.np{padding:10px 12px}
-.nphd{font-size:.58rem;color:var(--muted);font-weight:800;letter-spacing:.09em;text-transform:uppercase;margin:0 2px 4px}
-.nprow{display:flex;align-items:center;gap:10px;padding:4px 0}
-.nprow+.nprow{border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
-.npbody{flex:1;min-width:0;display:block;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px;cursor:pointer}
-.npnm{display:block;font-size:.92rem;font-weight:800;line-height:1.25;overflow-wrap:anywhere}
-.npsub{display:block;font-size:.7rem;color:var(--muted);font-weight:700;margin-top:1px}
-.npbody .pprog{display:block;margin-top:6px}
-.npmais{flex:0 0 auto;border:0;border-radius:12px;padding:11px 14px;font:inherit;font-size:.84rem;font-weight:800;cursor:pointer;
-  background:var(--accent);color:#fff}
-.npmais:active{transform:scale(.95)}
 .sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 4px 9px}
 .sechead h2{margin:0}
 .secadd{flex:0 0 auto;border:0;border-radius:10px;padding:8px 13px;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer;
@@ -435,6 +424,13 @@ details.bkbox[open]>summary .schev{transform:rotate(90deg)}
 .shinfo>div{padding:3px 0}
 .shinfo b{color:var(--ink)}
 .tarde{color:var(--mr)}
+.shsems{display:flex;flex-wrap:wrap;gap:6px}
+.shsem{display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);
+  font:inherit;border-radius:10px;padding:6px 9px;cursor:pointer;text-align:left}
+.shsem b{font-size:.84rem;font-weight:800}
+.shsem small{font-size:.62rem;color:var(--muted);font-weight:700}
+.shsem.aj{border-color:var(--accent);background:var(--accent-soft)}
+.shsem.aj b{color:var(--accent)}
 .shmud{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
 .shmudl{flex:0 0 100%;font-size:.64rem;font-weight:800;color:var(--muted)}
 .shmud .shstep{gap:5px}
@@ -1143,6 +1139,22 @@ async function boot(){
       }
     } catch(e){}
   }
+  // migração ÚNICA (nov/2026): as semanas de 5/abr/27 (20h) e 12/abr/27 (30h) tinham horas próprias gravadas numa
+  // versão antiga do Plano, e a agenda punha o Exodus inteiro (33h) em 2 semanas. O Diogo: "não tem essas horas
+  // disponíveis nesse curto período" → voltam ao padrão (só se ainda estiverem com 20h/30h).
+  if (cloudOK){
+    try {
+      const mr = await fetch(`${SYNC_URL}/migAbril27.json`, { cache:"no-store" });
+      const done = mr.ok ? await mr.json() : null;
+      if (!done){
+        let mudou = false;
+        if (Number(HS["2027-04-05"]) === 20){ delete HS["2027-04-05"]; mudou = true; }
+        if (Number(HS["2027-04-12"]) === 30){ delete HS["2027-04-12"]; mudou = true; }
+        if (mudou) savePlano(true);
+        fetch(`${SYNC_URL}/migAbril27.json`, { method:"PUT", body:"true" }).catch(()=>{});
+      }
+    } catch(e){}
+  }
   try { const r = await fetch(`${SYNC_URL}/_at.json`, { cache:"no-store" });
     const v = await r.json(); if (typeof v === "number") syncStamp = Math.max(syncStamp, v); } catch(e){}
   if (cloudOK) guardarStamp();
@@ -1653,29 +1665,6 @@ function viewPlano(){
     <div class="ptotv">${verd}</div>
   </div>`;
 
-  // ---- jogando agora: uma linha por jogo, com +1h ----
-  const atuais = ativos.filter(emJogo);
-  let agora;
-  if (atuais.length){
-    agora = atuais.slice(0,3).map(({p,i})=>{
-      const g = plinked(p), est = estH(p.est), j = pjogadasAtual(g), x = A.porP.get(p), pausa = !temStatus(g,"#");
-      return `<div class="nprow">
-        <button type="button" class="npbody" data-psheet="jogo:${i}">
-          <span class="npnm">${pausa?"⏸️ ":""}${esc(p.jogo)}</span>
-          <span class="npsub num">${fmtN(j)} de ${est ? est+"h" : "?"}${x ? ` · ${ateTxt(x)}` : ""}</span>
-          ${est ? `<span class="pprog"><span style="width:${Math.min(j/est*100,100)}%"></span></span>` : ""}
-        </button>
-        <button type="button" class="npmais" data-pmais="${i}">+1h</button>
-      </div>`; }).join("");
-  } else {
-    const px = A.its.filter(x=>x.iniWk).sort((a,b)=> a.ini<b.ini ? -1 : 1)[0];
-    agora = px ? `<div class="nprow"><button type="button" class="npbody" data-psheet="jogo:${px.i}">
-        <span class="npnm">Próximo: ${esc(px.p.jogo)}</span><span class="npsub">${px.ini <= A.hojeIso ? "dá pra começar já" : `a partir de ${fmtDA(px.ini)}`}</span></button>
-        <button type="button" class="npmais" data-pjogar="${px.i}">▶️</button></div>`
-      : `<div class="npsub" style="padding:4px 2px">Nenhum jogo na fila.</div>`;
-  }
-  const agoraSec = `<div class="card np"><div class="nphd">${atuais.length ? "Jogando agora" : "Nada em andamento"}</div>${agora}</div>`;
-
   // ---- linha do tempo: uma barra por jogo nos meses de hoje até o fim do plano ----
   const m0 = new Date(A.hojeIso+"T00:00:00"), meses = [];
   for (let a=m0.getFullYear(), m=m0.getMonth(); `${a}-${String(m+1).padStart(2,"0")}` <= PLANO_FIM.slice(0,7); m===11 ? (a++, m=0) : m++) meses.push([a,m]);
@@ -1734,7 +1723,7 @@ function viewPlano(){
     <div class="bkbody">${naBacklog.map(({p,i})=>`<button type="button" class="bkit" data-psheet="jogo:${i}"><span>${esc(p.jogo)}</span><small>${estH(p.est) ? estH(p.est)+"h" : ""}</small></button>`).join("")}</div>
   </details>` : "";
 
-  return totais + agoraSec + tlSec + gradeSec + bkSec;
+  return totais + tlSec + gradeSec + bkSec;
 }
 // ---- painel de baixo do Plano: uma semana, o padrão ou um jogo ----
 function viewSheet(){
@@ -1809,6 +1798,12 @@ function viewSheet(){
   else if (!p.data && !p.iniciado) info.push(`Sem data · entra em ${anoFila(p)}`);
   if (!p.backlog && x && !p.iniciado && p.data && x.ini > p.data && semanasAte(ymd(segunda(new Date(p.data+"T00:00:00"))), x.iniWk) >= 1)
     info.push(`Os jogos de cima vêm antes. Quer jogar assim que sair? ⬆️ Suba ele.`);
+  // de onde vêm as horas: cada semana em que o jogo é jogado e quanto dela vai pra ele (deixa a conta à vista)
+  const usoSem = [];
+  if (x) A.semanas.forEach(w=>w.segs.forEach(sg=>{ if (sg.x===x && sg.h >= 0.05) usoSem.push({ w, h:sg.h }); }));
+  const semanasJogo = usoSem.length ? `<div class="wksec">Semanas · de onde vêm as horas</div>
+      <div class="shsems">${usoSem.map(({w,h})=>`<button type="button" class="shsem${w.aj?" aj":""}" data-psheet="sem:${w.key}"><b class="num">${fmtH(h)}</b><small>${fmtSemA(w.key)}${h < w.cap - 0.05 ? ` · de ${fmtH(w.cap)}` : ""}</small></button>`).join("")}</div>
+      ${usoSem.some(u=>u.w.aj) ? `<div class="shnota">Em azul: semana com horas próprias (não é o padrão). Toque nela pra mudar.</div>` : ""}` : "";
   const horas = (jogando || pausado) ? `<div class="wksec">Horas jogadas${pausado?" · ⏸️ pausado":""}</div>
       <div class="shstep"><input class="wkinp" type="number" min="0" step="0.5" inputmode="decimal" data-phoras="${i}" value="${pjogadasAtual(g)}" aria-label="Horas jogadas" />
         <span class="wkun">de ${est||"?"}h</span><button type="button" class="pact" data-pmais="${i}">+1h</button></div>
@@ -1828,6 +1823,7 @@ function viewSheet(){
     <div class="shnota" style="margin-top:2px">${pos >= 0 ? `${pos+1}º da fila · ` : ""}${est ? `${est}h estimadas` : "sem estimativa"}${(jogando||pausado) && est ? ` · faltam ${fmtH(pfaltaH(p))}` : ""}</div>
     ${horas}
     <div class="shinfo">${info.map(t=>`<div>${t}</div>`).join("")}</div>
+    ${semanasJogo}
     <div class="pacts2" style="margin-top:14px">${acts.join("")}</div>
     ${fechar}`;
 }
